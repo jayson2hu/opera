@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "decision-clarity": {
+      "source": "shanezzzz/decision-clarity-skill",
+      "sourceType": "github",
+      "computedHash": "601fa1ef09e9fa8f3c97e61a664e446b02d852dfb22911a76fd9b4de2621ae57"
+    }
+  }
+}

@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+
+# Environment variables
+.env
+.env.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
+
+# Test artifacts
+opera-server/test-e2e.mjs
+
+# Lock files (each dev regenerates)
+package-lock.json
+
+# Claude Code local settings
+.claude/settings.local.json
