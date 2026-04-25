@@ -21,8 +21,8 @@ function parseProvider(value: string | undefined): ProviderId {
 }
 
 export const config = {
-  /** Server port */
-  port: parseInt(process.env.PORT || '3001', 10),
+  /** Server port (legacy Node defaults to 3002 to avoid conflicting with FastAPI on 3001) */
+  port: parseInt(process.env.PORT || '3002', 10),
 
   /** Default AI provider */
   defaultProvider: parseProvider(process.env.AI_PROVIDER),

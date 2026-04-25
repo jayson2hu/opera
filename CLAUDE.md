@@ -6,7 +6,7 @@ This file guides Claude Code when working in this repository.
 
 **Opera** is a content adaptation tool that converts WeChat Official Account (WOA) long-form articles into Xiaohongshu (XHS) post packages.
 
-The product is currently in **pre-development**. No application code exists yet. Work should stay aligned with the validated MVP scope and must not expand into publishing, account systems, or image editing unless the product definition is explicitly updated.
+The repository already contains a working frontend in `opera-app/`, a default FastAPI backend in `opera-server-py/`, and a legacy Node backend in `opera-server/` kept only for rollback/reference. Work should stay aligned with the validated MVP scope and must not expand into publishing, account systems, or image editing unless the product definition is explicitly updated.
 
 ## Product Positioning
 
@@ -31,14 +31,16 @@ The primary target user is an **overwhelmed solo creator** who:
 
 ## Current Phase
 
-The project is in **Phase 0: Validation**.
+The project is in **Phase 1: Prototype / active iteration**.
 
 This means:
-- no production app should be assumed to exist
-- no codebase architecture should be invented as if implementation is already underway
-- priority is validating the workflow manually before building software
+- the frontend and backend already exist and must be treated as the current working baseline
+- `opera-server-py/` is the default backend and repo-root `start-backend.ps1` / `start-backend.sh` are the default local startup entries
+- `docker compose up --build` is the default Linux/Ubuntu full-stack container workflow
+- `opera-server/` is source reference only; its runtime and old Node acceptance entrypoints are intentionally disabled and must not be revived as part of normal development or deployment
+- new work should extend the documented product scope instead of inventing a parallel architecture
 
-The next technical step happens **only after validation is successful**.
+The next technical steps should build on the current FastAPI + React baseline, not restart validation from scratch.
 
 ## MVP Boundary
 
@@ -112,11 +114,14 @@ Reason:
 
 Use the following files as the main project references:
 
-- `handoff.md` — full MVP definition, development phases, product decisions, and risks
+- `handoff.md` — project-level product scope, architecture baseline, and current default backend
+- `dev-handoff.md` — engineering progress, verification history, and current status
+- `opera-server-py/HANDOFF-FASTAPI.md` — default backend runbook and acceptance baseline
+- `feature-xhs-composer/PRD.md` — approved product and implementation baseline for the composer follow-up work
 - `skills/` — Claude Code skill definitions
 - `skills-lock.json` — skill version lock file
 
-If there is any ambiguity, prefer `handoff.md` as the source of truth for product scope and decision history.
+If there is any ambiguity, prefer `handoff.md` for product scope decisions and `opera-server-py/HANDOFF-FASTAPI.md` for backend runtime/acceptance decisions.
 
 ## Skills Context
 
@@ -171,15 +176,15 @@ Do not claim a feature is complete without reporting the verification result.
 
 ## Early-Stage Testing Guidance
 
-This project is still in an early MVP stage.
+This project is still in an early MVP stage, but the core web app and FastAPI backend already exist.
 
 Testing should be pragmatic:
 - prefer lightweight, high-signal verification first
-- do not overbuild test infrastructure before the core workflow is validated
+- reuse the established FastAPI contract/E2E validation flow before adding new test infrastructure
 - add formal automated tests where they meaningfully reduce regression risk
 - for early features, simple reproducible manual test steps are acceptable if automated tests are not yet justified
 
-The goal is reliable iteration, not test-suite bloat.
+The goal is reliable iteration on the existing baseline, not test-suite bloat.
 
 ## Progress Sync Requirement
 
@@ -253,7 +258,7 @@ A task is not done unless all of the following are true:
 ## What Claude Code Should Avoid
 
 Do not:
-- assume the app already exists
+- assume every planned feature already exists or is already production-ready
 - introduce publishing flows
 - add auth or account models without explicit approval
 - add scraping infrastructure in V1
@@ -265,8 +270,8 @@ Do not:
 
 ## Near-Term Goal
 
-The immediate goal is to support the transition from **manual validation** to the **smallest useful single-page web tool**.
+The immediate goal is to keep the current React + FastAPI baseline stable, extend only approved workflows, and preserve zero-change frontend compatibility with the default backend.
 
-That tool should do one thing well:
+That means continuing to do one thing well:
 
-**convert pasted WeChat article text into a usable Xiaohongshu post package.**
+**convert or help create Xiaohongshu-ready content packages while keeping publishing manual.**

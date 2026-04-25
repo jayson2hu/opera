@@ -46,13 +46,13 @@ export default function TextInput({
 
       <div
         className={`
-          relative rounded-2xl border-2 transition-all duration-200
+          relative rounded-2xl border-2 transition-all duration-300 overflow-hidden
           ${
             disabled
               ? 'border-neutral-200 bg-neutral-50 opacity-60'
               : hasContent
-                ? 'border-primary-300 bg-white shadow-card'
-                : 'border-neutral-200 bg-white hover:border-neutral-300 focus-within:border-primary-400 focus-within:shadow-card'
+                ? 'border-primary-300 bg-white shadow-md shadow-primary-500/5 focus-within:ring-4 focus-within:ring-primary-500/10 focus-within:border-primary-400'
+                : 'border-neutral-200 bg-white hover:border-neutral-300 hover:shadow-sm focus-within:border-primary-400 focus-within:ring-4 focus-within:ring-primary-500/10 focus-within:shadow-md'
           }
         `}
       >

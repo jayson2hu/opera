@@ -1,5 +1,11 @@
 # Dependencies
 node_modules/
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.pytest_cache/
 
 # Build output
 dist/
@@ -21,9 +27,16 @@ Thumbs.db
 
 # Test artifacts
 opera-server/test-e2e.mjs
+tmp-*.txt
+tmp-*.log
+*.err.log
+temp-*.txt
 
 # Lock files (each dev regenerates)
 package-lock.json
 
 # Claude Code local settings
 .claude/settings.local.json
+
+# Local agent/tool state
+.codebuddy/

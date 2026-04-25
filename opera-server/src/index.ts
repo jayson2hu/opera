@@ -7,6 +7,18 @@ import cors from 'cors';
 import { config, validateConfig } from './config.js';
 import generateRouter from './routes/generate.js';
 
+const legacyRuntimeEnabled = process.env.OPERA_ENABLE_LEGACY_NODE === '1';
+
+if (!legacyRuntimeEnabled) {
+  console.error(
+    'opera-server runtime is disabled. Use opera-server-py instead:\n' +
+      '  Windows: ../start-backend.ps1\n' +
+      '  Linux/macOS: ../start-backend.sh\n' +
+      '  Docker: docker compose up --build',
+  );
+  process.exit(1);
+}
+
 // ── Validate environment ────────────────────────────────────
 validateConfig();
 

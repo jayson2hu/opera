@@ -5,9 +5,8 @@
  */
 export default function Header() {
   return (
-    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-neutral-100">
+    <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 shadow-sm shadow-neutral-200/20">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
-        {/* 品牌标识 */}
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center shadow-sm">
             <svg
@@ -29,14 +28,13 @@ export default function Header() {
               Opera
             </span>
             <span className="hidden sm:inline text-xs text-neutral-400 font-medium">
-              公众号 → 小红书
+              内容创作工具
             </span>
           </div>
         </div>
 
-        {/* 右侧说明 */}
         <span className="text-xs text-neutral-400">
-          内容适配工具
+          内容创作工具
         </span>
       </div>
     </header>

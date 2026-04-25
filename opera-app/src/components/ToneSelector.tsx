@@ -42,14 +42,14 @@ export default function ToneSelector({
               disabled={disabled}
               aria-pressed={isSelected}
               className={`
-                group relative text-left p-4 rounded-2xl border-2 transition-all duration-200
+                group relative text-left p-4 rounded-2xl border-2 transition-all duration-300
                 cursor-pointer select-none
                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
                 disabled:opacity-50 disabled:cursor-not-allowed
                 ${
                   isSelected
-                    ? 'border-primary-400 bg-primary-50/60 shadow-card'
-                    : 'border-neutral-150 bg-white hover:border-neutral-300 hover:shadow-card'
+                    ? 'border-primary-400 bg-primary-50/60 shadow-md shadow-primary-500/10 scale-[1.02]'
+                    : 'border-neutral-150 bg-white hover:border-neutral-300 hover:shadow-md hover:-translate-y-1'
                 }
               `}
             >

@@ -1,4 +1,10 @@
-import type { ToneOption, StepConfig, GenerationResult, TagGroup } from './types';
+import type {
+  ContentTypeOption,
+  LengthOption,
+  StepConfig,
+  ToneOption,
+  WeChatArticleTypeOption,
+} from './types';
 
 // ============================================
 // 调性预设配置
@@ -32,7 +38,7 @@ export const TONE_OPTIONS: ToneOption[] = [
 ];
 
 // ============================================
-// 生成步骤配置
+// 适配器 / 创作步骤配置
 // ============================================
 
 export const GENERATION_STEPS: StepConfig[] = [
@@ -44,43 +50,61 @@ export const GENERATION_STEPS: StepConfig[] = [
   { id: 'done', label: '完成', description: '生成完成！' },
 ];
 
+export const COMPOSER_STEPS: StepConfig[] = [
+  { id: 'extracting', label: '提炼主题', description: '正在理解主题并规划结构...' },
+  { id: 'title', label: '生成标题', description: '正在生成标题...' },
+  { id: 'body', label: '撰写正文', description: '正在流式生成正文...' },
+  { id: 'tags', label: '标签配图', description: '正在生成标签和配图建议...' },
+  { id: 'done', label: '完成', description: '创作完成！' },
+];
+
+export const WECHAT_STEPS: StepConfig[] = [
+  { id: 'extracting', label: '定位选题', description: '正在梳理公众号文章定位...' },
+  { id: 'title', label: '生成标题', description: '正在拟定适合公众号的标题...' },
+  { id: 'digest', label: '撰写摘要', description: '正在提炼文章摘要...' },
+  { id: 'body', label: '生成正文', description: '正在流式撰写公众号正文...' },
+  { id: 'done', label: '完成', description: '公众号文章已生成完成！' },
+];
+
 // ============================================
-// 模拟数据 - 用于演示 streaming 效果
+// Composer / WeChat 配置
 // ============================================
 
-export const MOCK_RESULT: GenerationResult = {
-  coverTitles: [
-    '90%的人都不知道的高效阅读法，学会这3招就够了',
-    '为什么你读了100本书却记不住？问题出在这里',
-    '资深读书人的秘密：如何把一本书变成终身武器',
-    '别再无效阅读了！这套方法让你的阅读效率翻3倍',
-  ],
-  cards: [
-    '你有没有这种感觉？书看了不少，合上书就忘了大半。其实不是记忆力不好，而是阅读方法有问题。今天分享一套经过验证的高效阅读框架。',
-    '第一招：带着问题读。翻开书之前，先写下3个你最想解决的问题。这样你的大脑就会自动过滤无用信息，锁定关键内容。',
-    '第二招：用自己的话复述。每读完一个章节，合上书用30秒复述核心观点。说不出来的地方，就是你还没真正理解的地方。',
-    '第三招：建立知识连接。把新学到的概念和你已有的知识做关联。比如这个观点让你想到了什么？可以用在什么场景？连接越多，记忆越牢。',
-    '实践建议：不要贪多，一周精读一本比泛读五本更有效。读完后写一段200字的读书笔记，三个月后你会感谢现在的自己。',
-  ],
-  caption: '分享一个让我阅读效率提升3倍的方法论。\n\n以前我也是"读了就忘"星人，直到学会了这套框架：带着问题读 → 用自己的话复述 → 建立知识连接。\n\n核心原理其实很简单——主动阅读比被动阅读的记忆留存率高出5倍以上。\n\n最关键的一点：不要追求读书的数量，一周精读一本、写一段读书笔记，比泛泛翻完十本书有用得多。\n\n如果你也有"读了记不住"的困扰，试试这个方法，三个月后来找我反馈。',
-  tagGroups: [
-    {
-      type: 'broad',
-      label: '泛流量标签',
-      tags: ['自我提升', '学习方法', '个人成长', '知识管理'],
-    },
-    {
-      type: 'precise',
-      label: '精准标签',
-      tags: ['高效阅读', '读书方法', '阅读技巧', '读书笔记'],
-    },
-    {
-      type: 'longtail',
-      label: '长尾标签',
-      tags: ['读了就忘怎么办', '主动阅读法', '阅读效率提升', '费曼学习法'],
-    },
-  ] as TagGroup[],
-};
+export const CONTENT_TYPE_OPTIONS: ContentTypeOption[] = [
+  { id: 'recommend', emoji: '🌟', label: '种草推荐', description: '产品 / 体验安利' },
+  { id: 'knowledge', emoji: '📚', label: '干货分享', description: '方法论 / 技巧' },
+  { id: 'story', emoji: '🙋', label: '个人经历', description: '真实故事 / 成长' },
+  { id: 'tutorial', emoji: '🔬', label: '知识科普', description: '概念解释 / 科普' },
+];
+
+export const LENGTH_OPTIONS: LengthOption[] = [
+  { id: 'short', label: '短 ~200字', description: '适合快速表达重点' },
+  { id: 'medium', label: '中 ~400字', description: '结构完整，信息密度均衡' },
+  { id: 'long', label: '长 600字+', description: '适合展开经历与案例' },
+];
+
+export const WECHAT_ARTICLE_TYPE_OPTIONS: WeChatArticleTypeOption[] = [
+  { id: 'insight', emoji: '🧭', label: '观点评论', description: '适合行业观察、方法洞察、趋势判断' },
+  { id: 'guide', emoji: '🗂️', label: '方法指南', description: '适合步骤拆解、经验总结、教程类长文' },
+  { id: 'story', emoji: '✍️', label: '经历复盘', description: '适合案例分享、成长故事、实战复盘' },
+  { id: 'briefing', emoji: '📰', label: '精选简报', description: '适合资讯整合、观点摘录、专栏简报' },
+];
+
+export const WECHAT_DRAFT_STORAGE_KEY = 'opera.wechat.drafts';
+
+// ============================================
+// API 配置
+// ============================================
+
+const DEFAULT_DEV_API_BASE_URL = 'http://localhost:3001';
+const ENV_API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '') ?? '';
+
+export const API_BASE_URL = ENV_API_BASE_URL || (import.meta.env.DEV ? DEFAULT_DEV_API_BASE_URL : '');
+
+export function buildApiUrl(path: string): string {
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  return `${API_BASE_URL}${normalizedPath}`;
+}
 
 // ============================================
 // 工具函数
@@ -95,5 +119,5 @@ export function countChars(text: string): number {
 export function countParagraphs(text: string): number {
   return text
     .split(/\n\s*\n/)
-    .filter((p) => p.trim().length > 0).length;
+    .filter((paragraph) => paragraph.trim().length > 0).length;
 }

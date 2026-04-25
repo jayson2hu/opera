@@ -54,7 +54,7 @@ export default function SlideCards({ cards }: SlideCardsProps) {
           return (
             <div
               key={i}
-              className="group relative bg-white rounded-xl border border-neutral-200 overflow-hidden transition-all duration-200 hover:shadow-card"
+              className="group relative bg-white rounded-xl border border-neutral-200 overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary-200 hover:-translate-y-1"
             >
               {/* 卡片头部 */}
               <div className="flex items-center justify-between px-3.5 py-2 bg-neutral-50 border-b border-neutral-100">

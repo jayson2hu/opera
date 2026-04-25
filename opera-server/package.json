@@ -1,14 +1,16 @@
 {
   "name": "opera-server",
   "version": "0.1.0",
-  "description": "Opera backend - converts WeChat articles into Xiaohongshu post packages",
+  "description": "Opera legacy Node backend source reference only (runtime disabled)",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "tsc && node dist/index.js",
-    "dev:watch": "tsx watch src/index.ts",
+    "dev": "node -e \"console.error('opera-server runtime is disabled. Use the FastAPI backend instead:\\n  Windows: ../start-backend.ps1\\n  Linux/macOS: ../start-backend.sh\\n  Docker: docker compose up --build'); process.exit(1)\"",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node -e \"console.error('opera-server runtime is disabled. Use the FastAPI backend instead:\\n  Windows: ../start-backend.ps1\\n  Linux/macOS: ../start-backend.sh\\n  Docker: docker compose up --build'); process.exit(1)\"",
+    "legacy:dev": "node -e \"console.error('opera-server runtime is disabled. Use the FastAPI backend instead:\\n  Windows: ../start-backend.ps1\\n  Linux/macOS: ../start-backend.sh\\n  Docker: docker compose up --build'); process.exit(1)\"",
+    "legacy:watch": "node -e \"console.error('opera-server runtime is disabled. Use the FastAPI backend instead:\\n  Windows: ../start-backend.ps1\\n  Linux/macOS: ../start-backend.sh\\n  Docker: docker compose up --build'); process.exit(1)\"",
+    "legacy:start": "node -e \"console.error('opera-server runtime is disabled. Use the FastAPI backend instead:\\n  Windows: ../start-backend.ps1\\n  Linux/macOS: ../start-backend.sh\\n  Docker: docker compose up --build'); process.exit(1)\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
