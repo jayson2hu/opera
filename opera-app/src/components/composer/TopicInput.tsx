@@ -7,6 +7,7 @@ interface TopicInputProps {
   disabled?: boolean;
   minChars?: number;
 }
+
 export default function TopicInput({
   value,
   onChange,
@@ -31,9 +32,9 @@ export default function TopicInput({
     <div className="space-y-2">
       <div className="flex items-center gap-2">
         <label htmlFor="composer-topic" className="block text-sm font-medium text-neutral-700">
-          主题描述
+          选题/主题
         </label>
-        <span className="text-xs text-neutral-400">至少 {minChars} 字，描述越具体生成越准</span>
+        <span className="text-xs text-neutral-400">至少 {minChars} 字，越具体生成越稳定</span>
       </div>
 
       <div
@@ -56,7 +57,7 @@ export default function TopicInput({
           value={value}
           onChange={(event) => onChange(event.target.value.slice(0, 500))}
           disabled={disabled}
-          placeholder="例：分享我用番茄工作法戒掉拖延症的经历，实测 3 个月有效，也想写给总是拖到最后才开始行动的人"
+          placeholder="例如：给独立开发者写一篇关于 AI 内容工作流的经验总结，重点讲如何减少重复劳动。"
           className="w-full min-h-[120px] bg-transparent px-4 pt-4 pb-14 text-[15px] leading-relaxed text-neutral-800 resize-none placeholder:text-neutral-300 outline-none disabled:cursor-not-allowed"
           aria-describedby="composer-topic-status"
         />
@@ -71,10 +72,10 @@ export default function TopicInput({
             }`}
           >
             {isTooShort
-              ? `再补充 ${remainingChars} 个字，就可以开始创作`
+              ? `还差 ${remainingChars} 个字`
               : isReady
-                ? '主题描述已达标，可以继续选择类型和调性'
-                : `先写下你的创作主题，至少 ${minChars} 字`}
+                ? '选题长度合适，可以继续选择内容参数'
+                : `请输入至少 ${minChars} 个字`}
           </span>
           <span
             className={`shrink-0 text-xs font-medium ${

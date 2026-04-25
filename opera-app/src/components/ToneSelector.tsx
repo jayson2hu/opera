@@ -2,20 +2,11 @@ import type { ToneType, ToneOption } from '../types';
 import { TONE_OPTIONS } from '../constants';
 
 interface ToneSelectorProps {
-  /** 当前选中的调性 */
   selected: ToneType | null;
-  /** 选择回调 */
   onSelect: (tone: ToneType) => void;
-  /** 是否禁用 */
   disabled?: boolean;
 }
 
-/**
- * 调性选择器组件
- * - 3 种预设调性卡片
- * - 选中状态有高亮边框和背景
- * - 移动端竖排，桌面端横排
- */
 export default function ToneSelector({
   selected,
   onSelect,
@@ -25,10 +16,10 @@ export default function ToneSelector({
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <label className="block text-sm font-medium text-neutral-700">
-          选择内容调性
+          选择语气
         </label>
         <span className="text-xs text-neutral-400">
-          决定生成内容的风格和语气
+          用来控制生成内容的表达风格
         </span>
       </div>
 
@@ -38,6 +29,7 @@ export default function ToneSelector({
           return (
             <button
               key={tone.id}
+              type="button"
               onClick={() => onSelect(tone.id)}
               disabled={disabled}
               aria-pressed={isSelected}
@@ -53,7 +45,6 @@ export default function ToneSelector({
                 }
               `}
             >
-              {/* 选中指示器 */}
               {isSelected && (
                 <div className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center">
                   <svg
@@ -72,10 +63,7 @@ export default function ToneSelector({
                 </div>
               )}
 
-              {/* Emoji */}
               <div className="text-2xl mb-2">{tone.emoji}</div>
-
-              {/* 标题 */}
               <div className="mb-1">
                 <span
                   className={`text-sm font-semibold ${isSelected ? 'text-primary-700' : 'text-neutral-800'}`}
@@ -86,13 +74,9 @@ export default function ToneSelector({
                   {tone.subtitle}
                 </span>
               </div>
-
-              {/* 描述 */}
               <p className="text-xs text-neutral-500 leading-relaxed mb-2.5">
                 {tone.description}
               </p>
-
-              {/* 示例 */}
               <div
                 className={`
                   text-xs px-2.5 py-1.5 rounded-lg leading-snug italic

@@ -1,3 +1,28 @@
+# Product Handoff Update (2026-04-25)
+
+## Current Status
+
+Opera remains a three-entry content creation workspace:
+- Content Adapter: long-form article to XHS titles, slide cards, caption, and hashtags.
+- XHS Composer: topic to editable XHS post, tags, and image keywords.
+- WeChat Composer: topic to WeChat title, digest, body, and local draft queue.
+
+This round focused on release hygiene rather than new product scope. The frontend's high-impact mojibake copy was cleaned across the core workspace, while the API contracts and generation flows were preserved.
+
+## Acceptance
+
+- Frontend build: PASS
+- Frontend lint: PASS
+- FastAPI contract tests: PASS (`25 passed`)
+- Frontend source mojibake scan: PASS for common corrupted-character patterns in `opera-app/src`
+
+## Still Open
+
+- Historical handoff/PRD sections below may still contain mojibake and should be cleaned in a documentation pass.
+- Docker `compose up` runtime smoke test was intentionally skipped.
+- WeChat official account connection, draft sync, and real publishing are not implemented.
+- Anthropic/custom live-key verification remains pending unless those provider credentials are configured.
+
 # Product Handoff: Opera Content Creation Workspace
 
 ## Executive Summary

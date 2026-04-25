@@ -17,7 +17,6 @@ import Caption from '../components/Caption';
 import HashtagGroups from '../components/HashtagGroups';
 import CopyButton from '../components/CopyButton';
 
-
 export default function AdapterPage({
   providers,
   selectedProvider,
@@ -73,7 +72,6 @@ export default function AdapterPage({
 
     try {
       const response = await fetch(buildApiUrl('/api/generate'), {
-
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,9 +112,7 @@ export default function AdapterPage({
             switch (eventType) {
               case 'step':
                 setCurrentStep(data.step as GenerationStep);
-                if (data.step === 'done') {
-                  setIsGenerating(false);
-                }
+                if (data.step === 'done') setIsGenerating(false);
                 break;
               case 'titles':
                 partial.coverTitles = data.coverTitles;
@@ -169,15 +165,15 @@ export default function AdapterPage({
     if (!result) return '';
 
     const sections: string[] = [];
-    sections.push('【封面标题】');
+    sections.push('封面标题');
     result.coverTitles.forEach((title, index) => sections.push(`${index + 1}. ${title}`));
-    sections.push('\n【卡片文字】');
-    result.cards.forEach((card, index) => sections.push(`--- 第${index + 1}张 ---\n${card}`));
-    sections.push('\n【正文文案】');
+    sections.push('\n卡片文案');
+    result.cards.forEach((card, index) => sections.push(`--- 卡片 ${index + 1} ---\n${card}`));
+    sections.push('\n发布正文');
     sections.push(result.caption);
-    sections.push('\n【推荐标签】');
+    sections.push('\n话题标签');
     result.tagGroups.forEach((group) => {
-      sections.push(`${group.label}：${group.tags.map((tag) => `#${tag}`).join(' ')}`);
+      sections.push(`${group.label}: ${group.tags.map((tag) => `#${tag}`).join(' ')}`);
     });
     return sections.join('\n');
   };
@@ -189,16 +185,16 @@ export default function AdapterPage({
       <section className="space-y-6 mb-8">
         <div className="text-center mb-10 mt-4">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-neutral-900 to-neutral-600 tracking-tight mb-4 pb-1">
-            公众号文章，<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">一键变小红书</span>
+            把长文改写成<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">小红书卡片</span>
           </h1>
           <p className="text-sm sm:text-base text-neutral-500 max-w-xl mx-auto leading-relaxed">
-            粘贴你的公众号长文，选择内容调性，AI 自动生成小红书内容包 —— 封面标题、卡片文字、正文文案、标签推荐，一步到位。
+            粘贴公众号文章或长文素材，选择语气后生成封面标题、卡片文案、发布正文和话题标签。
           </p>
         </div>
 
         {providerError && (
           <section className="p-4 bg-warning-50 border border-warning-500/20 rounded-xl text-sm text-warning-500">
-            模型配置读取失败：{providerError}
+            模型服务加载失败：{providerError}
           </section>
         )}
 
@@ -237,7 +233,7 @@ export default function AdapterPage({
               }
             `}
           >
-            {isGenerating ? '生成中...' : '开始生成'}
+            {isGenerating ? '生成中...' : '开始改写'}
           </button>
 
           {isComplete && (
@@ -246,7 +242,7 @@ export default function AdapterPage({
               onClick={handleReset}
               className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl text-sm font-medium text-neutral-500 bg-white border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 cursor-pointer select-none"
             >
-              <span>重新生成</span>
+              重新开始
             </button>
           )}
         </div>
@@ -278,9 +274,9 @@ export default function AdapterPage({
           {isComplete && (
             <div className="flex items-center justify-between animate-fade-in">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-neutral-700">内容包已生成完毕</span>
+                <span className="text-sm font-medium text-neutral-700">内容已生成完成</span>
               </div>
-              <CopyButton text={getAllText()} size="md" label="一键复制全部" />
+              <CopyButton text={getAllText()} size="md" label="复制全部" />
             </div>
           )}
 
@@ -308,9 +304,9 @@ export default function AdapterPage({
               />
             </svg>
           </div>
-          <p className="text-sm text-neutral-400 mb-1">粘贴文章并选择调性后即可开始生成</p>
+          <p className="text-sm text-neutral-400 mb-1">输入文章并选择语气后开始生成</p>
           <p className="text-xs text-neutral-300">
-            生成结果将按 封面标题 / 卡片文字 / 正文文案 / 标签推荐 依次展示
+            生成结果会按封面标题、卡片文案、正文和标签逐步出现。
           </p>
         </section>
       )}

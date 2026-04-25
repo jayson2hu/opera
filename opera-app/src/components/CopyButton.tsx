@@ -1,21 +1,12 @@
 import { useCallback, useState } from 'react';
 
 interface CopyButtonProps {
-  /** 要复制的文本内容 */
   text: string;
-  /** 按钮尺寸 */
   size?: 'sm' | 'md';
-  /** 按钮文案 */
   label?: string;
-  /** 额外 class */
   className?: string;
 }
 
-/**
- * 复制按钮组件
- * - 点击后复制文本到剪贴板
- * - 显示"已复制"反馈，1.5秒后恢复
- */
 export default function CopyButton({
   text,
   size = 'sm',
@@ -30,7 +21,6 @@ export default function CopyButton({
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     } catch {
-      // fallback
       const ta = document.createElement('textarea');
       ta.value = text;
       ta.style.position = 'fixed';
@@ -51,6 +41,7 @@ export default function CopyButton({
 
   return (
     <button
+      type="button"
       onClick={handleCopy}
       aria-label={copied ? '已复制' : label}
       className={`

@@ -2,7 +2,6 @@ import type { TagGroup } from '../types';
 import CopyButton from './CopyButton';
 
 interface HashtagGroupsProps {
-  /** 标签分组列表 */
   groups: TagGroup[];
 }
 
@@ -27,12 +26,6 @@ const GROUP_STYLES: Record<string, { dot: string; bg: string; text: string; bord
   },
 };
 
-/**
- * 标签推荐组件
- * - 按三层分组显示：泛流量 / 精准 / 长尾
- * - 每个标签可单独点击复制
- * - 支持一键复制全部标签
- */
 export default function HashtagGroups({ groups }: HashtagGroupsProps) {
   if (groups.length === 0) return null;
 
@@ -47,7 +40,7 @@ export default function HashtagGroups({ groups }: HashtagGroupsProps) {
         <div className="flex items-center gap-2">
           <div className="w-1 h-4 rounded-full bg-neutral-400" />
           <h3 className="text-sm font-semibold text-neutral-800">
-            标签推荐
+            话题标签
           </h3>
           <span className="text-xs text-neutral-400">
             {groups.reduce((sum, g) => sum + g.tags.length, 0)} 个标签
@@ -61,17 +54,13 @@ export default function HashtagGroups({ groups }: HashtagGroupsProps) {
           const style = GROUP_STYLES[group.type] ?? GROUP_STYLES.broad;
           return (
             <div key={group.type}>
-              {/* 分组标题 */}
               <div className="flex items-center gap-1.5 mb-2">
-                <div
-                  className={`w-2 h-2 rounded-full ${style.dot}`}
-                />
+                <div className={`w-2 h-2 rounded-full ${style.dot}`} />
                 <span className="text-xs font-semibold text-neutral-600">
                   {group.label}
                 </span>
               </div>
 
-              {/* 标签列表 */}
               <div className="flex flex-wrap gap-2">
                 {group.tags.map((tag) => (
                   <TagChip
@@ -91,7 +80,6 @@ export default function HashtagGroups({ groups }: HashtagGroupsProps) {
   );
 }
 
-/** 单个标签 Chip */
 function TagChip({
   tag,
   bg,
@@ -107,12 +95,13 @@ function TagChip({
     try {
       await navigator.clipboard.writeText(`#${tag}`);
     } catch {
-      // silent fail
+      // Copy failure is non-blocking.
     }
   };
 
   return (
     <button
+      type="button"
       onClick={handleClick}
       className={`
         inline-flex items-center gap-1 px-2.5 py-1 rounded-lg

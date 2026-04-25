@@ -28,10 +28,10 @@ export default function ProviderSelector({
     <div className="space-y-3">
       <div className="flex items-center gap-2">
         <label className="block text-sm font-medium text-neutral-700">
-          模型配置
+          模型服务
         </label>
         <span className="text-xs text-neutral-400">
-          可选，不选则使用后端默认模型
+          默认使用后端配置，也可以为本次生成指定 provider/model
         </span>
       </div>
 
@@ -41,7 +41,7 @@ export default function ProviderSelector({
             htmlFor="provider-select"
             className="block text-xs font-medium text-neutral-500"
           >
-            服务商
+            Provider
           </label>
           <select
             id="provider-select"
@@ -54,7 +54,7 @@ export default function ProviderSelector({
             disabled={disabled || loading || !hasProviders}
             className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700 shadow-sm transition-colors outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
           >
-            <option value="">跟随后端默认</option>
+            <option value="">使用后端默认</option>
             {providers.map((provider) => (
               <option key={provider.id} value={provider.id}>
                 {provider.name}
@@ -68,7 +68,7 @@ export default function ProviderSelector({
             htmlFor="model-select"
             className="block text-xs font-medium text-neutral-500"
           >
-            模型
+            Model
           </label>
           <select
             id="model-select"
@@ -78,7 +78,7 @@ export default function ProviderSelector({
             className="w-full rounded-2xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-700 shadow-sm transition-colors outline-none focus:border-primary-400 focus:ring-2 focus:ring-primary-100 disabled:cursor-not-allowed disabled:bg-neutral-100 disabled:text-neutral-400"
           >
             <option value="">
-              {currentProvider ? '跟随当前服务商默认模型' : '先选择服务商'}
+              {currentProvider ? '使用 provider 默认模型' : '先选择 provider'}
             </option>
             {currentProvider?.models.map((model) => (
               <option key={model} value={model}>
@@ -90,12 +90,12 @@ export default function ProviderSelector({
       </div>
 
       {loading && (
-        <p className="text-xs text-neutral-400">正在读取可用模型配置...</p>
+        <p className="text-xs text-neutral-400">正在加载可用模型服务...</p>
       )}
 
       {!loading && !hasProviders && (
         <p className="text-xs text-warning-500">
-          当前未检测到已配置的模型服务商，请先配置后端环境变量。
+          当前没有可用模型服务。请检查后端 .env 中的 API key 配置。
         </p>
       )}
     </div>

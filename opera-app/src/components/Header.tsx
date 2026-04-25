@@ -1,8 +1,3 @@
-/**
- * Header 顶部导航组件
- * - 品牌标识 + 产品说明
- * - 固定在页面顶部
- */
 export default function Header() {
   return (
     <header className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-neutral-100 shadow-sm shadow-neutral-200/20">
@@ -28,13 +23,13 @@ export default function Header() {
               Opera
             </span>
             <span className="hidden sm:inline text-xs text-neutral-400 font-medium">
-              内容创作工具
+              内容创作工作台
             </span>
           </div>
         </div>
 
         <span className="text-xs text-neutral-400">
-          内容创作工具
+          AI assisted publishing drafts
         </span>
       </div>
     </header>

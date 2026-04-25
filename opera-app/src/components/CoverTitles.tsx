@@ -2,16 +2,9 @@ import { useState } from 'react';
 import CopyButton from './CopyButton';
 
 interface CoverTitlesProps {
-  /** 标题列表 */
   titles: string[];
 }
 
-/**
- * 封面标题组件
- * - 展示 3-5 个备选标题
- * - 支持点选（高亮当前选中）
- * - 每个标题可单独复制
- */
 export default function CoverTitles({ titles }: CoverTitlesProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
 
@@ -59,7 +52,6 @@ export default function CoverTitles({ titles }: CoverTitlesProps) {
                 }
               `}
             >
-              {/* 序号 */}
               <span
                 className={`
                   flex-shrink-0 w-6 h-6 rounded-lg text-xs font-semibold
@@ -74,7 +66,6 @@ export default function CoverTitles({ titles }: CoverTitlesProps) {
                 {i + 1}
               </span>
 
-              {/* 标题文本 */}
               <span
                 className={`
                   flex-1 text-[15px] leading-snug font-medium
@@ -84,7 +75,6 @@ export default function CoverTitles({ titles }: CoverTitlesProps) {
                 {title}
               </span>
 
-              {/* 悬停时显示复制按钮 */}
               <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                 <CopyButton text={title} size="sm" />
               </div>

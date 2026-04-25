@@ -6,8 +6,8 @@ interface TabNavProps {
 }
 
 const TABS: Array<{ id: AppTab; label: string; activeClass: string }> = [
-  { id: 'adapter', label: '内容转换', activeClass: 'border-primary-500 text-primary-600' },
-  { id: 'composer', label: '原创创作 ✦', activeClass: 'border-accent-500 text-accent-600' },
+  { id: 'adapter', label: '内容改写', activeClass: 'border-primary-500 text-primary-600' },
+  { id: 'composer', label: '小红书原创', activeClass: 'border-accent-500 text-accent-600' },
   { id: 'wechat', label: '微信公众号', activeClass: 'border-emerald-500 text-emerald-600' },
 ];
 

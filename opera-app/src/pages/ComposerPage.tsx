@@ -32,15 +32,13 @@ const EMPTY_RESULT: ComposerResult = {
 
 function getComposeRequestError(status: number, errorMessage?: string) {
   if (status === 404) {
-    return '未找到 /api/compose 接口。当前请求很可能没有打到默认的 FastAPI 后端；请改用仓库根目录 `start-backend.ps1`、`./start-backend.sh` 或 `docker compose up --build` 启动 `opera-server-py`。';
+    return '未找到 /api/compose。请确认正在运行 FastAPI 后端：start-backend.ps1、start-backend.sh 或 docker compose up --build。';
   }
-
 
   return errorMessage || `HTTP ${status}`;
 }
 
 export default function ComposerPage({
-
   providers,
   selectedProvider,
   selectedModel,
@@ -66,19 +64,19 @@ export default function ComposerPage({
   const missingRequirements = [
     !isTopicReady
       ? topicCharCount > 0
-        ? `主题再补充 ${topicCharsRemaining} 个字`
-        : `输入至少 ${MIN_TOPIC_CHARS} 个字的主题描述`
+        ? `选题还差 ${topicCharsRemaining} 个字`
+        : `请输入至少 ${MIN_TOPIC_CHARS} 个字的选题`
       : null,
-    contentType === null ? '选择内容类型' : null,
-    selectedTone === null ? '选择内容调性' : null,
+    contentType === null ? '请选择内容类型' : null,
+    selectedTone === null ? '请选择语气' : null,
   ].filter((item): item is string => item !== null);
   const canSubmitBase = missingRequirements.length === 0;
   const canGenerate = canSubmitBase && !isGenerating;
   const submitHint = isGenerating
-    ? 'AI 正在创作中，请稍候...'
+    ? 'AI 正在生成原创帖子，请稍候...'
     : canSubmitBase
-      ? '信息已就绪，可以开始原创创作'
-      : `还差：${missingRequirements.join('、')}`;
+      ? '准备就绪，可以开始生成。'
+      : `还需要：${missingRequirements.join('、')}`;
   const hasAnyOutput =
     result !== null &&
     (result.title.trim().length > 0 ||
@@ -86,7 +84,6 @@ export default function ComposerPage({
       result.tags.length > 0 ||
       result.imageKeywords.length > 0);
   const isComplete = result !== null && currentStep === 'done';
-
 
   useEffect(() => {
     return () => {
@@ -129,7 +126,6 @@ export default function ComposerPage({
 
       try {
         const response = await fetch(buildApiUrl('/api/compose'), {
-
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
@@ -140,7 +136,6 @@ export default function ComposerPage({
           const body = await response.json().catch(() => ({ error: 'Request failed' }));
           throw new Error(getComposeRequestError(response.status, body.error));
         }
-
 
         const reader = response.body?.getReader();
         if (!reader) throw new Error('No response body');
@@ -167,25 +162,15 @@ export default function ComposerPage({
               switch (eventType) {
                 case 'step':
                   setCurrentStep(data.step as ComposerStep);
-                  if (data.step === 'done') {
-                    setIsGenerating(false);
-                  }
+                  if (data.step === 'done') setIsGenerating(false);
                   break;
                 case 'title':
                   partial.title = data.title;
                   setResult({ ...partial });
-                  if (!didScroll) {
-                    outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    didScroll = true;
-                  }
                   break;
                 case 'body':
                   partial.body = data.body;
                   setResult({ ...partial });
-                  if (!didScroll) {
-                    outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                    didScroll = true;
-                  }
                   break;
                 case 'tags':
                   partial.tags = data.tags;
@@ -194,6 +179,11 @@ export default function ComposerPage({
                   break;
                 case 'error':
                   throw new Error(data.error || 'Compose failed');
+              }
+
+              if (!didScroll && (eventType === 'title' || eventType === 'body')) {
+                outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                didScroll = true;
               }
 
               eventType = '';
@@ -242,40 +232,23 @@ export default function ComposerPage({
       <section className="space-y-6 mb-8">
         <div className="space-y-3 mt-4">
           <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
-            告诉 AI 你想写什么，帮你写出一篇小红书帖子
+            从一个选题生成小红书原创帖子
           </h1>
           <p className="text-sm sm:text-base text-neutral-500 leading-relaxed max-w-2xl">
-            输入主题、选择类型和调性，系统会先生成标题，再流式写正文，最后补齐标签和配图关键词。
+            输入主题，选择内容类型、语气和篇幅，系统会生成标题、正文、标签和配图关键词。
           </p>
         </div>
 
         {providerError && (
           <section className="p-4 bg-warning-50 border border-warning-500/20 rounded-xl text-sm text-warning-500">
-            模型配置读取失败：{providerError}
+            模型服务加载失败：{providerError}
           </section>
         )}
 
         <TopicInput value={topic} onChange={setTopic} disabled={isGenerating} minChars={MIN_TOPIC_CHARS} />
-
-
-        <ContentTypeSelector
-          selected={contentType}
-          onSelect={setContentType}
-          disabled={isGenerating}
-        />
-
-        <ToneSelector
-          selected={selectedTone}
-          onSelect={setSelectedTone}
-          disabled={isGenerating}
-        />
-
-        <LengthSelector
-          selected={targetLength}
-          onSelect={setTargetLength}
-          disabled={isGenerating}
-        />
-
+        <ContentTypeSelector selected={contentType} onSelect={setContentType} disabled={isGenerating} />
+        <ToneSelector selected={selectedTone} onSelect={setSelectedTone} disabled={isGenerating} />
+        <LengthSelector selected={targetLength} onSelect={setTargetLength} disabled={isGenerating} />
         <ProviderSelector
           providers={providers}
           selectedProvider={selectedProvider}
@@ -298,7 +271,7 @@ export default function ComposerPage({
                   : 'px-10 py-3 rounded-2xl text-sm font-semibold bg-neutral-200 text-neutral-400 cursor-not-allowed'
               }
             >
-              {isGenerating ? '创作中...' : '✦ 开始创作'}
+              {isGenerating ? '生成中...' : '生成原创帖子'}
             </button>
 
             {hasAnyOutput && (
@@ -319,7 +292,6 @@ export default function ComposerPage({
             {submitHint}
           </p>
         </div>
-
       </section>
 
       {(isGenerating || hasAnyOutput) && <div className="border-t border-neutral-200 my-6" />}
@@ -338,7 +310,7 @@ export default function ComposerPage({
       {error && (
         <section className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
           <div className="flex items-center gap-2 text-red-600 text-sm">
-            <span>创作失败：{error}</span>
+            <span>生成失败：{error}</span>
           </div>
         </section>
       )}
@@ -373,7 +345,6 @@ export default function ComposerPage({
             />
           )}
 
-
           <PublishActions text={fullText} />
         </section>
       )}
@@ -381,11 +352,11 @@ export default function ComposerPage({
       {!hasAnyOutput && !isGenerating && (
         <section className="py-16 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-accent-50 mb-4 text-accent-400 text-2xl">
-            ✦
+            ✍️
           </div>
-          <p className="text-sm text-neutral-400 mb-1">输入一个主题想法，就能开始原创创作</p>
+          <p className="text-sm text-neutral-400 mb-1">填写选题后生成一篇可编辑的小红书帖子</p>
           <p className="text-xs text-neutral-300">
-            生成结果会按 标题 / 正文 / 配图建议 / 标签 依次出现，且可直接编辑
+            支持单独重生成标题、正文或标签。
           </p>
         </section>
       )}

@@ -2,21 +2,13 @@ import { useState } from 'react';
 import CopyButton from './CopyButton';
 
 interface SlideCardsProps {
-  /** 卡片文字列表 */
   cards: string[];
 }
 
-/**
- * 卡片文字组件
- * - 展示 4-6 张小红书图文卡片内容
- * - 每张卡片独立显示，支持编辑和复制
- * - 卡片样式模拟小红书图文卡片比例
- */
 export default function SlideCards({ cards }: SlideCardsProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editedCards, setEditedCards] = useState<string[]>(cards);
 
-  // 同步外部数据
   if (cards.length !== editedCards.length) {
     setEditedCards(cards);
   }
@@ -37,7 +29,7 @@ export default function SlideCards({ cards }: SlideCardsProps) {
         <div className="flex items-center gap-2">
           <div className="w-1 h-4 rounded-full bg-accent-500" />
           <h3 className="text-sm font-semibold text-neutral-800">
-            卡片文字
+            卡片文案
           </h3>
           <span className="text-xs text-neutral-400">
             {cards.length} 张卡片
@@ -56,7 +48,6 @@ export default function SlideCards({ cards }: SlideCardsProps) {
               key={i}
               className="group relative bg-white rounded-xl border border-neutral-200 overflow-hidden transition-all duration-300 hover:shadow-lg hover:border-primary-200 hover:-translate-y-1"
             >
-              {/* 卡片头部 */}
               <div className="flex items-center justify-between px-3.5 py-2 bg-neutral-50 border-b border-neutral-100">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-neutral-500">
@@ -74,9 +65,8 @@ export default function SlideCards({ cards }: SlideCardsProps) {
                 </div>
                 <div className="flex items-center gap-1">
                   <button
-                    onClick={() =>
-                      setEditingIndex(isEditing ? null : i)
-                    }
+                    type="button"
+                    onClick={() => setEditingIndex(isEditing ? null : i)}
                     className="text-xs text-neutral-400 hover:text-primary-500 transition-colors px-1.5 py-0.5 cursor-pointer"
                     aria-label={isEditing ? '完成编辑' : '编辑卡片'}
                   >
@@ -86,7 +76,6 @@ export default function SlideCards({ cards }: SlideCardsProps) {
                 </div>
               </div>
 
-              {/* 卡片内容 */}
               <div className="p-3.5">
                 {isEditing ? (
                   <textarea

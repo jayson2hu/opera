@@ -1,13 +1,9 @@
 import type { StepConfig } from '../types';
 
 interface ProgressIndicatorProps {
-  /** 当前步骤 */
   currentStep: string;
-  /** 是否正在生成 */
   isGenerating: boolean;
-  /** 步骤配置 */
   steps: StepConfig[];
-  /** 主题色 */
   tone?: 'primary' | 'accent';
 }
 
@@ -30,12 +26,6 @@ const PALETTE = {
   },
 } as const;
 
-/**
- * 进度指示器组件
- * - 分步骤展示生成进度
- * - 当前步骤有动画脉冲效果
- * - 支持适配器 / 创作两种流程
- */
 export default function ProgressIndicator({
   currentStep,
   isGenerating,
@@ -58,7 +48,7 @@ export default function ProgressIndicator({
             <div className={`w-2.5 h-2.5 rounded-full ${palette.dot}`} />
           </div>
           <span className="text-sm font-medium text-neutral-700">
-            {steps[currentIndex]?.description ?? '准备中...'}
+            {steps[currentIndex]?.description ?? '正在生成...'}
           </span>
         </div>
 

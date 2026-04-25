@@ -1,3 +1,23 @@
+# Latest Update (2026-04-25)
+
+## Frontend Copy Cleanup + Validation
+
+Scope completed:
+- Cleaned high-impact mojibake text in the React frontend user-facing flow.
+- Rewrote readable copy for the app header, tab navigation, provider selector, tone selector, progress indicator, article input, copy buttons, adapter page, XHS composer page, WeChat composer page, slide cards, hashtag groups, and WeChat draft panel.
+- Preserved the existing API contracts and SSE parsing behavior for `/api/generate`, `/api/compose`, and `/api/wechat/compose`.
+
+Validation:
+- `cd opera-app && npm.cmd run build` -> PASS
+- `cd opera-app && npm.cmd run lint` -> PASS
+- `cd opera-server-py && python -m pytest -q` -> PASS (`25 passed`)
+- Frontend mojibake scan over `opera-app/src` for common corrupted-character patterns -> no matches
+
+Remaining:
+- Older product/hand-off documents still contain historical mojibake below this update section.
+- Docker real bring-up is still not revalidated in this round by request.
+- WeChat official account auth/draft sync/publish remains out of scope; current behavior is local draft storage only.
+
 # Development Handoff: Opera
 
 ## Latest Status (2026-04-03)

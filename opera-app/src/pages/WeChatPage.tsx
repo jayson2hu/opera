@@ -39,7 +39,7 @@ const EMPTY_RESULT: WeChatComposeResult = {
 
 function getComposeRequestError(status: number, errorMessage?: string) {
   if (status === 404) {
-    return '未找到 /api/wechat/compose 接口。请确认后端已切到默认的 FastAPI 服务 `opera-server-py`。';
+    return '未找到 /api/wechat/compose。请确认正在运行 FastAPI 后端 opera-server-py。';
   }
 
   return errorMessage || `HTTP ${status}`;
@@ -67,7 +67,7 @@ function readStoredDrafts(): WeChatDraftItem[] {
         typeof item?.savedAt === 'string',
     );
   } catch (error) {
-    console.error('读取公众号草稿箱失败', error);
+    console.error('Failed to read local WeChat drafts', error);
     return [];
   }
 }
@@ -102,19 +102,19 @@ export default function WeChatPage({
   const missingRequirements = [
     !isTopicReady
       ? topicCharCount > 0
-        ? `主题再补充 ${topicCharsRemaining} 个字`
-        : `输入至少 ${MIN_TOPIC_CHARS} 个字的选题描述`
+        ? `选题还差 ${topicCharsRemaining} 个字`
+        : `请输入至少 ${MIN_TOPIC_CHARS} 个字的选题`
       : null,
-    articleType === null ? '选择文章类型' : null,
-    selectedTone === null ? '选择文章调性' : null,
+    articleType === null ? '请选择文章类型' : null,
+    selectedTone === null ? '请选择语气' : null,
   ].filter((item): item is string => item !== null);
   const canSubmitBase = missingRequirements.length === 0;
   const canGenerate = canSubmitBase && !isGenerating;
   const submitHint = isGenerating
     ? 'AI 正在撰写公众号文章，请稍候...'
     : canSubmitBase
-      ? '信息已就绪，可以开始生成公众号文章'
-      : `还差：${missingRequirements.join('、')}`;
+      ? '准备就绪，可以开始生成。'
+      : `还需要：${missingRequirements.join('、')}`;
   const hasAnyOutput =
     result !== null &&
     (result.title.trim().length > 0 || result.digest.trim().length > 0 || result.body.trim().length > 0);
@@ -167,9 +167,7 @@ export default function WeChatPage({
       setResult(partial);
       setDraftStatus('not_saved');
       setLastSavedAt(null);
-      if (!regenerate) {
-        setActiveDraftId(null);
-      }
+      if (!regenerate) setActiveDraftId(null);
 
       const payload: WeChatComposeRequest = {
         topic,
@@ -219,9 +217,7 @@ export default function WeChatPage({
               switch (eventType) {
                 case 'step':
                   setCurrentStep(data.step as WeChatStep);
-                  if (data.step === 'done') {
-                    setIsGenerating(false);
-                  }
+                  if (data.step === 'done') setIsGenerating(false);
                   break;
                 case 'title':
                   partial.title = data.title;
@@ -324,22 +320,22 @@ export default function WeChatPage({
         <div className="grid gap-6 lg:grid-cols-[1.5fr_0.9fr] lg:items-end">
           <div className="space-y-4">
             <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700">
-              WeChat Green Workspace
+              WeChat Draft Workspace
             </span>
             <div className="space-y-3">
               <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900">
-                从一个选题出发，生成适合公众号发布的完整原创文章
+                生成公众号标题、摘要和正文
               </h1>
               <p className="max-w-3xl text-sm sm:text-base leading-7 text-neutral-600">
-                输入主题、选择文章类型与篇幅，系统会先给出公众号标题，再补齐摘要，最后流式撰写正文。生成后可以继续编辑，并保存到本地草稿箱，作为后续接入公众号草稿同步的待发入口。
+                输入选题后，系统会按文章类型和语气生成完整公众号草稿。当前版本先保存到本地待同步草稿箱，不会直接发布到真实公众号。
               </p>
             </div>
           </div>
 
           <div className="grid grid-cols-3 gap-3">
             {[
-              { label: '标题 + 摘要', value: '2 段' },
-              { label: '正文模式', value: '流式生成' },
+              { label: '生成结构', value: '标题 + 摘要 + 正文' },
+              { label: '正文输出', value: '流式生成' },
               { label: '草稿状态', value: draftStatus === 'queued' ? '待同步' : '未保存' },
             ].map((item) => (
               <div key={item.label} className="rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm backdrop-blur">
@@ -353,7 +349,7 @@ export default function WeChatPage({
 
       {providerError && (
         <section className="rounded-2xl border border-warning-500/20 bg-warning-50 p-4 text-sm text-warning-500">
-          模型配置读取失败：{providerError}
+          模型服务加载失败：{providerError}
         </section>
       )}
 
@@ -382,7 +378,7 @@ export default function WeChatPage({
                 ? 'px-10 py-3 rounded-2xl text-sm font-semibold bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-md shadow-emerald-500/20 hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer'
                 : 'px-10 py-3 rounded-2xl text-sm font-semibold bg-neutral-200 text-neutral-400 cursor-not-allowed'}
             >
-              {isGenerating ? '写作中...' : '开始写公众号文章'}
+              {isGenerating ? '生成中...' : '生成公众号草稿'}
             </button>
 
             {hasAnyOutput && (
@@ -421,9 +417,9 @@ export default function WeChatPage({
           <div className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               {[
-                { label: '正文字符', value: `${bodyCharCount} 字` },
+                { label: '正文字数', value: `${bodyCharCount} 字` },
                 { label: '正文段落', value: `${paragraphCount || 1} 段` },
-                { label: '待发状态', value: draftStatus === 'queued' ? '已入草稿箱' : '未保存' },
+                { label: '保存状态', value: draftStatus === 'queued' ? '已入草稿箱' : '未保存' },
               ].map((item) => (
                 <div key={item.label} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-card">
                   <p className="text-xs text-neutral-400">{item.label}</p>
