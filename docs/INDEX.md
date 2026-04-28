@@ -7,6 +7,7 @@ This directory is the canonical documentation location for the project.
 - `PROJECT.md`: product scope, architecture, runtime contract, and repository layout.
 - `DEPLOYMENT.md`: local, Docker, and release deployment guidance.
 - `REVIEW.md`: current review findings, validation result, and follow-up risks.
+- `PLAN.md`: remaining follow-up work and current execution status.
 
 ## Historical Docs
 

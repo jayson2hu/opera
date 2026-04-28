@@ -17,6 +17,7 @@ Opera is an AI-assisted content creation workspace for adapting source articles 
 - [Project overview](docs/PROJECT.md)
 - [Deployment guide](docs/DEPLOYMENT.md)
 - [Review notes](docs/REVIEW.md)
+- [Follow-up plan](docs/PLAN.md)
 - [Documentation index](docs/INDEX.md)
 
 Historical handoff and feature PRD documents have been moved under `docs/archive/` and `docs/features/`.

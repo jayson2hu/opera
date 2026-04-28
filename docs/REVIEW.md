@@ -1,6 +1,6 @@
 # Review Notes
 
-Review date: 2026-04-27
+Review date: 2026-04-28
 
 ## Scope
 
@@ -8,8 +8,8 @@ Reviewed project layout, documentation, startup scripts, deployment configuratio
 
 ## Findings
 
-1. Frontend build currently fails in local validation.
-   `npm.cmd run build` reaches Vite config loading, then fails while loading `@tailwindcss/oxide-win32-x64-msvc` and reports `stream did not contain valid UTF-8` plus `spawn EPERM`. This points to a local native dependency or Windows permission issue rather than a TypeScript compile failure.
+1. Frontend build passes in the real local environment.
+   `npm.cmd run build` fails only inside the restricted command sandbox because Vite/Tailwind needs to spawn native helper processes. Running the same command outside the sandbox succeeds.
 
 2. Several historical documents contain mojibake.
    Affected legacy docs were moved under `docs/archive/` and `docs/features/` for traceability, but they should not be treated as authoritative until the content is repaired.
@@ -32,14 +32,11 @@ Completed:
 
 - `python -m pytest -q` in `opera-server-py/`: passed, 25 tests.
 - `npm.cmd run lint` in `opera-app/`: passed.
-- `docker compose config`: passed, with warnings that Docker config under the user profile could not be read.
-
-Failed:
-
-- `npm.cmd run build` in `opera-app/`: failed while loading the Vite config because Tailwind's Windows native dependency could not be loaded and a child process hit `EPERM`.
+- `npm.cmd run build` in `opera-app/`: passed when run outside the restricted sandbox.
+- `docker compose config`: passed previously, with warnings that Docker config under the user profile could not be read.
 
 ## Recommended Follow-Up
 
-- Refresh frontend dependencies on a clean shell, then rerun `npm.cmd run build`.
-- Add CI so frontend build, lint, backend tests, and `docker compose config` run on pull requests.
+- Run full Docker startup smoke test with `docker compose up --build` when Docker Engine validation is approved.
+- Run live provider E2E with `python scripts/test_e2e.py` when real API usage is approved.
 - Consider moving generated temp logs out of the working tree entirely; current `.gitignore` covers common log patterns, but the root has existing temporary artifacts locally.
