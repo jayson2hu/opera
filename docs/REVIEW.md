@@ -34,6 +34,7 @@ Completed:
 - `python scripts/test_e2e.py` in `opera-server-py/`: passed with real provider credentials, covering `/api/generate`, `/api/compose`, and `/api/wechat/compose`.
 - `npm.cmd run lint` in `opera-app/`: passed.
 - `npm.cmd run build` in `opera-app/`: passed when run outside the restricted sandbox.
+- Content rewrite improvement validation: `/api/generate` live E2E passed with 6 title options and 7 slide cards.
 - `docker compose config`: passed previously, with warnings that Docker config under the user profile could not be read.
 
 ## Recommended Follow-Up

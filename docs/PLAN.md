@@ -15,6 +15,12 @@ Status date: 2026-04-28
 - Disabled local PowerShell profile files by renaming them to `.disabled` backups to stop execution-policy noise.
 - Set repository-local Git `core.excludesfile` to `.git/info/exclude` to avoid an inaccessible user-level ignore warning.
 - Removed stale local temp files; active service logs remain while the dev servers are running.
+- Started and completed the approved content rewrite improvement implementation:
+  - default tab changed to WeChat Official Account
+  - tab order changed to WeChat, Official Account to Xiaohongshu, Xiaohongshu original
+  - rewrite flow gained caption length options
+  - rewrite output now targets 6 titles, 7 cards, and longer captions
+  - slide cards gained stronger visual hierarchy
 
 ## Planned But Not Run Yet
 
@@ -31,3 +37,5 @@ Status date: 2026-04-28
   Status: completed. `profile.ps1` and `Microsoft.PowerShell_profile.ps1` were renamed to `.disabled` backups after execution policy changes did not affect this shell path.
 - Local temp artifact cleanup.
   Status: completed for stale files. Current backend/frontend runtime logs remain while the services are active.
+- Content rewrite improvement.
+  Status: completed and validated. Docker full-stack smoke testing remains deferred by request.

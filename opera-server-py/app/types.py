@@ -44,6 +44,7 @@ class WeChatComposeResult(BaseModel):
 class GenerateRequestModel(BaseModel):
     text: str
     tone: ToneType
+    targetLength: TargetLength = "medium"
     provider: ProviderId | None = None
     model: str | None = None
 

@@ -4,6 +4,7 @@ import type {
   GenerationStep,
   ProviderSelectionProps,
   TagGroup,
+  TargetLength,
   ToneType,
 } from '../types';
 import { buildApiUrl, GENERATION_STEPS } from '../constants';
@@ -17,6 +18,17 @@ import Caption from '../components/Caption';
 import HashtagGroups from '../components/HashtagGroups';
 import CopyButton from '../components/CopyButton';
 
+const REWRITE_LENGTH_OPTIONS: Array<{
+  id: TargetLength;
+  label: string;
+  range: string;
+  description: string;
+}> = [
+  { id: 'short', label: '精简版', range: '300-500字', description: '适合快速发布和轻量总结' },
+  { id: 'medium', label: '标准版', range: '600-900字', description: '信息完整，适合多数改写场景' },
+  { id: 'long', label: '深度版', range: '1000-1500字', description: '保留更多原文信息和方法细节' },
+];
+
 export default function AdapterPage({
   providers,
   selectedProvider,
@@ -28,6 +40,7 @@ export default function AdapterPage({
 }: ProviderSelectionProps) {
   const [inputText, setInputText] = useState('');
   const [selectedTone, setSelectedTone] = useState<ToneType | null>(null);
+  const [targetLength, setTargetLength] = useState<TargetLength>('medium');
   const [isGenerating, setIsGenerating] = useState(false);
   const [currentStep, setCurrentStep] = useState<GenerationStep>('extracting');
   const [result, setResult] = useState<GenerationResult | null>(null);
@@ -77,6 +90,7 @@ export default function AdapterPage({
         body: JSON.stringify({
           text: inputText,
           tone: selectedTone,
+          targetLength,
           ...(selectedProvider ? { provider: selectedProvider } : {}),
           ...(selectedModel ? { model: selectedModel } : {}),
         }),
@@ -147,7 +161,7 @@ export default function AdapterPage({
       setError(err instanceof Error ? err.message : 'Unknown error');
       setIsGenerating(false);
     }
-  }, [canGenerate, inputText, selectedTone, selectedProvider, selectedModel]);
+  }, [canGenerate, inputText, selectedTone, targetLength, selectedProvider, selectedModel]);
 
   const handleReset = useCallback(() => {
     abortRef.current?.abort();
@@ -165,9 +179,9 @@ export default function AdapterPage({
     if (!result) return '';
 
     const sections: string[] = [];
-    sections.push('封面标题');
+    sections.push('小红书标题');
     result.coverTitles.forEach((title, index) => sections.push(`${index + 1}. ${title}`));
-    sections.push('\n卡片文案');
+    sections.push('\n图文卡片');
     result.cards.forEach((card, index) => sections.push(`--- 卡片 ${index + 1} ---\n${card}`));
     sections.push('\n发布正文');
     sections.push(result.caption);
@@ -185,10 +199,10 @@ export default function AdapterPage({
       <section className="space-y-6 mb-8">
         <div className="text-center mb-10 mt-4">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-neutral-900 to-neutral-600 tracking-tight mb-4 pb-1">
-            把长文改写成<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">小红书卡片</span>
+            公众号文章转<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">小红书</span>
           </h1>
           <p className="text-sm sm:text-base text-neutral-500 max-w-xl mx-auto leading-relaxed">
-            粘贴公众号文章或长文素材，选择语气后生成封面标题、卡片文案、发布正文和话题标签。
+            粘贴公众号文章或长文素材，生成更完整的小红书标题、图文卡片、发布正文和话题标签。
           </p>
         </div>
 
@@ -205,6 +219,51 @@ export default function AdapterPage({
           onSelect={setSelectedTone}
           disabled={isGenerating}
         />
+
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h2 className="text-sm font-semibold text-neutral-800">正文长度</h2>
+              <p className="text-xs text-neutral-400 mt-0.5">选择改写后的小红书正文信息量</p>
+            </div>
+            <span className="text-xs text-neutral-400">
+              当前：{REWRITE_LENGTH_OPTIONS.find((option) => option.id === targetLength)?.range}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+            {REWRITE_LENGTH_OPTIONS.map((option) => {
+              const isSelected = option.id === targetLength;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  disabled={isGenerating}
+                  onClick={() => setTargetLength(option.id)}
+                  className={`
+                    text-left rounded-xl border px-4 py-3 transition-all cursor-pointer
+                    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+                    ${
+                      isSelected
+                        ? 'border-primary-400 bg-primary-50 shadow-sm shadow-primary-500/10'
+                        : 'border-neutral-200 bg-white hover:border-primary-200 hover:bg-primary-50/40'
+                    }
+                    ${isGenerating ? 'opacity-60 cursor-not-allowed' : ''}
+                  `}
+                  aria-pressed={isSelected}
+                >
+                  <span className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold text-neutral-800">{option.label}</span>
+                    <span className="text-xs font-medium text-primary-600">{option.range}</span>
+                  </span>
+                  <span className="block text-xs text-neutral-500 mt-1.5 leading-relaxed">
+                    {option.description}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </section>
 
         <ProviderSelector
           providers={providers}
@@ -233,7 +292,7 @@ export default function AdapterPage({
               }
             `}
           >
-            {isGenerating ? '生成中...' : '开始改写'}
+            {isGenerating ? '生成中...' : '生成小红书改写稿'}
           </button>
 
           {isComplete && (
@@ -274,7 +333,7 @@ export default function AdapterPage({
           {isComplete && (
             <div className="flex items-center justify-between animate-fade-in">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-neutral-700">内容已生成完成</span>
+                <span className="text-sm font-medium text-neutral-700">小红书改写稿已生成</span>
               </div>
               <CopyButton text={getAllText()} size="md" label="复制全部" />
             </div>
@@ -306,7 +365,7 @@ export default function AdapterPage({
           </div>
           <p className="text-sm text-neutral-400 mb-1">输入文章并选择语气后开始生成</p>
           <p className="text-xs text-neutral-300">
-            生成结果会按封面标题、卡片文案、正文和标签逐步出现。
+            生成结果会按标题、卡片、正文和标签逐步出现。
           </p>
         </section>
       )}

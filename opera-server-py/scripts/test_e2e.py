@@ -88,7 +88,9 @@ def assert_generate_contract(events: list[tuple[str, dict[str, object]]]) -> Non
         if expected_payload is not None:
             assert payload == expected_payload
     assert isinstance(events[2][1]["coverTitles"], list)
+    assert len(events[2][1]["coverTitles"]) == 6
     assert isinstance(events[4][1]["cards"], list)
+    assert len(events[4][1]["cards"]) == 7
     assert isinstance(events[6][1]["caption"], str)
     assert isinstance(events[8][1]["tagGroups"], list)
 
@@ -181,7 +183,7 @@ def main() -> None:
             with client.stream(
                 "POST",
                 f"{base_url}/api/generate",
-                json={"text": SAMPLE_ARTICLE, "tone": "knowledge"},
+                json={"text": SAMPLE_ARTICLE, "tone": "knowledge", "targetLength": "medium"},
             ) as response:
                 assert response.status_code == 200
                 assert "text/event-stream" in response.headers["content-type"]

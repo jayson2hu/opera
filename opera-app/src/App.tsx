@@ -12,7 +12,7 @@ import ComposerPage from './pages/ComposerPage';
 import WeChatPage from './pages/WeChatPage';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState<AppTab>('adapter');
+  const [activeTab, setActiveTab] = useState<AppTab>('wechat');
   const [selectedProvider, setSelectedProvider] = useState<ProviderId | null>(null);
   const [selectedModel, setSelectedModel] = useState('');
   const [providerOptions, setProviderOptions] = useState<ProvidersResponse['available']>([]);
@@ -84,12 +84,12 @@ export default function App() {
       <Header />
       <TabNav activeTab={activeTab} onChange={setActiveTab} />
 
-      {activeTab === 'adapter' ? (
-        <AdapterPage {...sharedProviderProps} />
-      ) : activeTab === 'composer' ? (
-        <ComposerPage {...sharedProviderProps} />
-      ) : (
+      {activeTab === 'wechat' ? (
         <WeChatPage {...sharedProviderProps} />
+      ) : activeTab === 'adapter' ? (
+        <AdapterPage {...sharedProviderProps} />
+      ) : (
+        <ComposerPage {...sharedProviderProps} />
       )}
 
       <footer className="border-t border-neutral-100 bg-white/50">
@@ -98,7 +98,7 @@ export default function App() {
             Opera - 内容创作工具
           </span>
           <span className="text-xs text-neutral-300">
-            无需登录 / 免费使用
+            无需登录 / 本地草稿
           </span>
         </div>
       </footer>

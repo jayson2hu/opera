@@ -14,14 +14,16 @@ from app.prompts import (
 )
 from app.providers.factory import create_provider, get_available_providers
 from app.sse import format_sse
-from app.types import GenerateRequestModel, ProviderId, TagGroup, ToneType
+from app.types import GenerateRequestModel, ProviderId, TagGroup, TargetLength, ToneType
 from app.utils import extract_json, preprocess_article_text
 
 router = APIRouter(prefix="/api")
 VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
 VALID_PROVIDER_VALUES: tuple[ProviderId, ...] = ("anthropic", "deepseek", "custom")
+VALID_LENGTH_VALUES: tuple[TargetLength, ...] = ("short", "medium", "long")
 VALID_TONES: set[ToneType] = set(VALID_TONE_VALUES)
 VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)
+VALID_LENGTHS: set[TargetLength] = set(VALID_LENGTH_VALUES)
 
 
 
@@ -33,6 +35,7 @@ def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel 
 
     text = body.get("text")
     tone = body.get("tone")
+    target_length = body.get("targetLength", "medium")
     provider = body.get("provider")
     model = body.get("model")
 
@@ -53,6 +56,8 @@ def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel 
     if provider is not None and provider not in VALID_PROVIDERS:
         return False, f"provider must be one of: {', '.join(VALID_PROVIDER_VALUES)}", None
 
+    if target_length not in VALID_LENGTHS:
+        return False, f"targetLength must be one of: {', '.join(VALID_LENGTH_VALUES)}", None
 
     if model is not None and not isinstance(model, str):
         return False, "model must be a string", None
@@ -60,6 +65,7 @@ def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel 
     return True, None, GenerateRequestModel(
         text=cleaned_text,
         tone=tone,
+        targetLength=target_length,
         provider=provider,
         model=model,
     )
@@ -69,6 +75,14 @@ def require_string_list(value: Any, error_message: str) -> list[str]:
     if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
         raise RuntimeError(error_message)
     return value
+
+
+def read_string_list_response(parsed: Any, key: str, error_message: str) -> list[str]:
+    if isinstance(parsed, list):
+        return require_string_list(parsed, error_message)
+    if isinstance(parsed, dict):
+        return require_string_list(parsed.get(key), error_message)
+    raise RuntimeError(error_message)
 
 
 @router.get("/providers")
@@ -100,8 +114,9 @@ async def generate(request: Request):
             extraction_raw = await provider.call(
                 extraction_prompt["system"], extraction_prompt["user"]
             )
-            points = require_string_list(
-                extract_json(extraction_raw).get("points"),
+            points = read_string_list_response(
+                extract_json(extraction_raw),
+                "points",
                 "Invalid extraction response",
             )
             if await request.is_disconnected():
@@ -130,7 +145,7 @@ async def generate(request: Request):
             yield format_sse("cards", {"cards": cards})
 
             yield format_sse("step", {"step": "caption"})
-            caption_prompt = build_caption_prompt(payload.text, points, cards, payload.tone)
+            caption_prompt = build_caption_prompt(payload.text, points, cards, payload.tone, payload.targetLength)
             caption_raw = await provider.call(caption_prompt["system"], caption_prompt["user"])
             caption = extract_json(caption_raw).get("caption")
             if not isinstance(caption, str) or not caption:

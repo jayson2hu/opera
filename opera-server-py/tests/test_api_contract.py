@@ -131,6 +131,15 @@ def test_generate_invalid_provider_returns_400(client: TestClient) -> None:
     assert response.json() == {"error": "provider must be one of: anthropic, deepseek, custom"}
 
 
+def test_generate_invalid_target_length_returns_400(client: TestClient) -> None:
+    response = client.post(
+        "/api/generate",
+        json={"text": "hello", "tone": "knowledge", "targetLength": "bad"},
+    )
+    assert response.status_code == 400
+    assert response.json() == {"error": "targetLength must be one of: short, medium, long"}
+
+
 def test_generate_preprocesses_wechat_artifacts(client: TestClient) -> None:
     FakeGenerateProvider.prompt_history = []
     with client.stream(
