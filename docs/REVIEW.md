@@ -31,6 +31,7 @@ Reviewed project layout, documentation, startup scripts, deployment configuratio
 Completed:
 
 - `python -m pytest -q` in `opera-server-py/`: passed, 25 tests.
+- `python scripts/test_e2e.py` in `opera-server-py/`: passed with real provider credentials, covering `/api/generate`, `/api/compose`, and `/api/wechat/compose`.
 - `npm.cmd run lint` in `opera-app/`: passed.
 - `npm.cmd run build` in `opera-app/`: passed when run outside the restricted sandbox.
 - `docker compose config`: passed previously, with warnings that Docker config under the user profile could not be read.
@@ -38,5 +39,6 @@ Completed:
 ## Recommended Follow-Up
 
 - Run full Docker startup smoke test with `docker compose up --build` when Docker Engine validation is approved.
-- Run live provider E2E with `python scripts/test_e2e.py` when real API usage is approved.
-- Consider moving generated temp logs out of the working tree entirely; current `.gitignore` covers common log patterns, but the root has existing temporary artifacts locally.
+- Re-enable or rebuild PowerShell profile initialization if conda/chocolatey shell helpers are needed interactively.
+- Revisit the user-level Git ignore permission issue outside this repository if global Git ignore behavior is needed.
+- Consider moving active generated runtime logs out of the repository root in a future cleanup.
