@@ -8,6 +8,8 @@ This directory is the canonical documentation location for the project.
 - `DEPLOYMENT.md`: local, Docker, and release deployment guidance.
 - `REVIEW.md`: current review findings, validation result, and follow-up risks.
 - `PLAN.md`: remaining follow-up work and current execution status.
+- `CONTENT_REWRITE_IMPROVEMENT_PLAN.md`: completed plan for the Official Account to Xiaohongshu rewrite improvements.
+- `XHS_COMPOSER_LAYOUT_IMAGE_PLAN.md`: pending plan for Xiaohongshu composer layout templates and local image attachments.
 
 ## Historical Docs
 

@@ -14,7 +14,7 @@ const TABS: Array<{ id: AppTab; label: string; activeClass: string }> = [
 export default function TabNav({ activeTab, onChange }: TabNavProps) {
   return (
     <div className="border-b border-neutral-100 bg-white">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 flex gap-1 pt-2 overflow-x-auto">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-2 pt-3 overflow-x-auto">
         {TABS.map((tab) => {
           const isActive = tab.id === activeTab;
           return (
@@ -24,7 +24,7 @@ export default function TabNav({ activeTab, onChange }: TabNavProps) {
               onClick={() => onChange(tab.id)}
               aria-pressed={isActive}
               className={`
-                shrink-0 pb-2 px-3 border-b-2 text-sm transition-colors cursor-pointer
+                shrink-0 pb-3 px-4 border-b-2 text-base transition-colors cursor-pointer
                 ${
                   isActive
                     ? `${tab.activeClass} font-semibold`

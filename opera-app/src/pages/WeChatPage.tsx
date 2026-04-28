@@ -316,14 +316,14 @@ export default function WeChatPage({
 
   return (
     <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
-      <section className="overflow-hidden rounded-[32px] border border-emerald-100 bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.22),_transparent_34%),linear-gradient(135deg,_rgba(236,253,245,0.98),_rgba(255,255,255,0.98))] p-8 shadow-card">
+      <section className="overflow-hidden rounded-[32px] border border-emerald-100 bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.22),_transparent_34%),linear-gradient(135deg,_rgba(236,253,245,0.98),_rgba(255,255,255,0.98))] p-8 sm:p-10 shadow-card">
         <div className="grid gap-6 lg:grid-cols-[1.5fr_0.9fr] lg:items-end">
           <div className="space-y-4">
             <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700">
               WeChat Draft Workspace
             </span>
             <div className="space-y-3">
-              <h1 className="text-3xl sm:text-4xl font-bold tracking-tight text-neutral-900">
+              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-neutral-900">
                 生成公众号标题、摘要和正文
               </h1>
               <p className="max-w-3xl text-sm sm:text-base leading-7 text-neutral-600">

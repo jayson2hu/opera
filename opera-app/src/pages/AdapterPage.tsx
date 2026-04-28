@@ -195,13 +195,13 @@ export default function AdapterPage({
   const isComplete = result !== null && currentStep === 'done';
 
   return (
-    <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-      <section className="space-y-6 mb-8">
-        <div className="text-center mb-10 mt-4">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-neutral-900 to-neutral-600 tracking-tight mb-4 pb-1">
+    <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      <section className="space-y-6">
+        <div className="rounded-[32px] border border-primary-100 bg-[radial-gradient(circle_at_top_right,_rgba(14,165,233,0.18),_transparent_34%),linear-gradient(135deg,_rgba(239,246,255,0.98),_rgba(255,255,255,0.98))] p-8 sm:p-10 shadow-card">
+          <h1 className="text-4xl sm:text-5xl font-bold text-neutral-900 tracking-tight mb-4">
             公众号文章转<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">小红书</span>
           </h1>
-          <p className="text-sm sm:text-base text-neutral-500 max-w-xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-base text-neutral-600 max-w-3xl leading-7">
             粘贴公众号文章或长文素材，生成更完整的小红书标题、图文卡片、发布正文和话题标签。
           </p>
         </div>
@@ -212,15 +212,16 @@ export default function AdapterPage({
           </section>
         )}
 
-        <TextInput value={inputText} onChange={setInputText} disabled={isGenerating} />
+        <section className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-card space-y-6">
+          <TextInput value={inputText} onChange={setInputText} disabled={isGenerating} />
 
-        <ToneSelector
+          <ToneSelector
           selected={selectedTone}
           onSelect={setSelectedTone}
           disabled={isGenerating}
         />
 
-        <section className="space-y-3">
+          <section className="space-y-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2 className="text-sm font-semibold text-neutral-800">正文长度</h2>
@@ -265,7 +266,7 @@ export default function AdapterPage({
           </div>
         </section>
 
-        <ProviderSelector
+          <ProviderSelector
           providers={providers}
           selectedProvider={selectedProvider}
           selectedModel={selectedModel}
@@ -275,7 +276,7 @@ export default function AdapterPage({
           loading={loading}
         />
 
-        <div className="flex items-center justify-center gap-3 pt-2">
+          <div className="flex items-center justify-center gap-3 pt-2">
           <button
             type="button"
             onClick={handleGenerate}
@@ -304,10 +305,11 @@ export default function AdapterPage({
               重新开始
             </button>
           )}
-        </div>
+          </div>
+        </section>
       </section>
 
-      {(isGenerating || result) && <div className="border-t border-neutral-200 my-6" />}
+      {(isGenerating || result) && <div className="border-t border-neutral-200" />}
 
       {isGenerating && (
         <section className="mb-6">

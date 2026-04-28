@@ -21,6 +21,15 @@ Status date: 2026-04-28
   - rewrite flow gained caption length options
   - rewrite output now targets 6 titles, 7 cards, and longer captions
   - slide cards gained stronger visual hierarchy
+- Implemented Xiaohongshu composer layout and image attachment improvements:
+  - added layout templates for clean paragraphs, list notes, story-style notes, and tutorial steps
+  - added layout options for emoji accents, section dividers, and hashtag placement
+  - added formatted preview and wired full-text copy to the preview output
+  - enabled local image attachments with thumbnail preview, remove action, and validation
+  - limited draft images to PNG/JPG/WebP, 9 images total, and 8 MB per image
+  - kept AI image keyword suggestions visible alongside local image attachments
+  - unified the three tab pages to the larger WeChat tab layout width and enlarged hero/tab sizing
+  - verified frontend lint and production build; Docker full-stack smoke testing remains deferred by request
 
 ## Planned But Not Run Yet
 

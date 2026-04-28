@@ -55,6 +55,22 @@ export type ContentType = 'recommend' | 'knowledge' | 'story' | 'tutorial';
 export type TargetLength = 'short' | 'medium' | 'long';
 export type ComposerRegenerateTarget = 'title' | 'body' | 'tags';
 export type ComposerStep = 'extracting' | 'title' | 'body' | 'tags' | 'done';
+export type ComposerLayoutTemplate = 'clean' | 'list' | 'story' | 'tutorial';
+
+export interface ComposerLayoutOptions {
+  template: ComposerLayoutTemplate;
+  useEmoji: boolean;
+  useDividers: boolean;
+  keepTagsAtEnd: boolean;
+}
+
+export interface ComposerDraftImage {
+  id: string;
+  file: File;
+  name: string;
+  previewUrl: string;
+  alt?: string;
+}
 
 export interface ComposerResult {
   title: string;

@@ -1,5 +1,7 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
+  ComposerDraftImage,
+  ComposerLayoutOptions,
   ComposerRegenerateTarget,
   ComposerRequest,
   ComposerResult,
@@ -13,16 +15,28 @@ import { buildApiUrl, COMPOSER_STEPS, countChars } from '../constants';
 import ProviderSelector from '../components/ProviderSelector';
 import ProgressIndicator from '../components/ProgressIndicator';
 import ToneSelector from '../components/ToneSelector';
+import ComposerLayoutPanel from '../components/composer/ComposerLayoutPanel';
 import ContentTypeSelector from '../components/composer/ContentTypeSelector';
 import EditableBody from '../components/composer/EditableBody';
 import EditableTags from '../components/composer/EditableTags';
 import EditableTitle from '../components/composer/EditableTitle';
+import FormattedPreview from '../components/composer/FormattedPreview';
 import ImageSuggestion from '../components/composer/ImageSuggestion';
 import LengthSelector from '../components/composer/LengthSelector';
 import PublishActions from '../components/composer/PublishActions';
 import TopicInput from '../components/composer/TopicInput';
+import { formatComposerText } from '../components/composer/layoutFormatter';
 
 const MIN_TOPIC_CHARS = 10;
+const MAX_DRAFT_IMAGES = 9;
+const MAX_DRAFT_IMAGE_SIZE = 8 * 1024 * 1024;
+const ACCEPTED_DRAFT_IMAGE_TYPES = new Set(['image/png', 'image/jpeg', 'image/webp']);
+const DEFAULT_LAYOUT_OPTIONS: ComposerLayoutOptions = {
+  template: 'clean',
+  useEmoji: true,
+  useDividers: false,
+  keepTagsAtEnd: true,
+};
 const EMPTY_RESULT: ComposerResult = {
   title: '',
   body: '',
@@ -55,9 +69,13 @@ export default function ComposerPage({
   const [currentStep, setCurrentStep] = useState<ComposerStep>('extracting');
   const [result, setResult] = useState<ComposerResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [layoutOptions, setLayoutOptions] = useState<ComposerLayoutOptions>(DEFAULT_LAYOUT_OPTIONS);
+  const [draftImages, setDraftImages] = useState<ComposerDraftImage[]>([]);
+  const [imageError, setImageError] = useState<string | null>(null);
 
   const outputRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
+  const draftImagesRef = useRef<ComposerDraftImage[]>([]);
   const topicCharCount = countChars(topic);
   const topicCharsRemaining = Math.max(0, MIN_TOPIC_CHARS - topicCharCount);
   const isTopicReady = topicCharCount >= MIN_TOPIC_CHARS;
@@ -88,8 +106,13 @@ export default function ComposerPage({
   useEffect(() => {
     return () => {
       abortRef.current?.abort();
+      draftImagesRef.current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
     };
   }, []);
+
+  useEffect(() => {
+    draftImagesRef.current = draftImages;
+  }, [draftImages]);
 
   const runCompose = useCallback(
     async (regenerate?: ComposerRegenerateTarget) => {
@@ -215,26 +238,88 @@ export default function ComposerPage({
     setCurrentStep('extracting');
     setResult(null);
     setError(null);
+    setLayoutOptions(DEFAULT_LAYOUT_OPTIONS);
+    setImageError(null);
+    draftImagesRef.current.forEach((image) => URL.revokeObjectURL(image.previewUrl));
+    setDraftImages([]);
   }, []);
 
-  const fullText = result
-    ? [
-        result.title.trim(),
-        result.body.trim(),
-        result.tags.length ? result.tags.map((tag) => `#${tag}`).join(' ') : '',
-      ]
-        .filter(Boolean)
-        .join('\n\n')
-    : '';
+  const handleAddImages = useCallback((files: File[]) => {
+    setDraftImages((current) => {
+      const remaining = MAX_DRAFT_IMAGES - current.length;
+      if (remaining <= 0) {
+        setImageError(`最多只能添加 ${MAX_DRAFT_IMAGES} 张图片`);
+        return current;
+      }
+
+      const accepted: ComposerDraftImage[] = [];
+      let rejectedMessage: string | null = null;
+
+      for (const file of files) {
+        if (accepted.length >= remaining) {
+          rejectedMessage = `最多只能添加 ${MAX_DRAFT_IMAGES} 张图片`;
+          break;
+        }
+
+        if (!ACCEPTED_DRAFT_IMAGE_TYPES.has(file.type)) {
+          rejectedMessage = '仅支持 PNG、JPG、WebP 图片';
+          continue;
+        }
+
+        if (file.size > MAX_DRAFT_IMAGE_SIZE) {
+          rejectedMessage = '单张图片不能超过 8 MB';
+          continue;
+        }
+
+        const id =
+          typeof crypto !== 'undefined' && 'randomUUID' in crypto
+            ? crypto.randomUUID()
+            : `${Date.now()}-${file.name}-${Math.random().toString(16).slice(2)}`;
+
+        accepted.push({
+          id,
+          file,
+          name: file.name,
+          previewUrl: URL.createObjectURL(file),
+          alt: file.name,
+        });
+      }
+
+      setImageError(rejectedMessage);
+      return accepted.length > 0 ? [...current, ...accepted] : current;
+    });
+  }, []);
+
+  const handleRemoveImage = useCallback((id: string) => {
+    setDraftImages((current) => {
+      const target = current.find((image) => image.id === id);
+      if (target) URL.revokeObjectURL(target.previewUrl);
+      return current.filter((image) => image.id !== id);
+    });
+    setImageError(null);
+  }, []);
+
+  const fullText = useMemo(
+    () =>
+      result
+        ? formatComposerText({
+            title: result.title,
+            body: result.body,
+            tags: result.tags,
+            options: layoutOptions,
+          })
+        : '',
+    [layoutOptions, result],
+  );
 
   return (
-    <main className="flex-1 w-full max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-10">
-      <section className="space-y-6 mb-8">
-        <div className="space-y-3 mt-4">
-          <h1 className="text-2xl sm:text-3xl font-bold text-neutral-900 tracking-tight">
+    <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
+      <section className="space-y-6">
+        <div className="rounded-[32px] border border-accent-100 bg-[radial-gradient(circle_at_top_right,_rgba(244,114,182,0.18),_transparent_34%),linear-gradient(135deg,_rgba(253,242,248,0.98),_rgba(255,255,255,0.98))] p-8 sm:p-10 shadow-card">
+          <h1 className="text-4xl sm:text-5xl font-bold text-neutral-900 tracking-tight">
             从一个选题生成小红书原创帖子
           </h1>
-          <p className="text-sm sm:text-base text-neutral-500 leading-relaxed max-w-2xl">
+          <p className="text-sm sm:text-base text-neutral-600 leading-7 max-w-3xl mt-3">
             输入主题，选择内容类型、语气和篇幅，系统会生成标题、正文、标签和配图关键词。
           </p>
         </div>
@@ -245,11 +330,12 @@ export default function ComposerPage({
           </section>
         )}
 
-        <TopicInput value={topic} onChange={setTopic} disabled={isGenerating} minChars={MIN_TOPIC_CHARS} />
-        <ContentTypeSelector selected={contentType} onSelect={setContentType} disabled={isGenerating} />
-        <ToneSelector selected={selectedTone} onSelect={setSelectedTone} disabled={isGenerating} />
-        <LengthSelector selected={targetLength} onSelect={setTargetLength} disabled={isGenerating} />
-        <ProviderSelector
+        <section className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-card space-y-6">
+          <TopicInput value={topic} onChange={setTopic} disabled={isGenerating} minChars={MIN_TOPIC_CHARS} />
+          <ContentTypeSelector selected={contentType} onSelect={setContentType} disabled={isGenerating} />
+          <ToneSelector selected={selectedTone} onSelect={setSelectedTone} disabled={isGenerating} />
+          <LengthSelector selected={targetLength} onSelect={setTargetLength} disabled={isGenerating} />
+          <ProviderSelector
           providers={providers}
           selectedProvider={selectedProvider}
           selectedModel={selectedModel}
@@ -259,7 +345,7 @@ export default function ComposerPage({
           loading={loading}
         />
 
-        <div className="flex flex-col items-center gap-3 pt-2">
+          <div className="flex flex-col items-center gap-3 pt-2">
           <div className="flex flex-wrap items-center justify-center gap-3">
             <button
               type="button"
@@ -291,10 +377,11 @@ export default function ComposerPage({
           >
             {submitHint}
           </p>
-        </div>
+          </div>
+        </section>
       </section>
 
-      {(isGenerating || hasAnyOutput) && <div className="border-t border-neutral-200 my-6" />}
+      {(isGenerating || hasAnyOutput) && <div className="border-t border-neutral-200" />}
 
       {isGenerating && (
         <section className="mb-6">
@@ -333,7 +420,18 @@ export default function ComposerPage({
             disabled={isGenerating}
           />
 
-          <ImageSuggestion keywords={result.imageKeywords} />
+          <ComposerLayoutPanel value={layoutOptions} onChange={setLayoutOptions} disabled={isGenerating} />
+
+          <FormattedPreview text={fullText} />
+
+          <ImageSuggestion
+            keywords={result.imageKeywords}
+            images={draftImages}
+            onAddImages={handleAddImages}
+            onRemoveImage={handleRemoveImage}
+            error={imageError}
+            disabled={isGenerating}
+          />
 
           {(result.tags.length > 0 || isComplete) && (
             <EditableTags
