@@ -10,12 +10,25 @@ os.environ.setdefault("DEEPSEEK_API_KEY", "test-deepseek-key")
 os.environ.setdefault("DEEPSEEK_BASE_URL", "https://api.deepseek.com")
 os.environ.setdefault("DEEPSEEK_MODEL", "deepseek-chat")
 os.environ.setdefault("ANTHROPIC_API_KEY", "test-anthropic-key")
+os.environ.setdefault("ANTHROPIC_MODELS", "claude-sonnet-4-20250514,claude-haiku-4-5")
+os.environ.setdefault("ANTHROPIC_COMPAT_API_KEY", "test-anthropic-compat-key")
+os.environ.setdefault("ANTHROPIC_COMPAT_BASE_URL", "https://claude-gateway.example.com")
+os.environ.setdefault("ANTHROPIC_COMPAT_MODEL", "claude-third-party")
+os.environ.setdefault("OPENAI_API_KEY", "test-openai-key")
+os.environ.setdefault("OPENAI_MODEL", "gpt-5.2")
+os.environ.setdefault("OPENAI_CHATGPT_MODEL", "gpt-5.2-chat-latest")
+os.environ.setdefault("OPENAI_COMPAT_API_KEY", "test-openai-compat-key")
+os.environ.setdefault("OPENAI_COMPAT_BASE_URL", "https://openai-gateway.example.com/v1")
+os.environ.setdefault("OPENAI_COMPAT_MODEL", "gpt-third-party")
 os.environ.setdefault("CUSTOM_API_KEY", "test-custom-key")
 os.environ.setdefault("CUSTOM_BASE_URL", "https://example.com/v1")
 os.environ.setdefault("CUSTOM_MODEL", "gpt-4o")
 
-from app.config import get_settings
+from app.config import VALID_PROVIDER_VALUES, Settings, get_settings
 from app.main import create_app
+from app.providers.anthropic_provider import AnthropicProvider
+from app.providers.factory import create_provider, get_available_providers
+from app.providers.openai_compat_provider import OpenAICompatProvider
 from app.routes import compose as compose_route
 from app.routes import generate as generate_route
 from app.routes import wechat_compose as wechat_compose_route
@@ -108,6 +121,9 @@ def test_providers_contract(client: TestClient) -> None:
     payload = response.json()
     assert payload["default"] == "deepseek"
     assert any(item["id"] == "deepseek" for item in payload["available"])
+    assert any(item["id"] == "anthropic_compat" for item in payload["available"])
+    assert any(item["id"] == "openai" for item in payload["available"])
+    assert any(item["id"] == "openai_compat" for item in payload["available"])
 
 
 def test_generate_empty_body_returns_400(client: TestClient) -> None:
@@ -128,7 +144,77 @@ def test_generate_invalid_provider_returns_400(client: TestClient) -> None:
         json={"text": "hello", "tone": "knowledge", "provider": "bad"},
     )
     assert response.status_code == 400
-    assert response.json() == {"error": "provider must be one of: anthropic, deepseek, custom"}
+    assert response.json() == {"error": f"provider must be one of: {', '.join(VALID_PROVIDER_VALUES)}"}
+
+
+def test_provider_model_lists_and_names() -> None:
+    settings = Settings(
+        ai_provider="openai",
+        anthropic_api_key="anthropic-key",
+        anthropic_models="claude-a, claude-b, claude-a",
+        anthropic_compat_api_key="anthropic-compat-key",
+        anthropic_compat_base_url="https://claude.example.com",
+        anthropic_compat_model="claude-third-party",
+        openai_api_key="openai-key",
+        openai_models="gpt-a, gpt-b, gpt-a",
+        openai_compat_api_key="openai-compat-key",
+        openai_compat_base_url="https://openai.example.com/v1",
+        openai_compat_model="gpt-third-party",
+        deepseek_api_key="deepseek-key",
+        custom_api_key="custom-key",
+        custom_base_url="https://custom.example.com/v1",
+        custom_model="custom-model",
+    )
+
+    payload = get_available_providers(settings)
+    providers = {item["id"]: item for item in payload["available"]}
+
+    assert payload["default"] == "openai"
+    assert providers["anthropic"]["name"] == "Claude official"
+    assert providers["anthropic"]["models"] == ["claude-a", "claude-b", "claude-sonnet-4-20250514"]
+    assert providers["anthropic_compat"]["name"] == "Claude third-party"
+    assert providers["openai"]["name"] == "ChatGPT / OpenAI official"
+    assert providers["openai"]["models"] == ["gpt-a", "gpt-b", "gpt-5.2", "gpt-5.2-chat-latest"]
+    assert providers["openai_compat"]["name"] == "ChatGPT / OpenAI third-party"
+    assert providers["custom"]["name"] == "Custom (Legacy)"
+
+
+def test_provider_factory_supports_official_and_third_party_protocols() -> None:
+    settings = Settings(
+        anthropic_api_key="anthropic-key",
+        anthropic_model="claude-official",
+        anthropic_compat_api_key="anthropic-compat-key",
+        anthropic_compat_base_url="https://claude.example.com",
+        anthropic_compat_model="claude-third-party",
+        openai_api_key="openai-key",
+        openai_model="gpt-official",
+        openai_compat_api_key="openai-compat-key",
+        openai_compat_base_url="https://openai.example.com/v1",
+        openai_compat_model="gpt-third-party",
+    )
+
+    assert isinstance(create_provider(settings, "anthropic"), AnthropicProvider)
+    assert isinstance(create_provider(settings, "anthropic_compat"), AnthropicProvider)
+    assert isinstance(create_provider(settings, "openai"), OpenAICompatProvider)
+    assert isinstance(create_provider(settings, "openai_compat"), OpenAICompatProvider)
+
+
+def test_provider_factory_requires_third_party_base_urls() -> None:
+    anthropic_settings = Settings(
+        anthropic_compat_api_key="anthropic-compat-key",
+        anthropic_compat_base_url="",
+        anthropic_compat_model="claude-third-party",
+    )
+    openai_settings = Settings(
+        openai_compat_api_key="openai-compat-key",
+        openai_compat_base_url="",
+        openai_compat_model="gpt-third-party",
+    )
+
+    with pytest.raises(RuntimeError, match="ANTHROPIC_COMPAT_BASE_URL"):
+        create_provider(anthropic_settings, "anthropic_compat")
+    with pytest.raises(RuntimeError, match="OPENAI_COMPAT_BASE_URL"):
+        create_provider(openai_settings, "openai_compat")
 
 
 def test_generate_invalid_target_length_returns_400(client: TestClient) -> None:

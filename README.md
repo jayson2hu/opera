@@ -30,7 +30,14 @@ Historical handoff and feature PRD documents have been moved under `docs/archive
    Copy-Item opera-server-py\.env.example opera-server-py\.env
    ```
 
-   Fill in the provider key for `AI_PROVIDER`.
+   Fill in the provider key for `AI_PROVIDER`. Supported provider ids are:
+
+   - `anthropic`: Claude official API
+   - `anthropic_compat`: third-party Claude gateway using the Anthropic-compatible protocol
+   - `openai`: ChatGPT/OpenAI official API
+   - `openai_compat`: third-party ChatGPT/OpenAI gateway using the OpenAI-compatible protocol
+   - `deepseek`: DeepSeek
+   - `custom`: legacy OpenAI-compatible provider
 
 2. Start backend from the repo root:
 

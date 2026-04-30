@@ -43,8 +43,20 @@ API base behavior:
 Supported provider modes:
 
 - `anthropic`
+- `anthropic_compat`
+- `openai`
+- `openai_compat`
 - `deepseek`
-- `custom` OpenAI-compatible provider
+- `custom` legacy OpenAI-compatible provider
+
+Provider protocol mapping:
+
+- `anthropic`: Claude official API through the Anthropic Messages protocol.
+- `anthropic_compat`: third-party Claude gateway through an Anthropic-compatible protocol.
+- `openai`: official ChatGPT/OpenAI API through the OpenAI-compatible chat completions protocol.
+- `openai_compat`: third-party ChatGPT/OpenAI gateway through the OpenAI-compatible chat completions protocol.
+- `deepseek`: DeepSeek through the OpenAI-compatible chat completions protocol.
+- `custom`: legacy OpenAI-compatible relay configuration retained for backward compatibility.
 
 Required environment file:
 

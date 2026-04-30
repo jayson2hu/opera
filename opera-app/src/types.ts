@@ -19,7 +19,7 @@ export interface TagGroup {
   tags: string[];
 }
 
-export type ProviderId = 'anthropic' | 'deepseek' | 'custom';
+export type ProviderId = 'anthropic' | 'anthropic_compat' | 'openai' | 'openai_compat' | 'deepseek' | 'custom';
 
 export interface ProviderInfo {
   id: ProviderId;

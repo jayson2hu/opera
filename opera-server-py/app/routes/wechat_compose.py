@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.config import get_settings
+from app.config import VALID_PROVIDER_VALUES, get_settings
 from app.prompts_wechat import (
     build_wechat_body_prompt,
     build_wechat_digest_prompt,
@@ -25,7 +25,6 @@ from app.utils import extract_json
 
 router = APIRouter(prefix="/api")
 VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
-VALID_PROVIDER_VALUES: tuple[ProviderId, ...] = ("anthropic", "deepseek", "custom")
 VALID_ARTICLE_TYPE_VALUES: tuple[WeChatArticleType, ...] = (
     "insight",
     "guide",

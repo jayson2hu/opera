@@ -35,6 +35,8 @@ Status date: 2026-04-28
 
 - Docker full-stack smoke test: `docker compose up --build`.
   Status: deferred by request. Do not run in this pass.
+- Claude and ChatGPT/OpenAI provider support.
+  Status: implemented and self-tested; progress is tracked in `docs/CLAUDE_CHATGPT_PROVIDER_PLAN.md`.
 
 ## Still Open
 

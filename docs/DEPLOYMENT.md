@@ -28,6 +28,34 @@ AI_PROVIDER=anthropic
 ANTHROPIC_API_KEY=...
 ```
 
+For a third-party Claude gateway that uses the Anthropic-compatible protocol:
+
+```env
+AI_PROVIDER=anthropic_compat
+ANTHROPIC_COMPAT_API_KEY=...
+ANTHROPIC_COMPAT_BASE_URL=https://claude-gateway.example.com
+ANTHROPIC_COMPAT_MODEL=claude-sonnet-4-20250514
+```
+
+For official ChatGPT/OpenAI models:
+
+```env
+AI_PROVIDER=openai
+OPENAI_API_KEY=...
+OPENAI_BASE_URL=https://api.openai.com
+OPENAI_MODEL=gpt-5.2
+OPENAI_MODELS=gpt-5.2,gpt-5.2-chat-latest
+```
+
+For a third-party ChatGPT/OpenAI gateway that uses the OpenAI-compatible chat completions protocol:
+
+```env
+AI_PROVIDER=openai_compat
+OPENAI_COMPAT_API_KEY=...
+OPENAI_COMPAT_BASE_URL=https://openai-gateway.example.com/v1
+OPENAI_COMPAT_MODEL=gpt-4o
+```
+
 For DeepSeek:
 
 ```env
@@ -35,7 +63,7 @@ AI_PROVIDER=deepseek
 DEEPSEEK_API_KEY=...
 ```
 
-For an OpenAI-compatible relay:
+For the legacy OpenAI-compatible relay configuration:
 
 ```env
 AI_PROVIDER=custom
@@ -43,6 +71,8 @@ CUSTOM_API_KEY=...
 CUSTOM_BASE_URL=https://example.com/v1
 CUSTOM_MODEL=...
 ```
+
+Prefer `openai_compat` for new third-party OpenAI-compatible gateways. Use `anthropic_compat` for third-party Claude gateways that follow the Anthropic Messages API shape. Do not configure a Claude-compatible gateway as `openai_compat` unless that gateway explicitly exposes Claude models through OpenAI-compatible chat completions.
 
 Never commit `.env` files.
 

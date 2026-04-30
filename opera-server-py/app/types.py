@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import BaseModel
 
 ToneType = Literal["knowledge", "casual", "bff"]
-ProviderId = Literal["anthropic", "deepseek", "custom"]
+ProviderId = Literal["anthropic", "anthropic_compat", "openai", "openai_compat", "deepseek", "custom"]
 TagGroupType = Literal["broad", "precise", "longtail"]
 GenerationStep = Literal["extracting", "titles", "cards", "caption", "tags", "done"]
 ContentType = Literal["recommend", "knowledge", "story", "tutorial"]

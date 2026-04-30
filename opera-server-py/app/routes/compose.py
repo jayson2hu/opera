@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.config import get_settings
+from app.config import VALID_PROVIDER_VALUES, get_settings
 from app.prompts_composer import (
     build_composer_body_prompt,
     build_composer_extraction_prompt,
@@ -26,7 +26,6 @@ from app.utils import extract_json
 
 router = APIRouter(prefix="/api")
 VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
-VALID_PROVIDER_VALUES: tuple[ProviderId, ...] = ("anthropic", "deepseek", "custom")
 VALID_CONTENT_TYPE_VALUES: tuple[ContentType, ...] = (
     "recommend",
     "knowledge",

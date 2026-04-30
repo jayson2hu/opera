@@ -4,7 +4,7 @@ from typing import Any
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from app.config import get_settings
+from app.config import VALID_PROVIDER_VALUES, get_settings
 from app.prompts import (
     build_caption_prompt,
     build_cards_prompt,
@@ -19,7 +19,6 @@ from app.utils import extract_json, preprocess_article_text
 
 router = APIRouter(prefix="/api")
 VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
-VALID_PROVIDER_VALUES: tuple[ProviderId, ...] = ("anthropic", "deepseek", "custom")
 VALID_LENGTH_VALUES: tuple[TargetLength, ...] = ("short", "medium", "long")
 VALID_TONES: set[ToneType] = set(VALID_TONE_VALUES)
 VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)

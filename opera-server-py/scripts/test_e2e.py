@@ -23,6 +23,14 @@ EXPECTED_GENERATE_EVENTS = [
     ("step", {"step": "done"}),
 ]
 EXPECTED_WECHAT_STEPS = ["extracting", "title", "digest", "body", "done"]
+VALID_PROVIDER_VALUES = (
+    "anthropic",
+    "anthropic_compat",
+    "openai",
+    "openai_compat",
+    "deepseek",
+    "custom",
+)
 
 SAMPLE_ARTICLE = (
     "A small content team wants to turn long research notes into short social posts. "
@@ -177,7 +185,9 @@ def main() -> None:
                 json={"text": "hello", "tone": "knowledge", "provider": "bad"},
             )
             assert invalid_provider.status_code == 400
-            assert invalid_provider.json() == {"error": "provider must be one of: anthropic, deepseek, custom"}
+            assert invalid_provider.json() == {
+                "error": f"provider must be one of: {', '.join(VALID_PROVIDER_VALUES)}"
+            }
             print("[PASS] POST /api/generate invalid provider")
 
             with client.stream(

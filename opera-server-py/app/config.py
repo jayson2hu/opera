@@ -3,8 +3,16 @@ from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-ProviderId = Literal["anthropic", "deepseek", "custom"]
-VALID_PROVIDERS: set[ProviderId] = {"anthropic", "deepseek", "custom"}
+ProviderId = Literal["anthropic", "anthropic_compat", "openai", "openai_compat", "deepseek", "custom"]
+VALID_PROVIDER_VALUES: tuple[ProviderId, ...] = (
+    "anthropic",
+    "anthropic_compat",
+    "openai",
+    "openai_compat",
+    "deepseek",
+    "custom",
+)
+VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)
 
 
 def parse_provider(value: str | None) -> ProviderId:
@@ -21,12 +29,28 @@ class Settings(BaseSettings):
     anthropic_api_key: str = ""
     anthropic_base_url: str = "https://api.anthropic.com"
     anthropic_model: str = "claude-sonnet-4-20250514"
+    anthropic_models: str = ""
+    anthropic_compat_api_key: str = ""
+    anthropic_compat_base_url: str = ""
+    anthropic_compat_model: str = ""
+    anthropic_compat_models: str = ""
+    openai_api_key: str = ""
+    openai_base_url: str = "https://api.openai.com"
+    openai_model: str = "gpt-5.2"
+    openai_chatgpt_model: str = "gpt-5.2-chat-latest"
+    openai_models: str = ""
+    openai_compat_api_key: str = ""
+    openai_compat_base_url: str = ""
+    openai_compat_model: str = ""
+    openai_compat_models: str = ""
     deepseek_api_key: str = ""
     deepseek_base_url: str = "https://api.deepseek.com"
     deepseek_model: str = "deepseek-chat"
+    deepseek_models: str = ""
     custom_api_key: str = ""
     custom_base_url: str = ""
     custom_model: str = ""
+    custom_models: str = ""
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -62,6 +86,9 @@ def validate_config(settings: Settings) -> None:
     provider = settings.default_provider
     key_map = {
         "anthropic": settings.anthropic_api_key,
+        "anthropic_compat": settings.anthropic_compat_api_key,
+        "openai": settings.openai_api_key,
+        "openai_compat": settings.openai_compat_api_key,
         "deepseek": settings.deepseek_api_key,
         "custom": settings.custom_api_key,
     }
@@ -70,6 +97,16 @@ def validate_config(settings: Settings) -> None:
         raise RuntimeError(
             f'[opera-server-py] Default provider is "{provider}" but its API key is not set. '
             'Copy .env.example to .env and configure the relevant key.'
+        )
+
+    if provider == "anthropic_compat" and not settings.anthropic_compat_base_url:
+        raise RuntimeError(
+            "[opera-server-py] ANTHROPIC_COMPAT_BASE_URL is required when AI_PROVIDER=anthropic_compat."
+        )
+
+    if provider == "openai_compat" and not settings.openai_compat_base_url:
+        raise RuntimeError(
+            "[opera-server-py] OPENAI_COMPAT_BASE_URL is required when AI_PROVIDER=openai_compat."
         )
 
     if provider == "custom" and not settings.custom_base_url:
