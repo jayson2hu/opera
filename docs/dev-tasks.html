@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opera UX 改进 - 开发任务拆解</title>
+<style>
+:root{--bg:#f8f9fa;--wh:#fff;--tx:#1a1a2e;--mu:#6b7280;--bd:#e5e7eb;--pri:#6366f1;--pri-lt:#eef2ff;--p0:#ef4444;--p0b:#fef2f2;--p1:#f59e0b;--p1b:#fffbeb;--p2:#3b82f6;--p2b:#eff6ff;--ok:#10b981;--okb:#ecfdf5;--r:12px;--sh:0 1px 3px rgba(0,0,0,.06)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;background:var(--bg);color:var(--tx);line-height:1.7;padding-bottom:60px}
+.c{max-width:1000px;margin:0 auto;padding:0 24px}
+header{background:var(--wh);border-bottom:1px solid var(--bd);padding:20px 0;margin-bottom:32px}
+header h1{font-size:22px;font-weight:700}
+header p{font-size:13px;color:var(--mu);margin-top:4px}
+h2{font-size:18px;font-weight:700;margin:32px 0 16px;padding:8px 0;border-bottom:2px solid var(--pri)}
+.task{background:var(--wh);border:1px solid var(--bd);border-radius:var(--r);margin-bottom:16px;box-shadow:var(--sh);overflow:hidden}
+.task-header{display:flex;align-items:center;gap:12px;padding:16px 20px;border-bottom:1px solid var(--bd);background:#fafbfc}
+.task-id{font-size:12px;font-weight:700;color:var(--wh);padding:2px 8px;border-radius:4px;white-space:nowrap}
+.tid-p0{background:var(--p0)}.tid-p1{background:var(--p1)}.tid-p2{background:var(--p2)}
+.task-title{font-size:15px;font-weight:600;flex:1}
+.task-time{font-size:12px;color:var(--mu);white-space:nowrap}
+.task-body{padding:16px 20px}
+.task-body h4{font-size:13px;font-weight:600;color:var(--mu);text-transform:uppercase;letter-spacing:.5px;margin:12px 0 6px}
+.task-body h4:first-child{margin-top:0}
+.task-body p,.task-body li{font-size:14px}
+.task-body ul{margin-left:16px}
+.task-body li{margin:4px 0}
+.task-body code{background:var(--pri-lt);padding:1px 5px;border-radius:4px;font-size:13px;color:var(--pri)}
+.check{background:var(--okb);border:1px solid #d1fae5;border-radius:8px;padding:12px 16px;margin-top:12px}
+.check p{font-size:13px;color:#065f46}
+.commit-msg{background:#f3f4f6;border-radius:6px;padding:8px 12px;font-family:monospace;font-size:13px;margin-top:8px;color:#374151}
+.progress{margin-top:32px;background:var(--wh);border:1px solid var(--bd);border-radius:var(--r);padding:20px;box-shadow:var(--sh)}
+.progress h3{font-size:15px;font-weight:600;margin-bottom:12px}
+.progress-row{display:grid;grid-template-columns:40px 1fr 80px 100px;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--bd);font-size:13px}
+.progress-row:last-child{border-bottom:none}
+.status{padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;text-align:center}
+.s-todo{background:#f3f4f6;color:#6b7280}
+.s-doing{background:#fef3c7;color:#92400e}
+.s-done{background:#d1fae5;color:#065f46}
+@media(max-width:640px){.c{padding:0 16px}.progress-row{grid-template-columns:1fr;gap:4px}}
+</style>
+</head>
+<body>
+<header><div class="c">
+<h1>Opera UX 改进 - 开发任务拆解</h1>
+<p>基于 product-ux-review.html 拆解 | 供 Codex 逐条开发 | 每完成一条提交代码并更新进度</p>
+</div></header>
+<div class="c">
+
+<h2>Sprint 1: P0 — 核心转化优化</h2>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p0">T-01</span>
+<span class="task-title">语气选择卡片增加"适合场景"标签</span>
+<span class="task-time">~30 min</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>在 ToneSelector 的每个语气卡片底部增加 2-3 个场景标签，帮助用户快速判断哪个语气适合自己的内容。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-01a: 在 <code>constants.ts</code> 的 <code>TONE_OPTIONS</code> 数组中，为每个 tone 增加 <code>tags: string[]</code> 字段</li>
+<li>T-01b: 在 <code>types.ts</code> 的 <code>ToneOption</code> 类型中增加 <code>tags</code> 属性</li>
+<li>T-01c: 在 <code>ToneSelector.tsx</code> 的卡片底部渲染 tags（小圆角灰底标签样式）</li>
+</ul>
+
+<h4>数据定义</h4>
+<ul>
+<li>knowledge: ["经验总结", "方法论", "行业观察"]</li>
+<li>casual: ["概念科普", "工具介绍", "答疑解惑"]</li>
+<li>bff: ["产品种草", "生活分享", "情感共鸣"]</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 三个语气卡片底部各显示 2-3 个标签</p>
+<p>2. 标签样式为小圆角、灰底、12px 字号</p>
+<p>3. 选中状态下标签颜色跟随主色变化</p>
+<p>4. <code>npm run lint</code> 通过</p>
+<p>5. <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">feat(tone): add scenario tags to tone selector cards</div>
+</div>
+</div>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p0">T-02</span>
+<span class="task-title">选题输入框增加"选题灵感"折叠示例区</span>
+<span class="task-time">~45 min</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>在 TopicInput 组件下方增加一个可折叠的"选题灵感"区域，按内容类型分组展示示例选题，帮助用户理解什么样的输入能产生好结果。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-02a: 创建 <code>TopicInspiration.tsx</code> 组件，包含折叠/展开逻辑</li>
+<li>T-02b: 定义示例数据（4 类 x 2 条示例）</li>
+<li>T-02c: 在 <code>ComposerPage.tsx</code> 的 TopicInput 下方引入该组件</li>
+<li>T-02d: 点击示例可填入输入框（可选增强）</li>
+</ul>
+
+<h4>示例数据</h4>
+<ul>
+<li>种草推荐: "分享 5 个让居家办公效率翻倍的桌面好物", "这款平价面霜用了一个月的真实感受"</li>
+<li>知识干货: "给新手讲清楚基金定投到底怎么操作", "3 个被低估的时间管理技巧"</li>
+<li>故事经验: "裸辞三个月后我学到的 3 件事", "从月薪 5k 到自由职业的转变过程"</li>
+<li>教程指南: "手把手教你用 Notion 搭建个人知识库", "小红书封面图制作完整教程"</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. TopicInput 下方出现"选题灵感"可折叠区域</p>
+<p>2. 默认折叠，点击展开后显示 4 类示例</p>
+<p>3. 每条示例可点击，点击后填入输入框</p>
+<p>4. 折叠/展开有平滑过渡动画</p>
+<p>5. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">feat(composer): add topic inspiration examples panel</div>
+</div>
+</div>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p0">T-03</span>
+<span class="task-title">公众号文章生成后增加"转小红书"按钮</span>
+<span class="task-time">~2h</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>在 WeChatPage 生成结果区增加"改写为小红书"按钮，点击后自动切换到 adapter Tab 并将生成的正文填入粘贴框。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-03a: 在 <code>App.tsx</code> 增加 <code>pendingAdapterText</code> state 和 setter</li>
+<li>T-03b: 将 <code>setActiveTab</code> 和 <code>setPendingAdapterText</code> 传入 WeChatPage</li>
+<li>T-03c: 在 WeChatPage 结果区（DraftBoxPanel 旁边）增加"改写为小红书"按钮</li>
+<li>T-03d: 按钮点击时：设置 pendingAdapterText 为当前 body → 切换 activeTab 为 'adapter'</li>
+<li>T-03e: AdapterPage 接收 pendingAdapterText prop，mount 时如果有值则填入 inputText 并清空 pending</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 公众号文章生成完成后，结果区出现"改写为小红书"按钮</p>
+<p>2. 点击按钮后自动切换到"公众号转小红书"Tab</p>
+<p>3. 切换后粘贴框已自动填入公众号文章正文</p>
+<p>4. 填入后用户可以正常选择语气并生成</p>
+<p>5. 如果没有生成结果，按钮不显示</p>
+<p>6. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">feat(wechat): add "convert to XHS" shortcut button</div>
+</div>
+</div>
+
+<h2>Sprint 2: P1 — 用户留存优化</h2>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p1">T-04</span>
+<span class="task-title">Tab 导航增加工作流说明文字</span>
+<span class="task-time">~15 min</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>在 TabNav 组件中，为当前激活的 Tab 显示一行说明文字，帮助新用户理解每个 Tab 的用途。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-04a: 在 <code>TabNav.tsx</code> 的 TABS 数组中增加 <code>subtitle</code> 字段</li>
+<li>T-04b: 在 Tab 按钮下方（border-bottom 上方）渲染当前激活 Tab 的 subtitle</li>
+</ul>
+
+<h4>数据定义</h4>
+<ul>
+<li>wechat: "从选题生成完整公众号文章，可保存草稿"</li>
+<li>adapter: "粘贴已有公众号文章，改写成小红书格式"</li>
+<li>composer: "直接从选题生成小红书帖子"</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 当前激活 Tab 下方显示一行灰色小字说明</p>
+<p>2. 切换 Tab 时说明文字跟随变化</p>
+<p>3. 文字样式：12px、neutral-400 色、居左对齐</p>
+<p>4. 移动端不换行，必要时截断</p>
+<p>5. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">feat(nav): add workflow subtitle to tab navigation</div>
+</div>
+</div>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p1">T-05</span>
+<span class="task-title">排版模板增加结构预览示意</span>
+<span class="task-time">~1h</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>在 ComposerLayoutPanel 的每个模板卡片中增加 3-4 行的文字结构示意，让用户在选择前就能看到排版效果差异。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-05a: 在 <code>ComposerLayoutPanel.tsx</code> 的 TEMPLATES 数组中增加 <code>preview</code> 字段（多行字符串）</li>
+<li>T-05b: 在模板卡片的 description 下方渲染 preview 文本（等宽字体、小字号、灰色）</li>
+<li>T-05c: 选中状态下 preview 文本颜色跟随主色</li>
+</ul>
+
+<h4>预览数据</h4>
+<ul>
+<li>clean: "短段落一\n\n短段落二\n\n短段落三"</li>
+<li>list: "\u2705 要点一\n\u2705 要点二\n\u2705 要点三"</li>
+<li>story: "\u{1f4a1} 引入 → \u{1f504} 转折 → \u2b50 推荐 → \u2705 总结"</li>
+<li>tutorial: "Step 1: ...\nStep 2: ...\nStep 3: ..."</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 四个模板卡片各显示结构预览文本</p>
+<p>2. 预览文本使用等宽字体、11px、灰色</p>
+<p>3. 选中状态下预览文本变为主题色</p>
+<p>4. 卡片高度自适应，不截断预览内容</p>
+<p>5. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">feat(layout): add structure preview to layout template cards</div>
+</div>
+</div>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p1">T-06</span>
+<span class="task-title">封面标题增加"推荐"标记和选择引导</span>
+<span class="task-time">~30 min</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>在 CoverTitles 组件中，为第一个标题增加"AI 推荐"badge，并在标题列表顶部增加一行选择建议。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-06a: 在 <code>CoverTitles.tsx</code> 标题列表上方增加提示文案</li>
+<li>T-06b: 为 index === 0 的标题增加"AI 推荐"badge（小圆角、primary 色）</li>
+</ul>
+
+<h4>文案定义</h4>
+<ul>
+<li>顶部提示: "建议选择带数字、有悬念感或引发好奇的标题，点击率更高"</li>
+<li>Badge 文案: "AI 推荐"</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 标题列表上方显示一行灰色提示文案</p>
+<p>2. 第一个标题右侧显示"AI 推荐"badge</p>
+<p>3. Badge 样式：primary 色背景、白色文字、圆角</p>
+<p>4. 默认选中第一个标题（已有逻辑，确认不变）</p>
+<p>5. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">feat(titles): add AI recommendation badge and selection guide</div>
+</div>
+</div>
+
+<h2>Sprint 3: P2 — 产品深度提升</h2>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p2">T-07</span>
+<span class="task-title">改写完成后增加"继续改写"快速路径</span>
+<span class="task-time">~15 min</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>在 AdapterPage 改写结果底部增加"清空并改写新文章"按钮，一键重置输入区并滚动到顶部。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-07a: 在 <code>AdapterPage.tsx</code> 结果区底部增加"改写新文章"按钮</li>
+<li>T-07b: 点击时清空 inputText、result、selectedTone，并 scrollTo top</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 改写结果生成完成后，底部出现"改写新文章"按钮</p>
+<p>2. 点击后输入框清空、结果区消失、页面滚动到顶部</p>
+<p>3. 语气选择重置为未选中状态</p>
+<p>4. 生成过程中按钮不显示</p>
+<p>5. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">feat(adapter): add "rewrite another" reset button</div>
+</div>
+</div>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p2">T-08</span>
+<span class="task-title">草稿箱状态文案优化</span>
+<span class="task-time">~5 min</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>将 DraftBoxPanel 中的"待同步"状态改为"已保存到本地"，移除关于未来同步的承诺文案。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-08a: 修改 <code>DraftBoxPanel.tsx</code> 中 STATUS_COPY.queued 的 label 和 description</li>
+<li>T-08b: 修改草稿列表中每条草稿的 badge 文案</li>
+<li>T-08c: 移除"V1 只保存到浏览器本地，后续接入公众号账号后再同步到官方草稿箱"文案</li>
+</ul>
+
+<h4>文案变更</h4>
+<ul>
+<li>label: "待同步" → "已保存"</li>
+<li>description: 原文 → "内容已保存到浏览器本地存储，清除浏览器数据前不会丢失。"</li>
+<li>badge: "待同步" → "本地"</li>
+<li>删除: "V1 只保存到浏览器本地..." 整行</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 保存后状态显示"已保存"而非"待同步"</p>
+<p>2. 描述文案不再提及"同步"或"公众号账号"</p>
+<p>3. 草稿列表中每条草稿 badge 显示"本地"</p>
+<p>4. 不影响保存/载入功能的正常工作</p>
+<p>5. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">fix(drafts): clarify local-only storage status copy</div>
+</div>
+</div>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p2">T-09</span>
+<span class="task-title">图片关键词改为可点击搜索链接</span>
+<span class="task-time">~15 min</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>将 ImageSuggestion 组件中的图片建议关键词从纯文本 span 改为可点击的链接，点击后在新标签页打开搜索。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-09a: 在 <code>ImageSuggestion.tsx</code> 中将关键词 span 改为 a 标签</li>
+<li>T-09b: href 指向 <code>https://unsplash.com/s/photos/{keyword}</code></li>
+<li>T-09c: 设置 <code>target="_blank" rel="noopener noreferrer"</code></li>
+<li>T-09d: 增加外链图标提示用户会跳转</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 关键词显示为可点击样式（下划线或 hover 变色）</p>
+<p>2. 点击后在新标签页打开 Unsplash 搜索结果</p>
+<p>3. 关键词旁有小外链图标（可用 CSS 伪元素或 SVG）</p>
+<p>4. 不影响"添加图片"本地上传功能</p>
+<p>5. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">feat(images): make keyword suggestions clickable search links</div>
+</div>
+</div>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p2">T-10</span>
+<span class="task-title">改写结果增加"使用指南"提示</span>
+<span class="task-time">~30 min</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>在 AdapterPage 改写结果区顶部增加一个可折叠的"如何使用这些内容"提示，告诉用户各部分对应小红书发布界面的哪个位置。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-10a: 创建 <code>UsageGuide.tsx</code> 组件（可折叠，默认折叠）</li>
+<li>T-10b: 在 <code>AdapterPage.tsx</code> 结果区顶部（"小红书改写稿已生成"下方）引入</li>
+</ul>
+
+<h4>指南内容</h4>
+<ul>
+<li>封面标题 → 发布时填入标题栏，建议 20 字以内</li>
+<li>图文卡片 → 用 Canva/美图秀秀 制作成图片，每张一个要点</li>
+<li>发布正文 → 直接粘贴到小红书正文区</li>
+<li>话题标签 → 发布时添加话题，建议选 3-5 个</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 结果区顶部出现"如何使用？"可折叠提示</p>
+<p>2. 默认折叠，点击展开显示 4 条使用说明</p>
+<p>3. 展开/折叠有平滑动画</p>
+<p>4. 不影响现有"复制全部"按钮位置</p>
+<p>5. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">feat(adapter): add collapsible usage guide for generated content</div>
+</div>
+</div>
+
+<div class="task">
+<div class="task-header">
+<span class="task-id tid-p2">T-11</span>
+<span class="task-title">TextInput placeholder 优化</span>
+<span class="task-time">~10 min</span>
+</div>
+<div class="task-body">
+<h4>需求描述</h4>
+<p>优化改写 Tab（AdapterPage）中 TextInput 的 placeholder 文案，使其更具引导性。</p>
+
+<h4>子任务</h4>
+<ul>
+<li>T-11a: 修改 <code>TextInput.tsx</code> 的 placeholder 文案</li>
+</ul>
+
+<h4>文案变更</h4>
+<ul>
+<li>原文: "把公众号文章、长文笔记或素材粘贴到这里。系统会自动清理常见 HTML 和页脚噪声，再生成小红书内容。"</li>
+<li>新文案: "粘贴你的公众号文章全文到这里。\n\n支持直接从公众号编辑器、备忘录或文档中复制粘贴，系统会自动清理格式噪声。建议粘贴完整正文（含小标题），改写效果更好。"</li>
+</ul>
+
+<h4>验收标准</h4>
+<div class="check">
+<p>1. 改写 Tab 的粘贴框显示新 placeholder 文案</p>
+<p>2. 文案分两段显示（textarea 支持 \n）</p>
+<p>3. 不影响输入和清空功能</p>
+<p>4. <code>npm run lint</code> 和 <code>npm run build</code> 通过</p>
+</div>
+
+<div class="commit-msg">fix(input): improve adapter paste area placeholder copy</div>
+</div>
+</div>
+
+<h2>开发进度跟踪</h2>
+<p style="font-size:13px;color:var(--mu);margin-bottom:16px">每完成一个任务后更新状态，并提交对应 commit。</p>
+
+<div class="progress">
+<h3>Sprint 1 — P0 核心转化</h3>
+<div class="progress-row" style="font-weight:600;color:var(--mu)">
+<span>ID</span><span>任务</span><span>状态</span><span>Commit</span>
+</div>
+<div class="progress-row">
+<span>T-01</span><span>语气卡片增加场景标签</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+<div class="progress-row">
+<span>T-02</span><span>选题灵感折叠示例区</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+<div class="progress-row">
+<span>T-03</span><span>公众号→小红书快捷按钮</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+</div>
+
+<div class="progress" style="margin-top:16px">
+<h3>Sprint 2 — P1 用户留存</h3>
+<div class="progress-row" style="font-weight:600;color:var(--mu)">
+<span>ID</span><span>任务</span><span>状态</span><span>Commit</span>
+</div>
+<div class="progress-row">
+<span>T-04</span><span>Tab 导航工作流说明</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+<div class="progress-row">
+<span>T-05</span><span>排版模板结构预览</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+<div class="progress-row">
+<span>T-06</span><span>封面标题推荐标记</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+</div>
+
+<div class="progress" style="margin-top:16px">
+<h3>Sprint 3 — P2 产品深度</h3>
+<div class="progress-row" style="font-weight:600;color:var(--mu)">
+<span>ID</span><span>任务</span><span>状态</span><span>Commit</span>
+</div>
+<div class="progress-row">
+<span>T-07</span><span>改写"继续改写"按钮</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+<div class="progress-row">
+<span>T-08</span><span>草稿箱状态文案优化</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+<div class="progress-row">
+<span>T-09</span><span>图片关键词可点击搜索</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+<div class="progress-row">
+<span>T-10</span><span>改写结果使用指南</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+<div class="progress-row">
+<span>T-11</span><span>TextInput placeholder 优化</span><span class="status s-todo">待开发</span><span>-</span>
+</div>
+</div>
+
+<h2>Codex 开发指引</h2>
+<div class="task">
+<div class="task-body">
+<h4>开发流程</h4>
+<ul>
+<li>按 T-01 → T-11 顺序逐条开发</li>
+<li>每完成一个任务，运行 <code>npm run lint</code> 和 <code>npm run build</code> 验证</li>
+<li>验证通过后，使用对应的 commit message 提交</li>
+<li>提交后将本文档中对应任务的状态从 <code>s-todo</code> 改为 <code>s-done</code></li>
+</ul>
+
+<h4>项目路径</h4>
+<ul>
+<li>前端代码: <code>opera-app/src/</code></li>
+<li>组件目录: <code>opera-app/src/components/</code></li>
+<li>页面目录: <code>opera-app/src/pages/</code></li>
+<li>类型定义: <code>opera-app/src/types.ts</code></li>
+<li>常量定义: <code>opera-app/src/constants.ts</code></li>
+</ul>
+
+<h4>验证命令</h4>
+<ul>
+<li>Lint: <code>cd opera-app && npm run lint</code></li>
+<li>Build: <code>cd opera-app && npm run build</code></li>
+<li>Dev server: <code>cd opera-app && npm run dev</code></li>
+</ul>
+
+<h4>提交规范</h4>
+<ul>
+<li>每个任务一个 commit，使用任务卡片中指定的 commit message</li>
+<li>不要合并多个任务到一个 commit</li>
+<li>提交前确保 lint 和 build 都通过</li>
+</ul>
+</div>
+</div>
+
+</div>
+
+<footer style="border-top:1px solid var(--bd);padding:24px 0;margin-top:60px;text-align:center">
+<p style="font-size:13px;color:var(--mu)">Opera Dev Tasks | Generated from product-ux-review.html | 2026-05-12</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Opera 产品体验报告</title>
+<style>
+:root{--bg:#f8f9fa;--wh:#fff;--tx:#1a1a2e;--mu:#6b7280;--bd:#e5e7eb;--pri:#6366f1;--pri-lt:#eef2ff;--p0:#ef4444;--p0b:#fef2f2;--p1:#f59e0b;--p1b:#fffbeb;--p2:#3b82f6;--p2b:#eff6ff;--ok:#10b981;--okb:#ecfdf5;--r:16px;--sh:0 1px 3px rgba(0,0,0,.06),0 4px 12px rgba(0,0,0,.04)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC",sans-serif;background:var(--bg);color:var(--tx);line-height:1.7}
+.c{max-width:960px;margin:0 auto;padding:0 24px}
+header{position:sticky;top:0;z-index:100;background:rgba(255,255,255,.88);backdrop-filter:blur(12px);border-bottom:1px solid var(--bd);padding:20px 0}
+header h1{font-size:24px;font-weight:700}
+header p{font-size:14px;color:var(--mu);margin-top:4px}
+section{margin:40px 0}
+h2{font-size:20px;font-weight:700;margin-bottom:16px;padding-bottom:8px;border-bottom:2px solid var(--pri);display:inline-block}
+h3{font-size:16px;font-weight:600;margin-bottom:12px}
+.card{background:var(--wh);border:1px solid var(--bd);border-radius:var(--r);padding:24px;margin-bottom:20px;box-shadow:var(--sh);transition:transform .2s}
+.card:hover{transform:translateY(-2px)}
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:700}
+.bp0{background:var(--p0b);color:var(--p0);border:1px solid var(--p0)}
+.bp1{background:var(--p1b);color:var(--p1);border:1px solid var(--p1)}
+.bp2{background:var(--p2b);color:var(--p2);border:1px solid var(--p2)}
+.persona{display:grid;grid-template-columns:56px 1fr;gap:16px;align-items:start}
+.av{width:56px;height:56px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;color:#fff}
+.av1{background:linear-gradient(135deg,#6366f1,#8b5cf6)}
+.av2{background:linear-gradient(135deg,#10b981,#059669)}
+.av3{background:linear-gradient(135deg,#f59e0b,#d97706)}
+.pp{background:#fef2f2;border-left:3px solid var(--p0);padding:12px 16px;border-radius:0 8px 8px 0;margin:8px 0;font-size:14px}
+.fp{font-size:13px;color:var(--mu);background:var(--bg);padding:8px 12px;border-radius:8px;margin:8px 0}
+.fp b{color:var(--pri)}
+.rec{border-left:4px solid;padding-left:20px;margin-bottom:24px}
+.rp0{border-color:var(--p0)}.rp1{border-color:var(--p1)}.rp2{border-color:var(--p2)}
+.cost{display:inline-block;background:var(--okb);color:var(--ok);padding:2px 8px;border-radius:4px;font-size:12px;font-weight:600;margin-top:8px}
+.sbox{background:linear-gradient(135deg,var(--pri-lt),#f0fdf4);border:1px solid var(--bd);border-radius:var(--r);padding:24px;font-size:15px}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th,td{padding:12px 16px;text-align:left;border-bottom:1px solid var(--bd)}
+th{background:var(--pri-lt);font-weight:600}
+@media(max-width:640px){.persona{grid-template-columns:1fr}.av{margin:0 auto}.c{padding:0 16px}}
+</style>
+</head>
+<body>
+<header><div class="c"><h1>🎭 Opera 产品体验报告</h1><p>基于三类核心用户的真实使用场景模拟 · 2026-05-12</p></div></header>
+<div class="c">
+<section>
+<h2>Executive Summary</h2>
+<div class="sbox">
+<p>Opera 的核心价值主张清晰：帮助公众号创作者把存量内容快速适配到小红书。产品已具备完整的三流程（公众号创作、改写适配、小红书原创），技术实现扎实。</p>
+<p style="margin-top:12px">当前版本存在<strong>三个系统性问题</strong>：</p>
+<p style="margin:8px 0 0 16px">1. <strong>新用户不知道从哪里开始</strong> — Tab 关系和工作流顺序不清晰</p>
+<p style="margin:4px 0 0 16px">2. <strong>关键决策点缺乏上下文引导</strong> — 语气、类型、排版选择时缺少参考</p>
+<p style="margin:4px 0 0 16px">3. <strong>生成结果的“下一步”路径不清晰</strong> — 复制后不知道怎么用，流程间缺少行接</p>
+<p style="margin-top:12px;color:var(--mu)">这些问题不需要重构，只需要在现有框架内做精准的信息补充和流程优化。</p>
+</div>
+</section>
+<section>
+<h2>用户角色与场景模拟</h2>
+
+<div class="card">
+<div class="persona">
+<div class="av av1">李</div>
+<div>
+<h3>李晓雯 · 职场知识博主</h3>
+<p style="font-size:14px;color:var(--mu)">公众号 1.2 万粉 · 每周更新 · 小红书几乎没有运营</p>
+<p style="font-size:14px;margin-top:8px"><strong>场景：</strong>想把过去 3 个月的存量文章批量改写成小红书内容</p>
+<div class="fp">使用路径：进入产品 → 看到三个 Tab → 选 <b>公众号转小红书</b> → 粘贴文章 → <b>卡在语气选择</b></div>
+<div class="pp">① 语气选择卡片（知识分享/轻松解释/朋友推荐）描述太抽象，不知道哪个适合自己的职场干货风格</div>
+<div class="pp">② 生成 6 个封面标题后，不知道哪个最适合，没有任何筛选引导</div>
+<div class="pp">③ 复制全部后，不清楚各部分（封面标题/卡片/正文/标签）分别对应小红书发布界面的哪个位置</div>
+<div class="pp">④ 改写完一篇后，没有“继续改写下一篇”的快速路径，需要手动清空重来</div>
+</div></div></div>
+
+<div class="card">
+<div class="persona">
+<div class="av av2">陈</div>
+<div>
+<h3>陈默 · 教育培训讲师</h3>
+<p style="font-size:14px;color:var(--mu)">线下课程讲师 · 刚开始做内容 · 想同时运营公众号和小红书</p>
+<p style="font-size:14px;margin-top:8px"><strong>场景：</strong>第一次使用，想生成一篇公众号文章，再把它改写成小红书</p>
+<div class="fp">使用路径：进入产品 → 不确定从哪个 Tab 开始 → 选了 <b>微信公众号</b> → 生成文章 → <b>想转小红书但找不到入口</b></div>
+<div class="pp">① 三个 Tab 的关系和使用顺序不清晰，新用户不知道工作流是什么</div>
+<div class="pp">② 公众号文章生成完后，没有“一键转小红书改写”的路径，需要手动复制再切换 Tab 粘贴</div>
+<div class="pp">③ 文章类型选择（观点洞察/方法指南/故事叙事/简报解读）没有示例，不知道自己的内容属于哪类</div>
+<div class="pp">④ 草稿箱的“待同步”状态让人困惑，不清楚同步到哪里、什么时候同步</div>
+</div></div></div>
+
+<div class="card">
+<div class="persona">
+<div class="av av3">张</div>
+<div>
+<h3>张薇 · 生活方式创作者</h3>
+<p style="font-size:14px;color:var(--mu)">小红书原生用户 · 3000 粉 · 想用 AI 提升发帖效率</p>
+<p style="font-size:14px;margin-top:8px"><strong>场景：</strong>想直接用小红书原创功能生成一篇关于“咖啡馆工作”的帖子</p>
+<div class="fp">使用路径：进入产品 → 选 <b>小红书原创</b> → 面对空白选题框不知道怎么写 → 填了简单几个字被提示“太短” → <b>不知道排版模板的区别</b></div>
+<div class="pp">① 选题输入框的 placeholder 示例太专业（“独立开发者 AI 内容工作流”），与生活方式用户的内容距离感大</div>
+<div class="pp">② “至少 10 字”的限制没有解释为什么，用户感觉被卡住而不是被帮助</div>
+<div class="pp">③ 排版模板（清爽分段/清单笔记/故事种草/教程步骤）在生成前就要选，但没有视觉预览</div>
+<div class="pp">④ 图片建议关键词只能看，不能直接跳转搜索或一键复制到图库搜索</div>
+</div></div></div>
+</section>
+<section>
+<h2>改进建议（按优先级排序）</h2>
+
+<h3 style="margin-top:24px"><span class="badge bp0">P0</span> 立即修复 — 影响核心转化</h3>
+
+<div class="card rec rp0">
+<h3>1. 语气选择增加"适合场景"标签</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>三个语气卡片的描述太抽象，用户无法快速判断哪个适合自己</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>在每个语气卡片下方增加一行"适合场景"标签：</p>
+<p style="font-size:14px;margin:4px 0 0 16px">知识分享 → 适合：经验总结、方法论、行业观察</p>
+<p style="font-size:14px;margin:4px 0 0 16px">轻松解释 → 适合：概念科普、工具介绍、答疑解惑</p>
+<p style="font-size:14px;margin:4px 0 0 16px">朋友推荐 → 适合：产品种草、生活分享、情感共鸣</p>
+<p style="font-size:14px;margin-top:8px"><strong>涉及组件：</strong>ToneSelector.tsx — 在 TONE_OPTIONS 中增加 tags 数组</p>
+<span class="cost">实现成本：极低 ~30min</span>
+</div>
+
+<div class="card rec rp0">
+<h3>2. 选题输入框增加分类示例灵感</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>placeholder 示例太单一且偏技术，生活方式用户无法参考</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>在 TopicInput 下方增加可折叠的"选题灵感"区，按内容类型展示示例：</p>
+<p style="font-size:14px;margin:4px 0 0 16px">种草推荐 → "分享 5 个让居家办公效率翻倍的桌面好物"</p>
+<p style="font-size:14px;margin:4px 0 0 16px">知识干货 → "给新手讲清楚基金定投到底怎么操作"</p>
+<p style="font-size:14px;margin:4px 0 0 16px">故事经验 → "裸辞三个月后我学到的 3 件事"</p>
+<p style="font-size:14px;margin:4px 0 0 16px">教程指南 → "手把手教你用 Notion 搭建个人知识库"</p>
+<p style="font-size:14px;margin-top:8px"><strong>涉及组件：</strong>TopicInput.tsx — 增加可折叠的示例区域</p>
+<span class="cost">实现成本：低 ~45min</span>
+</div>
+
+<div class="card rec rp0">
+<h3>3. 公众号文章生成后增加"转小红书"快捷入口</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>用户完成公众号文章后，想改写成小红书需要手动复制再切换 Tab 粘贴</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>在 WeChatPage 的结果区增加"改写为小红书"按钮，点击后自动切换到 adapter Tab 并填入生成的正文</p>
+<p style="font-size:14px;margin-top:8px"><strong>涉及组件：</strong>WeChatPage.tsx + App.tsx（需要 Tab 切换 + 内容传递的状态提升）</p>
+<span class="cost">实现成本：中 ~2h</span>
+</div>
+
+<h3 style="margin-top:32px"><span class="badge bp1">P1</span> 近期优化 — 影响用户留存</h3>
+
+<div class="card rec rp1">
+<h3>4. Tab 导航增加工作流说明</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>三个 Tab 的关系和使用顺序不清晰，新用户不知道从哪里开始</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>在 TabNav 下方增加一行小字说明当前 Tab 的用途：</p>
+<p style="font-size:14px;margin:4px 0 0 16px">微信公众号 → "从选题生成完整公众号文章，可保存草稿"</p>
+<p style="font-size:14px;margin:4px 0 0 16px">公众号转小红书 → "粘贴已有文章，改写成小红书格式"</p>
+<p style="font-size:14px;margin:4px 0 0 16px">小红书原创 → "直接从选题生成小红书帖子"</p>
+<p style="font-size:14px;margin-top:8px"><strong>涉及组件：</strong>TabNav.tsx — 增加 subtitle 字段</p>
+<span class="cost">实现成本：极低 ~15min</span>
+</div>
+
+<div class="card rec rp1">
+<h3>5. 排版模板增加视觉预览</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>四个排版模板选择时没有预览，用户不知道选了会怎样</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>每个模板卡片增加 3-4 行的文字结构示意（用占位符展示结构差异）：</p>
+<p style="font-size:14px;margin:4px 0 0 16px">清爽分段 → 短段落 + 空行分隔</p>
+<p style="font-size:14px;margin:4px 0 0 16px">清单笔记 → ✅ 要点1 / ✅ 要点2 / ✅ 要点3</p>
+<p style="font-size:14px;margin:4px 0 0 16px">故事种草 → 开头引入 → 转折 → 推荐 → 总结</p>
+<p style="font-size:14px;margin:4px 0 0 16px">教程步骤 → Step 1 → Step 2 → Step 3</p>
+<p style="font-size:14px;margin-top:8px"><strong>涉及组件：</strong>ComposerLayoutPanel.tsx — 在 TEMPLATES 中增加 preview 字段</p>
+<span class="cost">实现成本：低 ~1h</span>
+</div>
+
+<div class="card rec rp1">
+<h3>6. 封面标题增加"推荐"标记和选择引导</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>生成 6 个封面标题后用户不知道选哪个</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>对第一个标题标记"AI 推荐"，并在标题列表顶部增加一行提示"建议选择数字开头或有悬念感的标题，点击率更高"</p>
+<p style="font-size:14px;margin-top:8px"><strong>涉及组件：</strong>CoverTitles.tsx — 增加推荐 badge 和顶部提示文案</p>
+<span class="cost">实现成本：低 ~30min</span>
+</div>
+
+<h3 style="margin-top:32px"><span class="badge bp2">P2</span> 长期改进 — 提升产品深度</h3>
+
+<div class="card rec rp2">
+<h3>7. 改写完成后增加"继续改写"快速路径</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>批量改写用户需要手动清空输入区重新开始</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>在改写结果底部增加"清空并改写新文章"按钮，一键重置输入区并滚动到顶部</p>
+<span class="cost">实现成本：极低 ~15min</span>
+</div>
+
+<div class="card rec rp2">
+<h3>8. 草稿箱状态文案优化</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>"待同步"暗示会自动同步到某处，但 V1 并不会，造成用户困惑</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>将"待同步"改为"已保存到本地"，移除"后续接入公众号账号后再同步"的未来承诺文案</p>
+<p style="font-size:14px;margin-top:8px"><strong>涉及组件：</strong>DraftBoxPanel.tsx — 修改 STATUS_COPY 对象</p>
+<span class="cost">实现成本：极低 ~5min</span>
+</div>
+
+<div class="card rec rp2">
+<h3>9. 图片关键词可点击搜索</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>图片建议关键词只能看，不能直接用于搜索配图</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>将图片建议关键词改为可点击的链接，点击后在新标签页打开小红书搜索或 Unsplash 搜索</p>
+<p style="font-size:14px;margin-top:8px"><strong>涉及组件：</strong>ImageSuggestion.tsx — 将 span 改为 a 标签</p>
+<span class="cost">实现成本：极低 ~15min</span>
+</div>
+
+<div class="card rec rp2">
+<h3>10. 生成结果增加"使用指南"提示</h3>
+<p style="font-size:14px;color:var(--mu)"><strong>问题：</strong>用户复制全部后不知道各部分对应小红书发布界面的哪个位置</p>
+<p style="font-size:14px;margin-top:8px"><strong>方案：</strong>在结果区顶部增加一个可折叠的"如何使用"提示：</p>
+<p style="font-size:14px;margin:4px 0 0 16px">封面标题 → 小红书发布时的标题栏</p>
+<p style="font-size:14px;margin:4px 0 0 16px">图文卡片 → 用 Canva/美图 制作成图片</p>
+<p style="font-size:14px;margin:4px 0 0 16px">发布正文 → 小红书发布时的正文区</p>
+<p style="font-size:14px;margin:4px 0 0 16px">话题标签 → 小红书发布时添加话题</p>
+<span class="cost">实现成本：低 ~30min</span>
+</div>
+
+</section>
+
+<section>
+<h2>Quick Wins — 一个开发周期内可完成</h2>
+
+<table>
+<thead>
+<tr><th>#</th><th>改动</th><th>涉及文件</th><th>预估时间</th></tr>
+</thead>
+<tbody>
+<tr><td>1</td><td>ToneSelector 每个语气卡片增加 2-3 个"适合场景"标签</td><td>constants.ts + ToneSelector.tsx</td><td>30 min</td></tr>
+<tr><td>2</td><td>TabNav 每个 Tab 下方增加一行用途说明文字</td><td>TabNav.tsx</td><td>15 min</td></tr>
+<tr><td>3</td><td>TextInput placeholder 改为更具体的引导文字</td><td>TextInput.tsx</td><td>10 min</td></tr>
+<tr><td>4</td><td>DraftBoxPanel 将"待同步"改为"已保存到本地"</td><td>DraftBoxPanel.tsx</td><td>5 min</td></tr>
+<tr><td>5</td><td>TopicInput 增加按内容类型分组的选题示例</td><td>TopicInput.tsx</td><td>45 min</td></tr>
+<tr><td>6</td><td>CoverTitles 第一个标题增加"推荐"badge</td><td>CoverTitles.tsx</td><td>30 min</td></tr>
+<tr><td>7</td><td>AdapterPage 结果底部增加"清空并改写新文章"按钮</td><td>AdapterPage.tsx</td><td>15 min</td></tr>
+<tr><td>8</td><td>ImageSuggestion 关键词改为可点击搜索链接</td><td>ImageSuggestion.tsx</td><td>15 min</td></tr>
+</tbody>
+</table>
+<p style="margin-top:12px;font-size:14px;color:var(--mu)">以上 8 项合计约 2.5 小时，全部为纯前端改动，不涉及后端 API 变更。</p>
+</section>
+
+<section>
+<h2>核心洞察总结</h2>
+<div class="sbox">
+<p><strong>Opera 不缺功能，缺的是"上下文"。</strong></p>
+<p style="margin-top:12px">产品的三个流程已经完整可用，但用户在每个决策点都缺少足够的信息来做出选择。这不是功能缺失，而是信息设计的问题。</p>
+<p style="margin-top:12px">改进方向不是"加更多功能"，而是：</p>
+<p style="margin:8px 0 0 16px">1. <strong>在选择前给参考</strong> — 语气标签、排版预览、选题示例</p>
+<p style="margin:4px 0 0 16px">2. <strong>在完成后给方向</strong> — 使用指南、下一步按钮、跨 Tab 衔接</p>
+<p style="margin:4px 0 0 16px">3. <strong>在困惑时给解释</strong> — Tab 说明、状态文案、字数限制原因</p>
+<p style="margin-top:16px;font-size:14px;color:var(--mu)">这些改动的共同特点：实现成本极低，但对用户体验的提升是系统性的。</p>
+</div>
+</section>
+
+</div>
+
+<footer style="border-top:1px solid var(--bd);padding:24px 0;margin-top:60px;text-align:center">
+<p style="font-size:13px;color:var(--mu)">Opera Product UX Review · Generated 2026-05-12</p>
+</footer>
+
+</body>
+</html>
