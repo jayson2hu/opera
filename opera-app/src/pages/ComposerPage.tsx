@@ -25,6 +25,7 @@ import ImageSuggestion from '../components/composer/ImageSuggestion';
 import LengthSelector from '../components/composer/LengthSelector';
 import PublishActions from '../components/composer/PublishActions';
 import TopicInput from '../components/composer/TopicInput';
+import TopicInspiration from '../components/composer/TopicInspiration';
 import { formatComposerText } from '../components/composer/layoutFormatter';
 
 const MIN_TOPIC_CHARS = 10;
@@ -332,6 +333,7 @@ export default function ComposerPage({
 
         <section className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-card space-y-6">
           <TopicInput value={topic} onChange={setTopic} disabled={isGenerating} minChars={MIN_TOPIC_CHARS} />
+          <TopicInspiration onPick={setTopic} disabled={isGenerating} />
           <ContentTypeSelector selected={contentType} onSelect={setContentType} disabled={isGenerating} />
           <ToneSelector selected={selectedTone} onSelect={setSelectedTone} disabled={isGenerating} />
           <LengthSelector selected={targetLength} onSelect={setTargetLength} disabled={isGenerating} />

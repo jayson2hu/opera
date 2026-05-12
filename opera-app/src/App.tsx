@@ -18,6 +18,7 @@ export default function App() {
   const [providerOptions, setProviderOptions] = useState<ProvidersResponse['available']>([]);
   const [isLoadingProviders, setIsLoadingProviders] = useState(true);
   const [providerError, setProviderError] = useState<string | null>(null);
+  const [pendingAdapterText, setPendingAdapterText] = useState('');
 
   useEffect(() => {
     let cancelled = false;
@@ -79,15 +80,24 @@ export default function App() {
     error: providerError,
   };
 
+  const handleConvertToAdapter = useCallback((text: string) => {
+    setPendingAdapterText(text);
+    setActiveTab('adapter');
+  }, []);
+
   return (
     <div className="min-h-screen bg-neutral-50 flex flex-col">
       <Header />
       <TabNav activeTab={activeTab} onChange={setActiveTab} />
 
       {activeTab === 'wechat' ? (
-        <WeChatPage {...sharedProviderProps} />
+        <WeChatPage {...sharedProviderProps} onConvertToAdapter={handleConvertToAdapter} />
       ) : activeTab === 'adapter' ? (
-        <AdapterPage {...sharedProviderProps} />
+        <AdapterPage
+          {...sharedProviderProps}
+          pendingText={pendingAdapterText}
+          onPendingTextConsumed={() => setPendingAdapterText('')}
+        />
       ) : (
         <ComposerPage {...sharedProviderProps} />
       )}

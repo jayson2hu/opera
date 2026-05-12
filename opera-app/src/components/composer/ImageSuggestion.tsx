@@ -18,6 +18,9 @@ export default function ImageSuggestion({
   error = null,
   disabled = false,
 }: ImageSuggestionProps) {
+  const buildUnsplashUrl = (keyword: string) =>
+    `https://unsplash.com/s/photos/${encodeURIComponent(keyword.trim())}`;
+
   const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(event.target.files ?? []);
     if (files.length > 0) onAddImages(files);
@@ -83,12 +86,15 @@ export default function ImageSuggestion({
         <div className="flex flex-wrap gap-2">
           {keywords.length > 0 ? (
             keywords.map((keyword) => (
-              <span
+              <a
                 key={keyword}
+                href={buildUnsplashUrl(keyword)}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="px-2.5 py-1 rounded-lg bg-white border border-neutral-200 text-xs text-neutral-600"
               >
                 {keyword}
-              </span>
+              </a>
             ))
           ) : (
             <span className="text-xs text-neutral-300">生成后会提供 3-5 个配图关键词</span>

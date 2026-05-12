@@ -5,10 +5,10 @@ interface TabNavProps {
   onChange: (tab: AppTab) => void;
 }
 
-const TABS: Array<{ id: AppTab; label: string; activeClass: string }> = [
-  { id: 'wechat', label: '微信公众号', activeClass: 'border-emerald-500 text-emerald-600' },
-  { id: 'adapter', label: '公众号转小红书', activeClass: 'border-primary-500 text-primary-600' },
-  { id: 'composer', label: '小红书原创', activeClass: 'border-accent-500 text-accent-600' },
+const TABS: Array<{ id: AppTab; label: string; subtitle: string; activeClass: string }> = [
+  { id: 'wechat', label: '公众号文章', subtitle: '长文起草与本地草稿', activeClass: 'border-emerald-500 text-emerald-600' },
+  { id: 'adapter', label: '小红书改写', subtitle: '公众号内容转种草笔记', activeClass: 'border-primary-500 text-primary-600' },
+  { id: 'composer', label: '小红书创作', subtitle: '从选题生成完整笔记', activeClass: 'border-accent-500 text-accent-600' },
 ];
 
 export default function TabNav({ activeTab, onChange }: TabNavProps) {
@@ -24,7 +24,7 @@ export default function TabNav({ activeTab, onChange }: TabNavProps) {
               onClick={() => onChange(tab.id)}
               aria-pressed={isActive}
               className={`
-                shrink-0 pb-3 px-4 border-b-2 text-base transition-colors cursor-pointer
+                shrink-0 pb-3 px-4 border-b-2 text-left transition-colors cursor-pointer
                 ${
                   isActive
                     ? `${tab.activeClass} font-semibold`
@@ -32,7 +32,10 @@ export default function TabNav({ activeTab, onChange }: TabNavProps) {
                 }
               `}
             >
-              {tab.label}
+              <span className="block text-base">{tab.label}</span>
+              <span className={isActive ? 'mt-0.5 block text-xs opacity-80' : 'mt-0.5 block text-xs text-neutral-400'}>
+                {tab.subtitle}
+              </span>
             </button>
           );
         })}

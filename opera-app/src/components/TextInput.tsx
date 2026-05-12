@@ -5,12 +5,14 @@ interface TextInputProps {
   value: string;
   onChange: (value: string) => void;
   disabled?: boolean;
+  placeholder?: string;
 }
 
 export default function TextInput({
   value,
   onChange,
   disabled = false,
+  placeholder = '粘贴公众号文章、访谈稿、课程笔记或 HTML 正文。建议保留标题、分段和关键案例，AI 会提炼成适合小红书发布的封面标题、图文卡片、正文和标签。',
 }: TextInputProps) {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const charCount = countChars(value);
@@ -51,7 +53,7 @@ export default function TextInput({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          placeholder="把公众号文章、长文笔记或素材粘贴到这里。系统会自动清理常见 HTML 和页脚噪声，再生成小红书内容。"
+          placeholder={placeholder}
           rows={6}
           className="
             w-full px-4 pt-4 pb-12 text-[15px] leading-relaxed

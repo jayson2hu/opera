@@ -29,6 +29,10 @@ import ArticleTypeSelector from '../components/wechat/ArticleTypeSelector';
 import DraftBoxPanel from '../components/wechat/DraftBoxPanel';
 import EditableDigest from '../components/wechat/EditableDigest';
 
+interface WeChatPageProps extends ProviderSelectionProps {
+  onConvertToAdapter?: (text: string) => void;
+}
+
 const MIN_TOPIC_CHARS = 12;
 const MAX_DRAFT_COUNT = 6;
 const EMPTY_RESULT: WeChatComposeResult = {
@@ -80,7 +84,8 @@ export default function WeChatPage({
   onModelChange,
   loading = false,
   error: providerError = null,
-}: ProviderSelectionProps) {
+  onConvertToAdapter,
+}: WeChatPageProps) {
   const [topic, setTopic] = useState('');
   const [articleType, setArticleType] = useState<WeChatArticleType | null>(null);
   const [selectedTone, setSelectedTone] = useState<ToneType | null>(null);
@@ -464,6 +469,11 @@ export default function WeChatPage({
             fullText={fullText}
             onSave={handleSaveDraft}
             onLoadDraft={handleLoadDraft}
+            onConvertToAdapter={
+              onConvertToAdapter && fullText.trim().length > 0
+                ? () => onConvertToAdapter(fullText)
+                : undefined
+            }
           />
         </section>
       )}

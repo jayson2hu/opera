@@ -9,6 +9,7 @@ export interface ToneOption {
   description: string;
   emoji: string;
   example: string;
+  tags?: string[];
 }
 
 export type TagGroupType = 'broad' | 'precise' | 'longtail';

@@ -17,6 +17,12 @@ import SlideCards from '../components/SlideCards';
 import Caption from '../components/Caption';
 import HashtagGroups from '../components/HashtagGroups';
 import CopyButton from '../components/CopyButton';
+import UsageGuide from '../components/UsageGuide';
+
+interface AdapterPageProps extends ProviderSelectionProps {
+  pendingText?: string;
+  onPendingTextConsumed?: () => void;
+}
 
 const REWRITE_LENGTH_OPTIONS: Array<{
   id: TargetLength;
@@ -24,9 +30,9 @@ const REWRITE_LENGTH_OPTIONS: Array<{
   range: string;
   description: string;
 }> = [
-  { id: 'short', label: '精简版', range: '300-500字', description: '适合快速发布和轻量总结' },
-  { id: 'medium', label: '标准版', range: '600-900字', description: '信息完整，适合多数改写场景' },
-  { id: 'long', label: '深度版', range: '1000-1500字', description: '保留更多原文信息和方法细节' },
+  { id: 'short', label: '精简版', range: '300-500 字', description: '适合快速发布，保留核心卖点和行动建议。' },
+  { id: 'medium', label: '标准版', range: '600-900 字', description: '兼顾信息密度和阅读节奏，适合多数笔记。' },
+  { id: 'long', label: '详细版', range: '1000-1500 字', description: '适合深度拆解、教程和完整经验复盘。' },
 ];
 
 export default function AdapterPage({
@@ -37,7 +43,9 @@ export default function AdapterPage({
   onModelChange,
   loading = false,
   error: providerError = null,
-}: ProviderSelectionProps) {
+  pendingText = '',
+  onPendingTextConsumed,
+}: AdapterPageProps) {
   const [inputText, setInputText] = useState('');
   const [selectedTone, setSelectedTone] = useState<ToneType | null>(null);
   const [targetLength, setTargetLength] = useState<TargetLength>('medium');
@@ -59,6 +67,20 @@ export default function AdapterPage({
       abortRef.current?.abort();
     };
   }, []);
+
+  useEffect(() => {
+    const nextText = pendingText.trim();
+    if (!nextText) return;
+    setInputText(nextText);
+    setSelectedTone('knowledge');
+    setResult(null);
+    setError(null);
+    setShowTitles(false);
+    setShowCards(false);
+    setShowCaption(false);
+    setShowTags(false);
+    onPendingTextConsumed?.();
+  }, [onPendingTextConsumed, pendingText]);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -175,17 +197,24 @@ export default function AdapterPage({
     setShowTags(false);
   }, []);
 
+  const handleRewriteAnother = useCallback(() => {
+    handleReset();
+    setInputText('');
+    setSelectedTone(null);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [handleReset]);
+
   const getAllText = (): string => {
     if (!result) return '';
 
     const sections: string[] = [];
-    sections.push('小红书标题');
+    sections.push('封面标题');
     result.coverTitles.forEach((title, index) => sections.push(`${index + 1}. ${title}`));
     sections.push('\n图文卡片');
     result.cards.forEach((card, index) => sections.push(`--- 卡片 ${index + 1} ---\n${card}`));
-    sections.push('\n发布正文');
+    sections.push('\n正文');
     sections.push(result.caption);
-    sections.push('\n话题标签');
+    sections.push('\n标签');
     result.tagGroups.forEach((group) => {
       sections.push(`${group.label}: ${group.tags.map((tag) => `#${tag}`).join(' ')}`);
     });
@@ -199,10 +228,10 @@ export default function AdapterPage({
       <section className="space-y-6">
         <div className="rounded-[32px] border border-primary-100 bg-[radial-gradient(circle_at_top_right,_rgba(14,165,233,0.18),_transparent_34%),linear-gradient(135deg,_rgba(239,246,255,0.98),_rgba(255,255,255,0.98))] p-8 sm:p-10 shadow-card">
           <h1 className="text-4xl sm:text-5xl font-bold text-neutral-900 tracking-tight mb-4">
-            公众号文章转<span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-600">小红书</span>
+            公众号内容转小红书笔记
           </h1>
           <p className="text-sm sm:text-base text-neutral-600 max-w-3xl leading-7">
-            粘贴公众号文章或长文素材，生成更完整的小红书标题、图文卡片、发布正文和话题标签。
+            粘贴长文或公众号文章，生成封面标题、图文卡片、正文和标签，适合快速整理成可发布的小红书内容。
           </p>
         </div>
 
@@ -214,97 +243,94 @@ export default function AdapterPage({
 
         <section className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-card space-y-6">
           <TextInput value={inputText} onChange={setInputText} disabled={isGenerating} />
+          <UsageGuide />
 
-          <ToneSelector
-          selected={selectedTone}
-          onSelect={setSelectedTone}
-          disabled={isGenerating}
-        />
+          <ToneSelector selected={selectedTone} onSelect={setSelectedTone} disabled={isGenerating} />
 
           <section className="space-y-3">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2 className="text-sm font-semibold text-neutral-800">正文长度</h2>
-              <p className="text-xs text-neutral-400 mt-0.5">选择改写后的小红书正文信息量</p>
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <h2 className="text-sm font-semibold text-neutral-800">内容长度</h2>
+                <p className="text-xs text-neutral-400 mt-0.5">选择生成笔记的详细程度。</p>
+              </div>
+              <span className="text-xs text-neutral-400">
+                当前 {REWRITE_LENGTH_OPTIONS.find((option) => option.id === targetLength)?.range}
+              </span>
             </div>
-            <span className="text-xs text-neutral-400">
-              当前：{REWRITE_LENGTH_OPTIONS.find((option) => option.id === targetLength)?.range}
-            </span>
-          </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-            {REWRITE_LENGTH_OPTIONS.map((option) => {
-              const isSelected = option.id === targetLength;
-              return (
-                <button
-                  key={option.id}
-                  type="button"
-                  disabled={isGenerating}
-                  onClick={() => setTargetLength(option.id)}
-                  className={`
-                    text-left rounded-xl border px-4 py-3 transition-all cursor-pointer
-                    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
-                    ${
-                      isSelected
-                        ? 'border-primary-400 bg-primary-50 shadow-sm shadow-primary-500/10'
-                        : 'border-neutral-200 bg-white hover:border-primary-200 hover:bg-primary-50/40'
-                    }
-                    ${isGenerating ? 'opacity-60 cursor-not-allowed' : ''}
-                  `}
-                  aria-pressed={isSelected}
-                >
-                  <span className="flex items-center justify-between gap-2">
-                    <span className="text-sm font-semibold text-neutral-800">{option.label}</span>
-                    <span className="text-xs font-medium text-primary-600">{option.range}</span>
-                  </span>
-                  <span className="block text-xs text-neutral-500 mt-1.5 leading-relaxed">
-                    {option.description}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-        </section>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              {REWRITE_LENGTH_OPTIONS.map((option) => {
+                const isSelected = option.id === targetLength;
+                return (
+                  <button
+                    key={option.id}
+                    type="button"
+                    disabled={isGenerating}
+                    onClick={() => setTargetLength(option.id)}
+                    className={`
+                      text-left rounded-xl border px-4 py-3 transition-all cursor-pointer
+                      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+                      ${
+                        isSelected
+                          ? 'border-primary-400 bg-primary-50 shadow-sm shadow-primary-500/10'
+                          : 'border-neutral-200 bg-white hover:border-primary-200 hover:bg-primary-50/40'
+                      }
+                      ${isGenerating ? 'opacity-60 cursor-not-allowed' : ''}
+                    `}
+                    aria-pressed={isSelected}
+                  >
+                    <span className="flex items-center justify-between gap-2">
+                      <span className="text-sm font-semibold text-neutral-800">{option.label}</span>
+                      <span className="text-xs font-medium text-primary-600">{option.range}</span>
+                    </span>
+                    <span className="block text-xs text-neutral-500 mt-1.5 leading-relaxed">
+                      {option.description}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
 
           <ProviderSelector
-          providers={providers}
-          selectedProvider={selectedProvider}
-          selectedModel={selectedModel}
-          onProviderChange={onProviderChange}
-          onModelChange={onModelChange}
-          disabled={isGenerating}
-          loading={loading}
-        />
+            providers={providers}
+            selectedProvider={selectedProvider}
+            selectedModel={selectedModel}
+            onProviderChange={onProviderChange}
+            onModelChange={onModelChange}
+            disabled={isGenerating}
+            loading={loading}
+          />
 
           <div className="flex items-center justify-center gap-3 pt-2">
-          <button
-            type="button"
-            onClick={handleGenerate}
-            disabled={!canGenerate}
-            className={`
-              relative inline-flex items-center justify-center gap-2
-              px-8 py-3 rounded-2xl text-sm font-semibold
-              transition-all duration-300 cursor-pointer select-none
-              focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
-              ${
-                canGenerate
-                  ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 hover:-translate-y-0.5 active:translate-y-0'
-                  : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
-              }
-            `}
-          >
-            {isGenerating ? '生成中...' : '生成小红书改写稿'}
-          </button>
-
-          {isComplete && (
             <button
               type="button"
-              onClick={handleReset}
-              className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl text-sm font-medium text-neutral-500 bg-white border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 cursor-pointer select-none"
+              onClick={handleGenerate}
+              disabled={!canGenerate}
+              className={`
+                relative inline-flex items-center justify-center gap-2
+                px-8 py-3 rounded-2xl text-sm font-semibold
+                transition-all duration-300 cursor-pointer select-none
+                focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+                ${
+                  canGenerate
+                    ? 'bg-gradient-to-r from-primary-500 to-primary-600 text-white shadow-md shadow-primary-500/20 hover:shadow-xl hover:shadow-primary-500/30 hover:-translate-y-0.5 active:translate-y-0'
+                    : 'bg-neutral-200 text-neutral-400 cursor-not-allowed'
+                }
+              `}
             >
-              重新开始
+              {isGenerating ? '生成中...' : '生成小红书改写稿'}
             </button>
-          )}
+
+            {isComplete && (
+              <button
+                type="button"
+                onClick={handleRewriteAnother}
+                className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl text-sm font-medium text-neutral-500 bg-white border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 cursor-pointer select-none"
+              >
+                重写另一篇
+              </button>
+            )}
           </div>
         </section>
       </section>
@@ -365,9 +391,9 @@ export default function AdapterPage({
               />
             </svg>
           </div>
-          <p className="text-sm text-neutral-400 mb-1">输入文章并选择语气后开始生成</p>
+          <p className="text-sm text-neutral-400 mb-1">粘贴公众号文章，选择语气后开始生成。</p>
           <p className="text-xs text-neutral-300">
-            生成结果会按标题、卡片、正文和标签逐步出现。
+            生成结果会按封面标题、图文卡片、正文和标签分区展示。
           </p>
         </section>
       )}

@@ -66,13 +66,20 @@ export default function CoverTitles({ titles }: CoverTitlesProps) {
                 {i + 1}
               </span>
 
-              <span
-                className={`
-                  flex-1 text-[15px] leading-snug font-medium
-                  ${isSelected ? 'text-neutral-900' : 'text-neutral-600'}
-                `}
-              >
-                {title}
+              <span className="min-w-0 flex-1">
+                <span
+                  className={`
+                    block text-[15px] leading-snug font-medium
+                    ${isSelected ? 'text-neutral-900' : 'text-neutral-600'}
+                  `}
+                >
+                  {title}
+                </span>
+                {i === 0 && (
+                  <span className="mt-2 inline-flex rounded-full bg-primary-100 px-2 py-0.5 text-[11px] font-semibold text-primary-700">
+                    AI 推荐
+                  </span>
+                )}
               </span>
 
               <div className="flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">

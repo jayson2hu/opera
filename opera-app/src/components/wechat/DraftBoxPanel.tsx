@@ -10,6 +10,7 @@ interface DraftBoxPanelProps {
   fullText: string;
   onSave: () => void;
   onLoadDraft: (draft: WeChatDraftItem) => void;
+  onConvertToAdapter?: () => void;
 }
 
 const STATUS_COPY = {
@@ -39,6 +40,7 @@ export default function DraftBoxPanel({
   fullText,
   onSave,
   onLoadDraft,
+  onConvertToAdapter,
 }: DraftBoxPanelProps) {
   const current = STATUS_COPY[currentStatus];
 
@@ -76,6 +78,15 @@ export default function DraftBoxPanel({
           保存到草稿箱
         </button>
         <CopyButton text={fullText} size="md" label="复制待发布全文" className="justify-center rounded-2xl px-4 py-3" />
+        {onConvertToAdapter && (
+          <button
+            type="button"
+            onClick={onConvertToAdapter}
+            className="inline-flex items-center justify-center rounded-2xl border border-primary-200 bg-white px-4 py-3 text-sm font-semibold text-primary-600 transition-all hover:-translate-y-0.5 hover:bg-primary-50 hover:shadow-md cursor-pointer"
+          >
+            转成小红书笔记
+          </button>
+        )}
       </div>
 
       <div className="space-y-3">

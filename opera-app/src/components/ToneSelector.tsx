@@ -7,6 +7,12 @@ interface ToneSelectorProps {
   disabled?: boolean;
 }
 
+const FALLBACK_TONE_TAGS: Record<ToneType, string[]> = {
+  knowledge: ['逻辑清晰', '专业可信', '适合干货'],
+  casual: ['轻松自然', '像朋友聊天', '适合种草'],
+  bff: ['亲密陪伴', '情绪共鸣', '适合私域'],
+};
+
 export default function ToneSelector({
   selected,
   onSelect,
@@ -26,6 +32,7 @@ export default function ToneSelector({
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
         {TONE_OPTIONS.map((tone: ToneOption) => {
           const isSelected = selected === tone.id;
+          const tags = tone.tags ?? FALLBACK_TONE_TAGS[tone.id];
           return (
             <button
               key={tone.id}
@@ -88,6 +95,23 @@ export default function ToneSelector({
                 `}
               >
                 "{tone.example}"
+              </div>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className={`
+                      rounded-full border px-2 py-0.5 text-[11px] font-medium leading-5
+                      ${
+                        isSelected
+                          ? 'border-primary-200 bg-white/80 text-primary-600'
+                          : 'border-neutral-200 bg-neutral-50 text-neutral-500 group-hover:border-neutral-300'
+                      }
+                    `}
+                  >
+                    {tag}
+                  </span>
+                ))}
               </div>
             </button>
           );
