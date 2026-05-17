@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type {
   GenerationResult,
   GenerationStep,
@@ -16,7 +16,6 @@ import CoverTitles from '../components/CoverTitles';
 import SlideCards from '../components/SlideCards';
 import Caption from '../components/Caption';
 import HashtagGroups from '../components/HashtagGroups';
-import CopyButton from '../components/CopyButton';
 import UsageGuide from '../components/UsageGuide';
 
 interface AdapterPageProps extends ProviderSelectionProps {
@@ -57,10 +56,14 @@ export default function AdapterPage({
   const [showCards, setShowCards] = useState(false);
   const [showCaption, setShowCaption] = useState(false);
   const [showTags, setShowTags] = useState(false);
+  const [selectedTitles, setSelectedTitles] = useState<Set<number>>(() => new Set());
+  const [selectedCards, setSelectedCards] = useState<Set<number>>(() => new Set());
+  const [copyActionDone, setCopyActionDone] = useState(false);
 
   const outputRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const canGenerate = inputText.trim().length > 0 && selectedTone !== null && !isGenerating;
+  const selectedItemCount = selectedTitles.size + selectedCards.size;
 
   useEffect(() => {
     return () => {
@@ -80,6 +83,8 @@ export default function AdapterPage({
       setShowCards(false);
       setShowCaption(false);
       setShowTags(false);
+      setSelectedTitles(new Set());
+      setSelectedCards(new Set());
     });
     onPendingTextConsumed?.();
   }, [onPendingTextConsumed, pendingText]);
@@ -95,6 +100,9 @@ export default function AdapterPage({
     setShowCards(false);
     setShowCaption(false);
     setShowTags(false);
+    setSelectedTitles(new Set());
+    setSelectedCards(new Set());
+    setCopyActionDone(false);
 
     abortRef.current?.abort();
     const controller = new AbortController();
@@ -197,6 +205,9 @@ export default function AdapterPage({
     setShowCards(false);
     setShowCaption(false);
     setShowTags(false);
+    setSelectedTitles(new Set());
+    setSelectedCards(new Set());
+    setCopyActionDone(false);
   }, []);
 
   const handleRewriteAnother = useCallback(() => {
@@ -222,6 +233,72 @@ export default function AdapterPage({
     });
     return sections.join('\n');
   };
+
+  const selectedText = useMemo(() => {
+    if (!result) return '';
+
+    const sections: string[] = [];
+    const titleText = result.coverTitles.filter((_, index) => selectedTitles.has(index));
+    const cardText = result.cards.filter((_, index) => selectedCards.has(index));
+
+    if (titleText.length > 0) {
+      sections.push(titleText.join('\n---\n'));
+    }
+
+    if (cardText.length > 0) {
+      sections.push(cardText.join('\n\n---\n\n'));
+    }
+
+    return sections.join('\n\n---\n\n');
+  }, [result, selectedCards, selectedTitles]);
+
+  const copyText = useCallback(async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    setCopyActionDone(true);
+    window.setTimeout(() => setCopyActionDone(false), 1500);
+  }, []);
+
+  const toggleTitleSelect = useCallback((index: number) => {
+    setSelectedTitles((current) => {
+      const next = new Set(current);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }, []);
+
+  const toggleCardSelect = useCallback((index: number) => {
+    setSelectedCards((current) => {
+      const next = new Set(current);
+      if (next.has(index)) {
+        next.delete(index);
+      } else {
+        next.add(index);
+      }
+      return next;
+    });
+  }, []);
+
+  const clearSelections = useCallback(() => {
+    setSelectedTitles(new Set());
+    setSelectedCards(new Set());
+    setCopyActionDone(false);
+  }, []);
 
   const isComplete = result !== null && currentStep === 'done';
 
@@ -361,16 +438,63 @@ export default function AdapterPage({
       {result && (
         <section ref={outputRef} className="space-y-8 pb-12">
           {isComplete && (
-            <div className="flex items-center justify-between animate-fade-in">
+            <div className="flex flex-col gap-3 rounded-2xl border border-neutral-200 bg-white p-4 shadow-card animate-fade-in sm:flex-row sm:items-center sm:justify-between">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium text-neutral-700">小红书改写稿已生成</span>
+                <span className="text-sm font-medium text-neutral-700">
+                  {copyActionDone
+                    ? '已复制到剪贴板'
+                    : selectedItemCount > 0
+                      ? `已选中 ${selectedItemCount} 个项目`
+                      : '小红书改写稿已生成'}
+                </span>
               </div>
-              <CopyButton text={getAllText()} size="md" label="复制全部" />
+              <div className="flex items-center gap-3">
+                {selectedItemCount > 0 && (
+                  <button
+                    type="button"
+                    onClick={clearSelections}
+                    className="text-sm font-medium text-neutral-500 transition-colors hover:text-primary-600"
+                  >
+                    取消全选
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => void copyText(selectedItemCount > 0 ? selectedText : getAllText())}
+                  className={`
+                    inline-flex items-center rounded-lg border px-3.5 py-1.5 text-sm font-medium
+                    transition-all duration-200 cursor-pointer select-none
+                    focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+                    ${copyActionDone
+                      ? 'border-success-500/20 bg-success-50 text-success-500'
+                      : 'border-neutral-200 bg-white text-neutral-500 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-600'
+                    }
+                  `}
+                >
+                  {copyActionDone
+                    ? '已复制到剪贴板'
+                    : selectedItemCount > 0
+                      ? `复制选中 (${selectedItemCount})`
+                      : '复制全部'}
+                </button>
+              </div>
             </div>
           )}
 
-          {showTitles && <CoverTitles titles={result.coverTitles} />}
-          {showCards && <SlideCards cards={result.cards} />}
+          {showTitles && (
+            <CoverTitles
+              titles={result.coverTitles}
+              selectedIndices={selectedTitles}
+              onToggleSelect={toggleTitleSelect}
+            />
+          )}
+          {showCards && (
+            <SlideCards
+              cards={result.cards}
+              selectedIndices={selectedCards}
+              onToggleSelect={toggleCardSelect}
+            />
+          )}
           {showCaption && <Caption text={result.caption} />}
           {showTags && <HashtagGroups groups={result.tagGroups} />}
         </section>

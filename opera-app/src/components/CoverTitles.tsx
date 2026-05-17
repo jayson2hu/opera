@@ -3,9 +3,11 @@ import CopyButton from './CopyButton';
 
 interface CoverTitlesProps {
   titles: string[];
+  selectedIndices: Set<number>;
+  onToggleSelect: (index: number) => void;
 }
 
-export default function CoverTitles({ titles }: CoverTitlesProps) {
+export default function CoverTitles({ titles, selectedIndices, onToggleSelect }: CoverTitlesProps) {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
@@ -47,6 +49,7 @@ export default function CoverTitles({ titles }: CoverTitlesProps) {
       <div className="space-y-2">
         {titles.map((title, i) => {
           const isSelected = i === selectedIndex;
+          const isChecked = selectedIndices.has(i);
           const isCopied = copiedIndex === i;
           return (
             <div
@@ -66,12 +69,36 @@ export default function CoverTitles({ titles }: CoverTitlesProps) {
                 border-2 transition-all duration-200 cursor-pointer select-none
                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
                 ${
-                  isSelected
-                    ? 'border-primary-400 bg-primary-50/50 shadow-card'
-                    : 'border-transparent bg-neutral-50 hover:bg-white hover:border-neutral-200 hover:shadow-card'
+                  isChecked
+                    ? 'border-primary-400 bg-primary-50/40 shadow-card'
+                    : isSelected
+                      ? 'border-primary-200 bg-primary-50/20 shadow-card'
+                      : 'border-neutral-200 bg-white hover:shadow-card'
                 }
               `}
             >
+              <button
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onToggleSelect(i);
+                }}
+                aria-label={isChecked ? `取消选择标题 ${i + 1}` : `选择标题 ${i + 1}`}
+                aria-pressed={isChecked}
+                className={`
+                  mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2
+                  transition-all duration-200 cursor-pointer
+                  focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+                  ${isChecked ? 'border-primary-500 bg-primary-500' : 'border-neutral-300 bg-white hover:border-primary-400'}
+                `}
+              >
+                {isChecked && (
+                  <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                  </svg>
+                )}
+              </button>
+
               <span
                 className={`
                   flex-shrink-0 w-6 h-6 rounded-lg text-xs font-semibold

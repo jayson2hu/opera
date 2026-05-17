@@ -3,6 +3,8 @@ import CopyButton from './CopyButton';
 
 interface SlideCardsProps {
   cards: string[];
+  selectedIndices: Set<number>;
+  onToggleSelect: (index: number) => void;
 }
 
 const CARD_ACCENTS = [
@@ -33,7 +35,7 @@ const CARD_PURPOSES = [
   { label: '行动总结', className: 'bg-amber-50 text-amber-600' },
 ];
 
-export default function SlideCards({ cards }: SlideCardsProps) {
+export default function SlideCards({ cards, selectedIndices, onToggleSelect }: SlideCardsProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editedCards, setEditedCards] = useState<string[]>(cards);
   const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
@@ -95,23 +97,43 @@ export default function SlideCards({ cards }: SlideCardsProps) {
           const purpose = CARD_PURPOSES[i] ?? CARD_PURPOSES[CARD_PURPOSES.length - 1];
           const isTargetLength = charCount >= 70 && charCount <= 110;
           const isCopied = copiedIndex === i;
+          const isChecked = selectedIndices.has(i);
 
           return (
             <article
               key={i}
               tabIndex={0}
               className={`
-                group relative bg-white rounded-xl border border-neutral-200 overflow-hidden
+                group relative rounded-xl border overflow-hidden
                 shadow-sm ${accent.glow}
                 transition-all duration-300
                 hover:-translate-y-1 hover:shadow-xl hover:border-primary-200
                 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+                ${isChecked ? 'border-primary-400 bg-primary-50/40 shadow-card' : 'border-neutral-200 bg-white'}
               `}
             >
               <div className={`h-1.5 bg-gradient-to-r ${accent.bar}`} />
 
               <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-neutral-100">
                 <div className="flex items-center gap-2.5 min-w-0">
+                  <button
+                    type="button"
+                    onClick={() => onToggleSelect(i)}
+                    aria-label={isChecked ? `取消选择卡片 ${i + 1}` : `选择卡片 ${i + 1}`}
+                    aria-pressed={isChecked}
+                    className={`
+                      flex h-5 w-5 shrink-0 items-center justify-center rounded border-2
+                      transition-all duration-200 cursor-pointer
+                      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+                      ${isChecked ? 'border-primary-500 bg-primary-500' : 'border-neutral-300 bg-white hover:border-primary-400'}
+                    `}
+                  >
+                    {isChecked && (
+                      <svg className="h-3.5 w-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                    )}
+                  </button>
                   <span
                     className={`inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-xs font-bold tracking-wide ${accent.badge}`}
                   >
