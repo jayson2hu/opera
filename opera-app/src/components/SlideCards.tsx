@@ -23,9 +23,20 @@ const CARD_ACCENTS = [
   },
 ];
 
+const CARD_PURPOSES = [
+  { label: '开头钩子', className: 'bg-primary-50 text-primary-600' },
+  { label: '核心洞察', className: 'bg-accent-50 text-accent-600' },
+  { label: '核心洞察', className: 'bg-accent-50 text-accent-600' },
+  { label: '方法论', className: 'bg-emerald-50 text-emerald-600' },
+  { label: '方法论', className: 'bg-emerald-50 text-emerald-600' },
+  { label: '应用场景', className: 'bg-blue-50 text-blue-600' },
+  { label: '行动总结', className: 'bg-amber-50 text-amber-600' },
+];
+
 export default function SlideCards({ cards }: SlideCardsProps) {
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const [editedCards, setEditedCards] = useState<string[]>(cards);
+  const [copiedIndex, setCopiedIndex] = useState<number | null>(null);
 
   if (cards.length !== editedCards.length) {
     setEditedCards(cards);
@@ -40,6 +51,24 @@ export default function SlideCards({ cards }: SlideCardsProps) {
   const allText = editedCards.join('\n\n---\n\n');
 
   if (cards.length === 0) return null;
+
+  const handleCopyCard = async (card: string, index: number) => {
+    try {
+      await navigator.clipboard.writeText(card);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = card;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+
+    setCopiedIndex(index);
+    window.setTimeout(() => setCopiedIndex((current) => (current === index ? null : current)), 1500);
+  };
 
   return (
     <div className="animate-slide-up">
@@ -63,7 +92,9 @@ export default function SlideCards({ cards }: SlideCardsProps) {
           const isEditing = editingIndex === i;
           const charCount = card.replace(/\s/g, '').length;
           const accent = CARD_ACCENTS[i % CARD_ACCENTS.length];
+          const purpose = CARD_PURPOSES[i] ?? CARD_PURPOSES[CARD_PURPOSES.length - 1];
           const isTargetLength = charCount >= 70 && charCount <= 110;
+          const isCopied = copiedIndex === i;
 
           return (
             <article
@@ -86,6 +117,9 @@ export default function SlideCards({ cards }: SlideCardsProps) {
                   >
                     {String(i + 1).padStart(2, '0')}
                   </span>
+                  <span className={`shrink-0 rounded px-1.5 py-0.5 text-[10px] font-medium ${purpose.className}`}>
+                    {purpose.label}
+                  </span>
                   <div className="min-w-0">
                     <p className="text-xs font-semibold text-neutral-700">小红书卡片</p>
                     <p
@@ -107,7 +141,34 @@ export default function SlideCards({ cards }: SlideCardsProps) {
                   >
                     {isEditing ? '完成' : '编辑'}
                   </button>
-                  <CopyButton text={card} size="sm" />
+                  <button
+                    type="button"
+                    onClick={() => void handleCopyCard(editedCards[i], i)}
+                    aria-label={isCopied ? '卡片已复制' : `复制卡片 ${i + 1}`}
+                    className={`
+                      flex h-8 w-8 items-center justify-center rounded-lg border
+                      transition-all duration-200 cursor-pointer
+                      focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
+                      ${isCopied
+                        ? 'border-success-500/30 bg-success-50 text-success-500 opacity-100'
+                        : 'border-neutral-200 bg-white text-neutral-400 opacity-0 group-hover:opacity-100 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-600'
+                      }
+                    `}
+                  >
+                    {isCopied ? (
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                      </svg>
+                    ) : (
+                      <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"
+                        />
+                      </svg>
+                    )}
+                  </button>
                 </div>
               </div>
 

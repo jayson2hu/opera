@@ -79,6 +79,8 @@ export const WECHAT_ARTICLE_TYPE_OPTIONS: WeChatArticleTypeOption[] = [
 ];
 
 export const WECHAT_DRAFT_STORAGE_KEY = 'opera.wechat.drafts';
+export const CAPTION_SHORT_THRESHOLD = 500;
+export const CAPTION_WARN_THRESHOLD = 800;
 
 const DEFAULT_DEV_API_BASE_URL = 'http://localhost:3001';
 const ENV_API_BASE_URL = import.meta.env.VITE_API_BASE_URL?.trim().replace(/\/+$/, '') ?? '';

@@ -131,7 +131,9 @@ export default function WeChatPage({
   const paragraphCount = countParagraphs(result?.body ?? '');
 
   useEffect(() => {
-    setDrafts(readStoredDrafts());
+    queueMicrotask(() => {
+      setDrafts(readStoredDrafts());
+    });
     return () => {
       abortRef.current?.abort();
     };

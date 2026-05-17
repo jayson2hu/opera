@@ -71,14 +71,16 @@ export default function AdapterPage({
   useEffect(() => {
     const nextText = pendingText.trim();
     if (!nextText) return;
-    setInputText(nextText);
-    setSelectedTone('knowledge');
-    setResult(null);
-    setError(null);
-    setShowTitles(false);
-    setShowCards(false);
-    setShowCaption(false);
-    setShowTags(false);
+    queueMicrotask(() => {
+      setInputText(nextText);
+      setSelectedTone('knowledge');
+      setResult(null);
+      setError(null);
+      setShowTitles(false);
+      setShowCards(false);
+      setShowCaption(false);
+      setShowTags(false);
+    });
     onPendingTextConsumed?.();
   }, [onPendingTextConsumed, pendingText]);
 
