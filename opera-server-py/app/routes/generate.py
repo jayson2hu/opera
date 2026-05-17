@@ -37,6 +37,7 @@ def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel 
     target_length = body.get("targetLength", "medium")
     provider = body.get("provider")
     model = body.get("model")
+    points = body.get("points")
 
     if not isinstance(text, str) or not text.strip():
         return False, "text is required and must be non-empty", None
@@ -61,12 +62,22 @@ def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel 
     if model is not None and not isinstance(model, str):
         return False, "model must be a string", None
 
+    if points is not None:
+        if not isinstance(points, list) or not all(isinstance(point, str) for point in points):
+            return False, "points must be an array of strings", None
+        cleaned_points = [point.strip() for point in points if point.strip()]
+        if len(cleaned_points) < 3 or len(cleaned_points) > 8:
+            return False, "points must contain 3-8 items", None
+    else:
+        cleaned_points = None
+
     return True, None, GenerateRequestModel(
         text=cleaned_text,
         tone=tone,
         targetLength=target_length,
         provider=provider,
         model=model,
+        points=cleaned_points,
     )
 
 
@@ -121,49 +132,13 @@ async def generate(request: Request):
             if await request.is_disconnected():
                 return
 
-            yield format_sse("step", {"step": "titles"})
-            titles_prompt = build_titles_prompt(payload.text, points, payload.tone)
-            titles_raw = await provider.call(titles_prompt["system"], titles_prompt["user"])
-            cover_titles = require_string_list(
-                extract_json(titles_raw).get("coverTitles"),
-                "Invalid titles response",
-            )
-            if await request.is_disconnected():
+            if payload.points is None:
+                yield format_sse("extraction_points", {"points": points})
+                yield format_sse("step", {"step": "paused"})
                 return
-            yield format_sse("titles", {"coverTitles": cover_titles})
 
-            yield format_sse("step", {"step": "cards"})
-            cards_prompt = build_cards_prompt(payload.text, points, payload.tone)
-            cards_raw = await provider.call(cards_prompt["system"], cards_prompt["user"])
-            cards = require_string_list(
-                extract_json(cards_raw).get("cards"),
-                "Invalid cards response",
-            )
-            if await request.is_disconnected():
-                return
-            yield format_sse("cards", {"cards": cards})
-
-            yield format_sse("step", {"step": "caption"})
-            caption_prompt = build_caption_prompt(payload.text, points, cards, payload.tone, payload.targetLength)
-            caption_raw = await provider.call(caption_prompt["system"], caption_prompt["user"])
-            caption = extract_json(caption_raw).get("caption")
-            if not isinstance(caption, str) or not caption:
-                raise RuntimeError("Invalid caption response")
-            if await request.is_disconnected():
-                return
-            yield format_sse("caption", {"caption": caption})
-
-            yield format_sse("step", {"step": "tags"})
-            tags_prompt = build_tags_prompt(payload.text, points, payload.tone)
-            tags_raw = await provider.call(tags_prompt["system"], tags_prompt["user"])
-            raw_groups = extract_json(tags_raw).get("tagGroups")
-            if not isinstance(raw_groups, list):
-                raise RuntimeError("Invalid tags response")
-            tag_groups = [TagGroup.model_validate(group).model_dump() for group in raw_groups]
-            if await request.is_disconnected():
-                return
-            yield format_sse("tags", {"tagGroups": tag_groups})
-            yield format_sse("step", {"step": "done"})
+            async for event in generate_from_points(request, provider, payload, payload.points):
+                yield event
         except Exception as exc:
             if await request.is_disconnected():
                 return
@@ -179,3 +154,89 @@ async def generate(request: Request):
             "X-Accel-Buffering": "no",
         },
     )
+
+
+@router.post("/generate/continue")
+async def generate_continue(request: Request):
+    try:
+        body = await request.json()
+    except json.JSONDecodeError:
+        body = None
+
+    valid, error, payload = validate_request(body)
+    if not valid or payload is None:
+        return JSONResponse(status_code=400, content={"error": error})
+    if payload.points is None:
+        return JSONResponse(status_code=400, content={"error": "points must contain 3-8 items"})
+
+    settings = get_settings()
+    try:
+        provider = create_provider(settings, payload.provider, payload.model)
+    except Exception as exc:
+        return JSONResponse(status_code=400, content={"error": str(exc)})
+
+    async def event_stream():
+        try:
+            async for event in generate_from_points(request, provider, payload, payload.points or []):
+                yield event
+        except Exception as exc:
+            if await request.is_disconnected():
+                return
+            print(f"[opera-server-py] Generation error ({type(exc).__name__}): {exc!r}")
+            yield format_sse("error", {"error": str(exc) or "Unknown error during generation"})
+
+    return StreamingResponse(
+        event_stream(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
+
+
+async def generate_from_points(request: Request, provider: Any, payload: GenerateRequestModel, points: list[str]):
+    yield format_sse("step", {"step": "titles"})
+    titles_prompt = build_titles_prompt(payload.text, points, payload.tone)
+    titles_raw = await provider.call(titles_prompt["system"], titles_prompt["user"])
+    cover_titles = require_string_list(
+        extract_json(titles_raw).get("coverTitles"),
+        "Invalid titles response",
+    )
+    if await request.is_disconnected():
+        return
+    yield format_sse("titles", {"coverTitles": cover_titles})
+
+    yield format_sse("step", {"step": "cards"})
+    cards_prompt = build_cards_prompt(payload.text, points, payload.tone)
+    cards_raw = await provider.call(cards_prompt["system"], cards_prompt["user"])
+    cards = require_string_list(
+        extract_json(cards_raw).get("cards"),
+        "Invalid cards response",
+    )
+    if await request.is_disconnected():
+        return
+    yield format_sse("cards", {"cards": cards})
+
+    yield format_sse("step", {"step": "caption"})
+    caption_prompt = build_caption_prompt(payload.text, points, cards, payload.tone, payload.targetLength)
+    caption_raw = await provider.call(caption_prompt["system"], caption_prompt["user"])
+    caption = extract_json(caption_raw).get("caption")
+    if not isinstance(caption, str) or not caption:
+        raise RuntimeError("Invalid caption response")
+    if await request.is_disconnected():
+        return
+    yield format_sse("caption", {"caption": caption})
+
+    yield format_sse("step", {"step": "tags"})
+    tags_prompt = build_tags_prompt(payload.text, points, payload.tone)
+    tags_raw = await provider.call(tags_prompt["system"], tags_prompt["user"])
+    raw_groups = extract_json(tags_raw).get("tagGroups")
+    if not isinstance(raw_groups, list):
+        raise RuntimeError("Invalid tags response")
+    tag_groups = [TagGroup.model_validate(group).model_dump() for group in raw_groups]
+    if await request.is_disconnected():
+        return
+    yield format_sse("tags", {"tagGroups": tag_groups})
+    yield format_sse("step", {"step": "done"})

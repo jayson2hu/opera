@@ -17,6 +17,7 @@ import SlideCards from '../components/SlideCards';
 import Caption from '../components/Caption';
 import HashtagGroups from '../components/HashtagGroups';
 import UsageGuide from '../components/UsageGuide';
+import ExtractionPointsPanel from '../components/ExtractionPointsPanel';
 
 interface AdapterPageProps extends ProviderSelectionProps {
   pendingText?: string;
@@ -59,6 +60,7 @@ export default function AdapterPage({
   const [selectedTitles, setSelectedTitles] = useState<Set<number>>(() => new Set());
   const [selectedCards, setSelectedCards] = useState<Set<number>>(() => new Set());
   const [copyActionDone, setCopyActionDone] = useState(false);
+  const [extractedPoints, setExtractedPoints] = useState<string[]>([]);
 
   const outputRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
@@ -85,9 +87,94 @@ export default function AdapterPage({
       setShowTags(false);
       setSelectedTitles(new Set());
       setSelectedCards(new Set());
+      setExtractedPoints([]);
     });
     onPendingTextConsumed?.();
   }, [onPendingTextConsumed, pendingText]);
+
+  const streamGeneration = useCallback(async (
+    path: string,
+    body: Record<string, unknown>,
+    controller: AbortController,
+  ) => {
+    const partial: GenerationResult = {
+      coverTitles: [],
+      cards: [],
+      caption: '',
+      tagGroups: [],
+    };
+
+    const response = await fetch(buildApiUrl(path), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({ error: 'Request failed' }));
+      throw new Error(payload.error || `HTTP ${response.status}`);
+    }
+
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error('No response body');
+
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split('\n');
+      buffer = lines.pop() || '';
+
+      let eventType = '';
+      for (const line of lines) {
+        if (line.startsWith('event: ')) {
+          eventType = line.slice(7).trim();
+        } else if (line.startsWith('data: ') && eventType) {
+          const data = JSON.parse(line.slice(6));
+
+          switch (eventType) {
+            case 'step':
+              setCurrentStep(data.step as GenerationStep);
+              if (data.step === 'done' || data.step === 'paused') setIsGenerating(false);
+              break;
+            case 'extraction_points':
+              setExtractedPoints(Array.isArray(data.points) ? data.points : []);
+              setCurrentStep('paused');
+              break;
+            case 'titles':
+              partial.coverTitles = data.coverTitles;
+              setResult({ ...partial });
+              setShowTitles(true);
+              outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              break;
+            case 'cards':
+              partial.cards = data.cards;
+              setResult({ ...partial });
+              setShowCards(true);
+              break;
+            case 'caption':
+              partial.caption = data.caption;
+              setResult({ ...partial });
+              setShowCaption(true);
+              break;
+            case 'tags':
+              partial.tagGroups = data.tagGroups as TagGroup[];
+              setResult({ ...partial });
+              setShowTags(true);
+              break;
+            case 'error':
+              throw new Error(data.error || 'Generation failed');
+          }
+          eventType = '';
+        }
+      }
+    }
+  }, []);
 
   const handleGenerate = useCallback(async () => {
     if (!canGenerate) return;
@@ -103,97 +190,26 @@ export default function AdapterPage({
     setSelectedTitles(new Set());
     setSelectedCards(new Set());
     setCopyActionDone(false);
+    setExtractedPoints([]);
 
     abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
-    const partial: GenerationResult = {
-      coverTitles: [],
-      cards: [],
-      caption: '',
-      tagGroups: [],
-    };
-
     try {
-      const response = await fetch(buildApiUrl('/api/generate'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: inputText,
-          tone: selectedTone,
-          targetLength,
-          ...(selectedProvider ? { provider: selectedProvider } : {}),
-          ...(selectedModel ? { model: selectedModel } : {}),
-        }),
-        signal: controller.signal,
-      });
-
-      if (!response.ok) {
-        const payload = await response.json().catch(() => ({ error: 'Request failed' }));
-        throw new Error(payload.error || `HTTP ${response.status}`);
-      }
-
-      const reader = response.body?.getReader();
-      if (!reader) throw new Error('No response body');
-
-      const decoder = new TextDecoder();
-      let buffer = '';
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split('\n');
-        buffer = lines.pop() || '';
-
-        let eventType = '';
-        for (const line of lines) {
-          if (line.startsWith('event: ')) {
-            eventType = line.slice(7).trim();
-          } else if (line.startsWith('data: ') && eventType) {
-            const data = JSON.parse(line.slice(6));
-
-            switch (eventType) {
-              case 'step':
-                setCurrentStep(data.step as GenerationStep);
-                if (data.step === 'done') setIsGenerating(false);
-                break;
-              case 'titles':
-                partial.coverTitles = data.coverTitles;
-                setResult({ ...partial });
-                setShowTitles(true);
-                outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                break;
-              case 'cards':
-                partial.cards = data.cards;
-                setResult({ ...partial });
-                setShowCards(true);
-                break;
-              case 'caption':
-                partial.caption = data.caption;
-                setResult({ ...partial });
-                setShowCaption(true);
-                break;
-              case 'tags':
-                partial.tagGroups = data.tagGroups as TagGroup[];
-                setResult({ ...partial });
-                setShowTags(true);
-                break;
-              case 'error':
-                throw new Error(data.error || 'Generation failed');
-            }
-            eventType = '';
-          }
-        }
-      }
+      await streamGeneration('/api/generate', {
+        text: inputText,
+        tone: selectedTone,
+        targetLength,
+        ...(selectedProvider ? { provider: selectedProvider } : {}),
+        ...(selectedModel ? { model: selectedModel } : {}),
+      }, controller);
     } catch (err: unknown) {
       if (controller.signal.aborted) return;
       setError(err instanceof Error ? err.message : 'Unknown error');
       setIsGenerating(false);
     }
-  }, [canGenerate, inputText, selectedTone, targetLength, selectedProvider, selectedModel]);
+  }, [canGenerate, inputText, selectedModel, selectedProvider, selectedTone, streamGeneration, targetLength]);
 
   const handleReset = useCallback(() => {
     abortRef.current?.abort();
@@ -208,6 +224,7 @@ export default function AdapterPage({
     setSelectedTitles(new Set());
     setSelectedCards(new Set());
     setCopyActionDone(false);
+    setExtractedPoints([]);
   }, []);
 
   const handleRewriteAnother = useCallback(() => {
@@ -299,6 +316,41 @@ export default function AdapterPage({
     setSelectedCards(new Set());
     setCopyActionDone(false);
   }, []);
+
+  const handleContinueGeneration = useCallback(async (points: string[]) => {
+    if (!selectedTone) return;
+
+    setIsGenerating(true);
+    setCurrentStep('titles');
+    setResult(null);
+    setError(null);
+    setShowTitles(false);
+    setShowCards(false);
+    setShowCaption(false);
+    setShowTags(false);
+    setSelectedTitles(new Set());
+    setSelectedCards(new Set());
+    setCopyActionDone(false);
+
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
+    try {
+      await streamGeneration('/api/generate/continue', {
+        text: inputText,
+        tone: selectedTone,
+        targetLength,
+        points,
+        ...(selectedProvider ? { provider: selectedProvider } : {}),
+        ...(selectedModel ? { model: selectedModel } : {}),
+      }, controller);
+    } catch (err: unknown) {
+      if (controller.signal.aborted) return;
+      setError(err instanceof Error ? err.message : 'Unknown error');
+      setIsGenerating(false);
+    }
+  }, [inputText, selectedModel, selectedProvider, selectedTone, streamGeneration, targetLength]);
 
   const isComplete = result !== null && currentStep === 'done';
 
@@ -416,7 +468,7 @@ export default function AdapterPage({
 
       {(isGenerating || result) && <div className="border-t border-neutral-200" />}
 
-      {isGenerating && (
+      {(isGenerating || currentStep === 'paused') && (
         <section className="mb-6">
           <ProgressIndicator
             currentStep={currentStep}
@@ -500,7 +552,17 @@ export default function AdapterPage({
         </section>
       )}
 
-      {!result && !isGenerating && (
+      {currentStep === 'paused' && extractedPoints.length > 0 && (
+        <section className="pb-12">
+          <ExtractionPointsPanel
+            points={extractedPoints}
+            onConfirm={handleContinueGeneration}
+            onCancel={handleReset}
+          />
+        </section>
+      )}
+
+      {!result && !isGenerating && currentStep !== 'paused' && (
         <section className="py-16 text-center">
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-neutral-100 mb-4">
             <svg

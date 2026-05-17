@@ -50,7 +50,7 @@ export interface GenerationResult {
   tagGroups: TagGroup[];
 }
 
-export type GenerationStep = 'extracting' | 'titles' | 'cards' | 'caption' | 'tags' | 'done';
+export type GenerationStep = 'extracting' | 'paused' | 'titles' | 'cards' | 'caption' | 'tags' | 'done';
 
 export type ContentType = 'recommend' | 'knowledge' | 'story' | 'tutorial';
 export type TargetLength = 'short' | 'medium' | 'long';

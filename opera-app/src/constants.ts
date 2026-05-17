@@ -35,6 +35,7 @@ export const TONE_OPTIONS: ToneOption[] = [
 
 export const GENERATION_STEPS: StepConfig[] = [
   { id: 'extracting', label: '提取要点', description: '正在拆解文章核心信息...' },
+  { id: 'paused', label: '等待确认', description: '等待确认核心观点...' },
   { id: 'titles', label: '生成标题', description: '正在生成小红书封面标题...' },
   { id: 'cards', label: '生成卡片', description: '正在整理卡片文案...' },
   { id: 'caption', label: '生成正文', description: '正在生成发布正文...' },

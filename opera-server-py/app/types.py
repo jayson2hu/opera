@@ -5,7 +5,7 @@ from pydantic import BaseModel
 ToneType = Literal["knowledge", "casual", "bff"]
 ProviderId = Literal["anthropic", "anthropic_compat", "openai", "openai_compat", "deepseek", "custom"]
 TagGroupType = Literal["broad", "precise", "longtail"]
-GenerationStep = Literal["extracting", "titles", "cards", "caption", "tags", "done"]
+GenerationStep = Literal["extracting", "paused", "titles", "cards", "caption", "tags", "done"]
 ContentType = Literal["recommend", "knowledge", "story", "tutorial"]
 TargetLength = Literal["short", "medium", "long"]
 ComposerStep = Literal["extracting", "title", "body", "tags", "done"]
@@ -47,6 +47,7 @@ class GenerateRequestModel(BaseModel):
     targetLength: TargetLength = "medium"
     provider: ProviderId | None = None
     model: str | None = None
+    points: list[str] | None = None
 
 
 class ComposeRequestModel(BaseModel):

@@ -37,20 +37,17 @@ from app.routes import wechat_compose as wechat_compose_route
 class FakeGenerateProvider:
     prompt_history: list[str] = []
 
-    def __init__(self) -> None:
-        self.responses = iter(
-            [
-                '{"points": ["观点1", "观点2", "观点3"]}',
-                '{"coverTitles": ["标题1", "标题2", "标题3", "标题4"]}',
-                '{"cards": ["卡片1", "卡片2", "卡片3", "卡片4", "卡片5"]}',
-                '{"caption": "正文文案"}',
-                '{"tagGroups": [{"type": "broad", "label": "泛流量标签", "tags": ["自我提升", "学习方法"]}]}'
-            ]
-        )
-
     async def call(self, _system: str, user: str) -> str:
         self.__class__.prompt_history.append(user)
-        return next(self.responses)
+        if "封面标题" in user:
+            return '{"coverTitles": ["标题1", "标题2", "标题3", "标题4"]}'
+        if "发布正文" in user or "正文文案内容" in user:
+            return '{"caption": "正文文案"}'
+        if "图文卡片" in user:
+            return '{"cards": ["卡片1", "卡片2", "卡片3", "卡片4", "卡片5"]}'
+        if "标签" in user:
+            return '{"tagGroups": [{"type": "broad", "label": "泛流量标签", "tags": ["自我提升", "学习方法"]}]}'
+        return '{"points": ["观点1", "观点2", "观点3"]}'
 
 
 
@@ -271,6 +268,40 @@ def test_generate_sse_contract(client: TestClient) -> None:
 
     assert [name for name, _ in events] == [
         "step",
+        "extraction_points",
+        "step",
+    ]
+    assert [payload["step"] for name, payload in events if name == "step"] == [
+        "extracting",
+        "paused",
+    ]
+    assert events[1][1]["points"] == ["观点1", "观点2", "观点3"]
+
+
+def test_generate_continue_sse_contract(client: TestClient) -> None:
+    events: list[tuple[str, dict[str, object]]] = []
+    with client.stream(
+        "POST",
+        "/api/generate/continue",
+        json={
+            "text": "高效阅读的三个方法",
+            "tone": "knowledge",
+            "points": ["观点1", "观点2", "观点3"],
+        },
+    ) as response:
+        assert response.status_code == 200
+        assert "text/event-stream" in response.headers["content-type"]
+        event_name = ""
+        for line in response.iter_lines():
+            if not line:
+                continue
+            if line.startswith("event: "):
+                event_name = line[7:].strip()
+            elif line.startswith("data: ") and event_name:
+                events.append((event_name, json.loads(line[6:])))
+                event_name = ""
+
+    assert [name for name, _ in events] == [
         "step",
         "titles",
         "step",
@@ -282,17 +313,26 @@ def test_generate_sse_contract(client: TestClient) -> None:
         "step",
     ]
     assert [payload["step"] for name, payload in events if name == "step"] == [
-        "extracting",
         "titles",
         "cards",
         "caption",
         "tags",
         "done",
     ]
-    assert events[2][1]["coverTitles"] == ["标题1", "标题2", "标题3", "标题4"]
-    assert events[4][1]["cards"] == ["卡片1", "卡片2", "卡片3", "卡片4", "卡片5"]
-    assert events[6][1]["caption"] == "正文文案"
-    assert events[8][1]["tagGroups"][0]["type"] == "broad"
+    assert events[1][1]["coverTitles"] == ["标题1", "标题2", "标题3", "标题4"]
+    assert events[3][1]["cards"] == ["卡片1", "卡片2", "卡片3", "卡片4", "卡片5"]
+    assert events[5][1]["caption"] == "正文文案"
+    assert events[7][1]["tagGroups"][0]["type"] == "broad"
+
+
+def test_generate_continue_requires_valid_points(client: TestClient) -> None:
+    response = client.post(
+        "/api/generate/continue",
+        json={"text": "高效阅读的三个方法", "tone": "knowledge", "points": ["观点1", "观点2"]},
+    )
+
+    assert response.status_code == 400
+    assert response.json() == {"error": "points must contain 3-8 items"}
 
 
 def test_compose_invalid_topic_returns_400(client: TestClient) -> None:
