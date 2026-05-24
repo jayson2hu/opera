@@ -76,7 +76,7 @@ export default function AdapterPage({
   useEffect(() => {
     const nextText = pendingText.trim();
     if (!nextText) return;
-    queueMicrotask(() => {
+    window.setTimeout(() => {
       setInputText(nextText);
       setSelectedTone('knowledge');
       setResult(null);
@@ -88,7 +88,7 @@ export default function AdapterPage({
       setSelectedTitles(new Set());
       setSelectedCards(new Set());
       setExtractedPoints([]);
-    });
+    }, 0);
     onPendingTextConsumed?.();
   }, [onPendingTextConsumed, pendingText]);
 
