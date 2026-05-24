@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opera 设计稿 - 03 核心观点面板</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#fef7ee', 100: '#fdecd8', 200: '#f9d5b0',
+              300: '#f5b67e', 400: '#f0914a', 500: '#ee8019',
+              600: '#df6610', 700: '#b94d10', 800: '#933e15', 900: '#773414',
+            },
+            accent: {
+              50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe',
+              300: '#c4b5fd', 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed',
+            },
+            neutral: {
+              50: '#fafaf9', 100: '#f5f5f4', 150: '#eeeeec',
+              200: '#e7e5e4', 300: '#d6d3d1', 400: '#a8a29e',
+              500: '#78716c', 600: '#57534e', 700: '#44403c',
+              800: '#292524', 900: '#1c1917',
+            },
+            success: { 50: '#f0fdf4', 500: '#22c55e', 600: '#16a34a' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            card: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+            float: '0 10px 25px -5px rgb(0 0 0 / 0.1), 0 4px 10px -5px rgb(0 0 0 / 0.04)',
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    @keyframes slide-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes pulse-gentle { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+    .animate-slide-up { animation: slide-up 0.4s ease-out both; }
+    .animate-fade-in { animation: fade-in 0.3s ease-out both; }
+    .animate-pulse-gentle { animation: pulse-gentle 2s ease-in-out infinite; }
+  </style>
+</head>
+<body class="bg-neutral-50 min-h-screen">
+  <!-- 设计说明 -->
+  <div class="bg-white border-b border-neutral-200 px-4 py-3">
+    <div class="max-w-4xl mx-auto">
+      <p class="text-xs text-neutral-400">Opera UI 设计稿 · 03 核心观点面板（提取结果展示 + 用户干预）</p>
+      <p class="text-sm text-neutral-600 mt-0.5">改进：提取完成后展示核心观点，用户可取消不需要的观点再继续生成</p>
+    </div>
+  </div>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+    <!-- 场景 A：内联面板模式（推荐） -->
+    <section>
+      <h2 class="text-sm font-semibold text-neutral-800 mb-3">方案 A：内联面板（嵌入生成流程中）</h2>
+      <p class="text-xs text-neutral-500 mb-4">提取完成后，进度条暂停，面板展开显示观点列表。用户确认后继续生成。</p>
+
+      <!-- 模拟进度条 -->
+      <div class="mb-4 space-y-2">
+        <div class="flex items-center gap-3">
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded-full bg-primary-500 flex items-center justify-center">
+              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+              </svg>
+            </div>
+            <span class="text-xs font-medium text-primary-600">提取要点</span>
+          </div>
+          <div class="flex-1 h-px bg-neutral-200"></div>
+          <div class="flex items-center gap-2">
+            <div class="w-5 h-5 rounded-full border-2 border-primary-300 animate-pulse-gentle"></div>
+            <span class="text-xs font-medium text-neutral-400">等待确认...</span>
+          </div>
+          <div class="flex-1 h-px bg-neutral-100"></div>
+          <div class="flex items-center gap-2 opacity-40">
+            <div class="w-5 h-5 rounded-full border-2 border-neutral-200"></div>
+            <span class="text-xs text-neutral-400">生成标题</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 核心观点面板 -->
+      <div class="animate-slide-up rounded-2xl border-2 border-primary-200 bg-white p-5 shadow-card">
+        <!-- 面板头部 -->
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-100">
+              <svg class="w-4 h-4 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/>
+              </svg>
+            </span>
+            <div>
+              <span class="text-sm font-semibold text-neutral-800">AI 提取了 7 个核心观点</span>
+              <span class="ml-2 text-xs text-neutral-400">取消不需要的观点，再继续生成</span>
+            </div>
+          </div>
+          <span class="text-xs font-medium text-primary-600" id="pointCount">已选 7 / 7</span>
+        </div>
+
+        <!-- 观点列表 -->
+        <div class="space-y-2 mb-5" id="pointsList">
+        </div>
+
+        <!-- 操作按钮 -->
+        <div class="flex items-center justify-between pt-4 border-t border-neutral-100">
+          <button onclick="toggleAll()" class="text-xs text-neutral-500 hover:text-primary-600 transition-colors cursor-pointer">
+            全选 / 取消全选
+          </button>
+          <div class="flex items-center gap-3">
+            <span class="text-xs text-neutral-400">将基于选中的观点生成标题、卡片和正文</span>
+            <button onclick="continueGeneration()" id="continueBtn"
+              class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-500 text-white text-sm font-medium shadow-md shadow-primary-500/20 hover:bg-primary-600 transition-all cursor-pointer">
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+              </svg>
+              继续生成
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 分隔 -->
+    <hr class="border-neutral-200">
+
+    <!-- 场景 B：被取消的观点效果 -->
+    <section>
+      <h2 class="text-sm font-semibold text-neutral-800 mb-3">交互状态：部分观点被取消</h2>
+      <p class="text-xs text-neutral-500 mb-4">被取消的观点变灰并划线，按钮文案更新为"基于 N 个观点继续"。</p>
+
+      <div class="rounded-2xl border-2 border-primary-200 bg-white p-5 shadow-card">
+        <div class="flex items-center justify-between mb-4">
+          <div class="flex items-center gap-2">
+            <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-100">
+              <svg class="w-4 h-4 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"/>
+              </svg>
+            </span>
+            <div>
+              <span class="text-sm font-semibold text-neutral-800">AI 提取了 7 个核心观点</span>
+            </div>
+          </div>
+          <span class="text-xs font-medium text-primary-600">已选 5 / 7</span>
+        </div>
+
+        <div class="space-y-2 mb-5">
+          <!-- 选中状态 -->
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-neutral-200 bg-white">
+            <div class="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded border-2 border-primary-500 bg-primary-500">
+              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <span class="text-sm text-neutral-700 leading-relaxed">面试中的领导力不是管过多少人，而是能否在关键时刻做出判断并推动事情发生</span>
+          </div>
+          <!-- 选中状态 -->
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-neutral-200 bg-white">
+            <div class="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded border-2 border-primary-500 bg-primary-500">
+              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <span class="text-sm text-neutral-700 leading-relaxed">STAR法则的进阶用法是在Action部分加入"为什么"，展示决策逻辑</span>
+          </div>
+          <!-- 取消状态 -->
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-neutral-100 bg-neutral-50/50 opacity-60">
+            <div class="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded border-2 border-neutral-300">
+            </div>
+            <span class="text-sm text-neutral-400 leading-relaxed line-through">只讲结果不讲过程是常见误区，面试官更想听决策过程</span>
+          </div>
+          <!-- 选中状态 -->
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-neutral-200 bg-white">
+            <div class="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded border-2 border-primary-500 bg-primary-500">
+              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <span class="text-sm text-neutral-700 leading-relaxed">资源不足时的取舍能力是领导力的核心体现之一</span>
+          </div>
+          <!-- 取消状态 -->
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-neutral-100 bg-neutral-50/50 opacity-60">
+            <div class="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded border-2 border-neutral-300">
+            </div>
+            <span class="text-sm text-neutral-400 leading-relaxed line-through">过度强调个人英雄主义会让面试官怀疑协作能力</span>
+          </div>
+          <!-- 选中状态 -->
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-neutral-200 bg-white">
+            <div class="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded border-2 border-primary-500 bg-primary-500">
+              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <span class="text-sm text-neutral-700 leading-relaxed">面试前准备3-5个不同场景的故事，每个都要有具体数字和时间线</span>
+          </div>
+          <!-- 选中状态 -->
+          <div class="flex items-start gap-3 p-3 rounded-xl border border-neutral-200 bg-white">
+            <div class="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded border-2 border-primary-500 bg-primary-500">
+              <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+            </div>
+            <span class="text-sm text-neutral-700 leading-relaxed">突发问题时快速拉齐团队、确定临时方案并同步排查根因的能力</span>
+          </div>
+        </div>
+
+        <div class="flex items-center justify-between pt-4 border-t border-neutral-100">
+          <button class="text-xs text-neutral-500 hover:text-primary-600 transition-colors cursor-pointer">
+            全选 / 取消全选
+          </button>
+          <button class="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-primary-500 text-white text-sm font-medium shadow-md shadow-primary-500/20 hover:bg-primary-600 transition-all cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+            </svg>
+            基于 5 个观点继续生成
+          </button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const points = [
+      '面试中的领导力不是管过多少人，而是能否在关键时刻做出判断并推动事情发生',
+      'STAR法则的进阶用法是在Action部分加入"为什么"，展示决策逻辑',
+      '只讲结果不讲过程是常见误区，面试官更想听决策过程',
+      '资源不足时的取舍能力是领导力的核心体现之一',
+      '过度强调个人英雄主义会让面试官怀疑协作能力',
+      '面试前准备3-5个不同场景的故事，每个都要有具体数字和时间线',
+      '突发问题时快速拉齐团队、确定临时方案并同步排查根因的能力',
+    ];
+
+    const checked = new Set(points.map((_, i) => i));
+
+    function renderPoints() {
+      const container = document.getElementById('pointsList');
+      container.innerHTML = points.map((point, i) => {
+        const isChecked = checked.has(i);
+        return `
+          <div class="flex items-start gap-3 p-3 rounded-xl border transition-all duration-200 cursor-pointer
+            ${isChecked ? 'border-neutral-200 bg-white' : 'border-neutral-100 bg-neutral-50/50 opacity-60'}"
+            onclick="togglePoint(${i})">
+            <div class="shrink-0 mt-0.5 flex items-center justify-center w-5 h-5 rounded border-2 transition-all duration-200
+              ${isChecked ? 'border-primary-500 bg-primary-500' : 'border-neutral-300'}">
+              ${isChecked ? '<svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>' : ''}
+            </div>
+            <span class="text-sm leading-relaxed ${isChecked ? 'text-neutral-700' : 'text-neutral-400 line-through'}">${point}</span>
+          </div>
+        `;
+      }).join('');
+      updateCount();
+    }
+
+    function togglePoint(i) {
+      if (checked.has(i)) {
+        if (checked.size <= 3) { alert('至少保留 3 个观点'); return; }
+        checked.delete(i);
+      } else {
+        checked.add(i);
+      }
+      renderPoints();
+    }
+
+    function toggleAll() {
+      if (checked.size === points.length) {
+        const keep = new Set([0, 1, 2]);
+        checked.clear();
+        keep.forEach(i => checked.add(i));
+      } else {
+        points.forEach((_, i) => checked.add(i));
+      }
+      renderPoints();
+    }
+
+    function updateCount() {
+      document.getElementById('pointCount').textContent = `已选 ${checked.size} / ${points.length}`;
+      const btn = document.getElementById('continueBtn');
+      btn.innerHTML = `
+        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5.25 5.653c0-.856.917-1.398 1.667-.986l11.54 6.348a1.125 1.125 0 010 1.971l-11.54 6.347a1.125 1.125 0 01-1.667-.985V5.653z"/>
+        </svg>
+        ${checked.size === points.length ? '继续生成' : `基于 ${checked.size} 个观点继续生成`}
+      `;
+    }
+
+    function continueGeneration() {
+      const selectedPoints = [...checked].sort().map(i => points[i]);
+      alert('继续生成，选中的观点：\n\n' + selectedPoints.map((p, i) => `${i+1}. ${p}`).join('\n'));
+    }
+
+    renderPoints();
+  </script>
+</body>
+</html>

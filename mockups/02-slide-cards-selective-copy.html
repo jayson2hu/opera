@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opera 设计稿 - 02 图文卡片（选择性复制）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#fef7ee', 100: '#fdecd8', 200: '#f9d5b0',
+              300: '#f5b67e', 400: '#f0914a', 500: '#ee8019',
+              600: '#df6610', 700: '#b94d10', 800: '#933e15', 900: '#773414',
+            },
+            accent: {
+              50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe',
+              300: '#c4b5fd', 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed',
+            },
+            neutral: {
+              50: '#fafaf9', 100: '#f5f5f4', 150: '#eeeeec',
+              200: '#e7e5e4', 300: '#d6d3d1', 400: '#a8a29e',
+              500: '#78716c', 600: '#57534e', 700: '#44403c',
+              800: '#292524', 900: '#1c1917',
+            },
+            success: { 50: '#f0fdf4', 500: '#22c55e', 600: '#16a34a' },
+            warning: { 50: '#fffbeb', 500: '#f59e0b' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            card: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+            'card-hover': '0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 6px -2px rgb(0 0 0 / 0.04)',
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    @keyframes slide-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-slide-up { animation: slide-up 0.4s ease-out both; }
+  </style>
+</head>
+<body class="bg-neutral-50 min-h-screen">
+  <!-- 设计说明 -->
+  <div class="bg-white border-b border-neutral-200 px-4 py-3">
+    <div class="max-w-4xl mx-auto">
+      <p class="text-xs text-neutral-400">Opera UI 设计稿 · 02 图文卡片（选择性复制）</p>
+      <p class="text-sm text-neutral-600 mt-0.5">改进：每张卡片带用途标签 + 字数统计 + 单独复制 + 多选批量复制</p>
+    </div>
+  </div>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <section class="animate-slide-up space-y-3" id="cardsSection">
+      <!-- 区域头部 -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-100">
+            <svg class="w-4 h-4 text-accent-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zm0 9.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6z"/>
+            </svg>
+          </span>
+          <span class="text-sm font-semibold text-neutral-700">图文卡片</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-neutral-400" id="selectionHint">点击勾选想要的卡片</span>
+          <button id="copySelectedBtn" onclick="copySelected()"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 select-none border-neutral-200 bg-white text-neutral-400 cursor-not-allowed opacity-50"
+            disabled>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
+            </svg>
+            <span id="copyBtnLabel">复制选中</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 卡片网格 -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" id="cardGrid"></div>
+    </section>
+  </main>
+
+  <script>
+    const cards = [
+      { role: '开头钩子', text: '领导力不是管过多少人，而是你在关键时刻能否做出判断、协调资源、带动团队达成目标。面试官看中的三个层面：决策力、影响力、执行力。' },
+      { role: '核心洞察', text: '面试官想听的可不是"我完成了KPI"，而是过程——你遇到什么困难、做了什么判断、为什么这么做。只讲结果不讲过程，是常见误区。' },
+      { role: '核心洞察', text: '说"我一个人搞定所有事"只会暴露协作短板。过度强调个人英雄主义反而降低面试官的评价，因为团队能力也是领导力的关键。' },
+      { role: '方法论', text: '别用"有责任心""善于沟通"这类抽象词。用具体行为证明：比如"我在资源不足时先评估优先级，再用最小方案维持项目B"。' },
+      { role: '方法论', text: 'STAR法则进阶版：在Action部分加"为什么"。解释为什么选A而非B——这个决策逻辑正是领导力的核心体现。' },
+      { role: '应用场景', text: '资源不足时，先评估紧急程度和影响范围做取舍，再用最小可行方案平衡进度。这是领导力高分模板，但关键是要量化具体过程。' },
+      { role: '行动总结', text: '意见分歧时，拆解需求为"必须有"和"可后续迭代"。组织对齐会议让双方接受，快速达成共识并推进核心功能落地。' },
+    ];
+
+    const ROLE_COLORS = {
+      '开头钩子': { bg: 'bg-primary-50', text: 'text-primary-600', border: 'border-primary-200' },
+      '核心洞察': { bg: 'bg-accent-50', text: 'text-accent-600', border: 'border-accent-200' },
+      '方法论': { bg: 'bg-emerald-50', text: 'text-emerald-600', border: 'border-emerald-200' },
+      '应用场景': { bg: 'bg-blue-50', text: 'text-blue-600', border: 'border-blue-200' },
+      '行动总结': { bg: 'bg-amber-50', text: 'text-amber-600', border: 'border-amber-200' },
+    };
+
+    const ACCENT_COLORS = [
+      { badge: 'bg-primary-500', ring: 'ring-primary-100' },
+      { badge: 'bg-accent-500', ring: 'ring-accent-100' },
+      { badge: 'bg-emerald-500', ring: 'ring-emerald-100' },
+      { badge: 'bg-primary-500', ring: 'ring-primary-100' },
+      { badge: 'bg-accent-500', ring: 'ring-accent-100' },
+      { badge: 'bg-emerald-500', ring: 'ring-emerald-100' },
+      { badge: 'bg-primary-500', ring: 'ring-primary-100' },
+    ];
+
+    const selected = new Set();
+
+    function charCount(text) {
+      return text.replace(/\s/g, '').length;
+    }
+
+    function render() {
+      const grid = document.getElementById('cardGrid');
+      grid.innerHTML = cards.map((card, i) => {
+        const isSelected = selected.has(i);
+        const count = charCount(card.text);
+        const countOk = count >= 70 && count <= 110;
+        const roleColor = ROLE_COLORS[card.role] || ROLE_COLORS['核心洞察'];
+        const accent = ACCENT_COLORS[i];
+
+        return `
+          <div class="group relative p-4 rounded-xl border transition-all duration-200 cursor-pointer
+            ${isSelected
+              ? 'border-primary-400 bg-primary-50/40 shadow-card'
+              : 'border-neutral-200 bg-white shadow-card hover:shadow-card-hover hover:border-neutral-300'
+            }"
+            onclick="toggleSelect(${i})">
+            <!-- 顶部：复选框 + 序号 + 用途标签 + 字数 -->
+            <div class="flex items-center gap-2 mb-3">
+              <div class="shrink-0 flex items-center justify-center w-4.5 h-4.5 rounded border-2 transition-all duration-200
+                ${isSelected ? 'border-primary-500 bg-primary-500' : 'border-neutral-300 group-hover:border-primary-400'}"
+                style="width:18px;height:18px;">
+                ${isSelected ? '<svg class="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>' : ''}
+              </div>
+              <span class="shrink-0 flex items-center justify-center w-5 h-5 rounded text-[10px] font-bold text-white ${accent.badge}">${i + 1}</span>
+              <span class="px-1.5 py-0.5 rounded text-[10px] font-medium ${roleColor.bg} ${roleColor.text} ${roleColor.border} border">${card.role}</span>
+              <span class="ml-auto text-[11px] ${countOk ? 'text-success-500' : 'text-warning-500'}">${count} 字</span>
+            </div>
+            <!-- 卡片正文 -->
+            <p class="text-sm leading-relaxed text-neutral-700">${card.text}</p>
+            <!-- 单条复制按钮（hover 显示） -->
+            <button onclick="copySingle(${i}, event)"
+              class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200
+                flex items-center justify-center w-7 h-7 rounded-lg border border-neutral-200 bg-white text-neutral-400
+                hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50"
+              title="复制这张卡片">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"/>
+              </svg>
+            </button>
+          </div>
+        `;
+      }).join('');
+      updateCopyBar();
+    }
+
+    function toggleSelect(i) {
+      if (selected.has(i)) selected.delete(i);
+      else selected.add(i);
+      render();
+    }
+
+    function updateCopyBar() {
+      const btn = document.getElementById('copySelectedBtn');
+      const label = document.getElementById('copyBtnLabel');
+      const hint = document.getElementById('selectionHint');
+      const count = selected.size;
+
+      if (count === 0) {
+        btn.disabled = true;
+        btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 select-none border-neutral-200 bg-white text-neutral-400 cursor-not-allowed opacity-50';
+        label.textContent = '复制选中';
+        hint.textContent = '点击勾选想要的卡片';
+      } else {
+        btn.disabled = false;
+        btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 select-none border-primary-300 bg-primary-50 text-primary-600 hover:bg-primary-100 cursor-pointer';
+        label.textContent = `复制选中 (${count})`;
+        hint.textContent = `已选 ${count} / ${cards.length}`;
+      }
+    }
+
+    function copySingle(i, event) {
+      event.stopPropagation();
+      navigator.clipboard.writeText(cards[i].text).then(() => {
+        const btn = event.currentTarget;
+        btn.innerHTML = '<svg class="w-3.5 h-3.5 text-success-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>';
+        btn.classList.add('border-success-500', 'bg-success-50');
+        setTimeout(() => {
+          btn.innerHTML = '<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"/></svg>';
+          btn.classList.remove('border-success-500', 'bg-success-50');
+        }, 1200);
+      });
+    }
+
+    function copySelected() {
+      const texts = [...selected].sort().map(i => `【卡片${i+1}】${cards[i].text}`);
+      navigator.clipboard.writeText(texts.join('\n\n')).then(() => {
+        const btn = document.getElementById('copySelectedBtn');
+        const label = document.getElementById('copyBtnLabel');
+        label.textContent = '已复制 ✓';
+        btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 select-none border-success-500 bg-success-50 text-success-600 cursor-default';
+        setTimeout(() => updateCopyBar(), 1500);
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>

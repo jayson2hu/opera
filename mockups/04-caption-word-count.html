@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opera 设计稿 - 04 正文区（字数统计）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#fef7ee', 100: '#fdecd8', 200: '#f9d5b0',
+              300: '#f5b67e', 400: '#f0914a', 500: '#ee8019',
+              600: '#df6610', 700: '#b94d10',
+            },
+            neutral: {
+              50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4',
+              300: '#d6d3d1', 400: '#a8a29e', 500: '#78716c',
+              600: '#57534e', 700: '#44403c', 800: '#292524',
+            },
+            success: { 50: '#f0fdf4', 500: '#22c55e' },
+            warning: { 50: '#fffbeb', 500: '#f59e0b', 600: '#d97706' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'PingFang SC', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            card: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+          },
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-neutral-50 min-h-screen">
+  <div class="bg-white border-b border-neutral-200 px-4 py-3">
+    <div class="max-w-4xl mx-auto">
+      <p class="text-xs text-neutral-400">Opera UI 设计稿 · 04 正文区（字数统计 + 长度警告）</p>
+      <p class="text-sm text-neutral-600 mt-0.5">改进：显示实际字数，超过 800 字时给出温和提醒</p>
+    </div>
+  </div>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-8">
+
+    <!-- 示例 1：正常长度（600字以内） -->
+    <section>
+      <h3 class="text-xs font-medium text-neutral-500 mb-3">状态 1：正常长度</h3>
+      <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-card">
+        <!-- 头部：标签 + 字数 + 复制 -->
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-1 h-4 rounded-full bg-primary-600"></div>
+            <span class="text-sm font-semibold text-neutral-800">发布正文</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-neutral-100 text-[11px] font-medium text-neutral-500">
+              623 字
+            </span>
+          </div>
+          <button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-xs font-medium text-neutral-500 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
+            </svg>
+            复制
+          </button>
+        </div>
+        <!-- 正文内容 -->
+        <div class="text-sm leading-[1.8] text-neutral-700 whitespace-pre-line rounded-xl border border-neutral-100 bg-neutral-50/50 p-4">面试官想听的领导力，从来不是"管过多少人"。
+
+很多人以为只有管理者才需要展示领导力，但实际上，面试官评估每一位候选人时，都在观察你是否具备影响他人、推动事情的能力。
+
+先避开三个常见误区：
+1. 只讲结果不讲过程。面试官想听的不是你完成了KPI，而是你在过程中遇到了什么困难、做了什么判断。
+2. 过度强调个人英雄主义。一个人搞定所有事反而暴露协作短板。
+3. 用"有责任心""善于沟通"这类抽象词。没有具体行为的描述等于没说。
+
+进阶版STAR法则：在Action部分加入"为什么"。解释决策逻辑，正是体现判断力的关键。
+
+你面试时有没有用过类似的方法？评论区聊聊。</div>
+      </div>
+    </section>
+
+    <!-- 示例 2：超长警告（800字以上） -->
+    <section>
+      <h3 class="text-xs font-medium text-neutral-500 mb-3">状态 2：超过 800 字，显示警告</h3>
+      <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-card">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-1 h-4 rounded-full bg-primary-600"></div>
+            <span class="text-sm font-semibold text-neutral-800">发布正文</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-warning-50 text-[11px] font-medium text-warning-600 border border-warning-500/20">
+              1,142 字
+            </span>
+          </div>
+          <button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-xs font-medium text-neutral-500 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
+            </svg>
+            复制
+          </button>
+        </div>
+        <!-- 警告提示 -->
+        <div class="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-warning-50 border border-warning-500/20">
+          <svg class="w-4 h-4 text-warning-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z"/>
+          </svg>
+          <span class="text-xs text-warning-600">正文超过 800 字可能影响小红书完读率，建议精简或拆分为多篇</span>
+        </div>
+        <!-- 正文（截断展示） -->
+        <div class="text-sm leading-[1.8] text-neutral-700 whitespace-pre-line rounded-xl border border-neutral-100 bg-neutral-50/50 p-4 max-h-48 overflow-hidden relative">面试官想听的领导力，从来不是"管过多少人"。
+
+很多人以为只有管理者才需要展示领导力，但实际上，面试官评估每一位候选人时，都在观察你是否具备影响他人、推动事情的能力。这篇笔记帮你拆解：如何在面试中，用具体行为证明你的领导力，而不是用抽象词汇。
+
+先避开三个常见误区...（此处省略长文内容）
+          <div class="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-white to-transparent"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 示例 3：短文正常 -->
+    <section>
+      <h3 class="text-xs font-medium text-neutral-500 mb-3">状态 3：精简版（300-500 字）</h3>
+      <div class="rounded-2xl border border-neutral-200 bg-white p-5 shadow-card">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-1 h-4 rounded-full bg-primary-600"></div>
+            <span class="text-sm font-semibold text-neutral-800">发布正文</span>
+            <span class="inline-flex items-center px-2 py-0.5 rounded-md bg-success-50 text-[11px] font-medium text-success-500">
+              387 字 · 适合发布
+            </span>
+          </div>
+          <button class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-neutral-200 bg-white text-xs font-medium text-neutral-500 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all cursor-pointer">
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
+            </svg>
+            复制
+          </button>
+        </div>
+        <div class="text-sm leading-[1.8] text-neutral-700 whitespace-pre-line rounded-xl border border-neutral-100 bg-neutral-50/50 p-4">AI时代，别急着恐慌。你的工作不会被取代，但会被重新定义。
+
+三类人最吃香：
+1. 会用AI工具的执行者。重点不是技术，是熟练度。
+2. 能定义问题的人。AI擅长回答，但不擅长提问。
+3. 做AI做不好事的人。心理咨询、高端销售、手术——这些需要人际信任的工作是你的优势。
+
+行动三步走：每周花2小时学一个新AI工具。找出现有工作中可提效的环节。培养判断力、同理心和创造力。
+
+别焦虑，把AI当新同事，你会发现自己走得更快。</div>
+      </div>
+    </section>
+
+  </main>
+</body>
+</html>

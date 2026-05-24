@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opera 设计稿 - 01 封面标题（选择性复制）</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#fef7ee', 100: '#fdecd8', 200: '#f9d5b0',
+              300: '#f5b67e', 400: '#f0914a', 500: '#ee8019',
+              600: '#df6610', 700: '#b94d10', 800: '#933e15', 900: '#773414',
+            },
+            accent: {
+              50: '#f5f3ff', 100: '#ede9fe', 200: '#ddd6fe',
+              300: '#c4b5fd', 400: '#a78bfa', 500: '#8b5cf6', 600: '#7c3aed',
+            },
+            neutral: {
+              50: '#fafaf9', 100: '#f5f5f4', 150: '#eeeeec',
+              200: '#e7e5e4', 300: '#d6d3d1', 400: '#a8a29e',
+              500: '#78716c', 600: '#57534e', 700: '#44403c',
+              800: '#292524', 900: '#1c1917',
+            },
+            success: { 50: '#f0fdf4', 500: '#22c55e', 600: '#16a34a' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            card: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+            'card-hover': '0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 6px -2px rgb(0 0 0 / 0.04)',
+          },
+        },
+      },
+    }
+  </script>
+  <style>
+    @keyframes slide-up { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+    .animate-slide-up { animation: slide-up 0.4s ease-out both; }
+    .animate-fade-in { animation: fade-in 0.3s ease-out both; }
+  </style>
+</head>
+<body class="bg-neutral-50 min-h-screen">
+  <!-- 设计说明 -->
+  <div class="bg-white border-b border-neutral-200 px-4 py-3">
+    <div class="max-w-4xl mx-auto">
+      <p class="text-xs text-neutral-400">Opera UI 设计稿 · 01 封面标题（选择性复制）</p>
+      <p class="text-sm text-neutral-600 mt-0.5">改进：每条标题可单独复制 + 多选后批量复制选中项</p>
+    </div>
+  </div>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8">
+    <!-- 组件：封面标题区 -->
+    <section class="animate-slide-up space-y-3" id="titlesSection">
+      <!-- 区域头部 -->
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="flex h-7 w-7 items-center justify-center rounded-lg bg-primary-100">
+            <svg class="w-4 h-4 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 12h16.5m-16.5 3.75h16.5M3.75 19.5h16.5M5.625 4.5h12.75a1.875 1.875 0 010 3.75H5.625a1.875 1.875 0 010-3.75z"/>
+            </svg>
+          </span>
+          <span class="text-sm font-semibold text-neutral-700">封面标题备选</span>
+        </div>
+        <!-- 复制操作栏 -->
+        <div class="flex items-center gap-2" id="copyBar">
+          <span class="text-xs text-neutral-400" id="selectionHint">点击勾选想要的标题</span>
+          <button id="copySelectedBtn" onclick="copySelected()"
+            class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 select-none border-neutral-200 bg-white text-neutral-400 cursor-not-allowed opacity-50"
+            disabled>
+            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
+            </svg>
+            <span id="copyBtnLabel">复制选中</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 标题列表 -->
+      <div class="space-y-2" id="titleList"></div>
+    </section>
+  </main>
+
+  <script>
+    const titles = [
+      '3个错误让面试官看出你没领导力',
+      '只讲结果不讲过程，面试官不会买单',
+      '面试中说"我有责任心"是大忌',
+      '给管理者的面试加分模板',
+      '面试官想听的领导力是这3个能力',
+      'STAR法则进阶：为什么比做了什么更重要',
+    ];
+
+    const selected = new Set();
+
+    function render() {
+      const container = document.getElementById('titleList');
+      container.innerHTML = titles.map((title, i) => {
+        const isSelected = selected.has(i);
+        return `
+          <div class="group flex items-center gap-3 p-4 rounded-xl border transition-all duration-200 cursor-pointer
+            ${isSelected
+              ? 'border-primary-400 bg-primary-50/40 shadow-card'
+              : 'border-neutral-200 bg-white shadow-card hover:shadow-card-hover hover:border-neutral-300'
+            }"
+            onclick="toggleSelect(${i})">
+            <!-- 复选框 -->
+            <div class="shrink-0 flex items-center justify-center w-5 h-5 rounded border-2 transition-all duration-200
+              ${isSelected ? 'border-primary-500 bg-primary-500' : 'border-neutral-300 group-hover:border-primary-400'}">
+              ${isSelected ? '<svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>' : ''}
+            </div>
+            <!-- 序号 -->
+            <span class="shrink-0 flex items-center justify-center w-6 h-6 rounded-lg text-xs font-semibold
+              ${isSelected ? 'bg-primary-500 text-white' : 'bg-primary-100 text-primary-700'}">${i + 1}</span>
+            <!-- 标题文字 -->
+            <span class="flex-1 text-[15px] leading-relaxed text-neutral-700 select-none">${title}</span>
+            <!-- 单条复制按钮 -->
+            <button onclick="copySingle(${i}, event)"
+              class="shrink-0 opacity-0 group-hover:opacity-100 focus:opacity-100 transition-opacity duration-200
+                flex items-center gap-1 px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white
+                text-xs text-neutral-500 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50"
+              title="复制这条">
+              <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+              </svg>
+              复制
+            </button>
+          </div>`;
+      }).join('');
+      updateCopyBar();
+    }
+
+    function toggleSelect(index) {
+      if (selected.has(index)) {
+        selected.delete(index);
+      } else {
+        selected.add(index);
+      }
+      render();
+    }
+
+    function updateCopyBar() {
+      const btn = document.getElementById('copySelectedBtn');
+      const label = document.getElementById('copyBtnLabel');
+      const hint = document.getElementById('selectionHint');
+      const count = selected.size;
+
+      if (count === 0) {
+        btn.disabled = true;
+        btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 select-none border-neutral-200 bg-white text-neutral-400 cursor-not-allowed opacity-50';
+        label.textContent = '复制选中';
+        hint.textContent = '点击勾选想要的标题';
+      } else {
+        btn.disabled = false;
+        btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 select-none border-primary-300 bg-primary-50 text-primary-600 hover:bg-primary-100 cursor-pointer';
+        label.textContent = `复制选中 (${count})`;
+        hint.textContent = `已选 ${count} / ${titles.length}`;
+      }
+    }
+
+    function copySingle(index, event) {
+      event.stopPropagation();
+      const text = titles[index];
+      navigator.clipboard.writeText(text).then(() => {
+        showCopyFeedback(event.currentTarget);
+      });
+    }
+
+    function copySelected() {
+      if (selected.size === 0) return;
+      const text = Array.from(selected).sort().map(i => titles[i]).join('\n');
+      navigator.clipboard.writeText(text).then(() => {
+        const btn = document.getElementById('copySelectedBtn');
+        const label = document.getElementById('copyBtnLabel');
+        btn.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-medium transition-all duration-200 select-none border-success-500 bg-success-50 text-success-600 cursor-default';
+        label.textContent = '已复制 ✓';
+        setTimeout(() => { updateCopyBar(); }, 1500);
+      });
+    }
+
+    function showCopyFeedback(button) {
+      const original = button.innerHTML;
+      button.innerHTML = `<svg class="w-3.5 h-3.5 text-success-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg><span class="text-success-600">已复制</span>`;
+      button.classList.add('!opacity-100', '!border-success-500', '!bg-success-50');
+      setTimeout(() => {
+        button.innerHTML = original;
+        button.classList.remove('!opacity-100', '!border-success-500', '!bg-success-50');
+      }, 1500);
+    }
+
+    render();
+  </script>
+</body>
+</html>

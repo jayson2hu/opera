@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Opera 设计稿 - 05 复制操作栏</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              50: '#fef7ee', 100: '#fdecd8', 200: '#f9d5b0',
+              300: '#f5b67e', 400: '#f0914a', 500: '#ee8019',
+              600: '#df6610', 700: '#b94d10',
+            },
+            neutral: {
+              50: '#fafaf9', 100: '#f5f5f4', 200: '#e7e5e4',
+              300: '#d6d3d1', 400: '#a8a29e', 500: '#78716c',
+              600: '#57534e', 700: '#44403c', 800: '#292524',
+            },
+            success: { 50: '#f0fdf4', 500: '#22c55e', 600: '#16a34a' },
+          },
+          fontFamily: {
+            sans: ['Inter', 'PingFang SC', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            card: '0 1px 3px 0 rgb(0 0 0 / 0.06), 0 1px 2px -1px rgb(0 0 0 / 0.06)',
+          },
+        },
+      },
+    }
+  </script>
+</head>
+<body class="bg-neutral-50 min-h-screen">
+  <div class="bg-white border-b border-neutral-200 px-4 py-3">
+    <div class="max-w-4xl mx-auto">
+      <p class="text-xs text-neutral-400">Opera UI 设计稿 · 05 复制操作栏（统一顶部操作条）</p>
+      <p class="text-sm text-neutral-600 mt-0.5">改进：生成结果顶部的统一操作栏，显示选中状态和复制按钮</p>
+    </div>
+  </div>
+
+  <main class="max-w-4xl mx-auto px-4 sm:px-6 py-8 space-y-6">
+
+    <!-- 状态 1：初始状态（未选中） -->
+    <section>
+      <h3 class="text-xs font-medium text-neutral-500 mb-3">状态 1：未选中任何项目</h3>
+      <div class="rounded-xl border border-neutral-200 bg-white px-4 py-3 shadow-card flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary-100">
+            <svg class="w-3 h-3 text-primary-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
+          </span>
+          <span class="text-sm font-medium text-neutral-700">小红书改写稿已生成</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="text-xs text-neutral-400">勾选内容后可复制选中项</span>
+          <button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-neutral-200 bg-white text-sm font-medium text-neutral-500 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50 transition-all cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
+            </svg>
+            复制全部
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 状态 2：部分选中 -->
+    <section>
+      <h3 class="text-xs font-medium text-neutral-500 mb-3">状态 2：选中了 3 个项目</h3>
+      <div class="rounded-xl border border-primary-200 bg-primary-50/30 px-4 py-3 shadow-card flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="flex h-5 w-5 items-center justify-center rounded-full bg-primary-500">
+            <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
+          </span>
+          <span class="text-sm font-medium text-neutral-700">已选中 3 个项目</span>
+          <button class="text-xs text-neutral-400 hover:text-primary-600 transition-colors cursor-pointer ml-1">取消全选</button>
+        </div>
+        <div class="flex items-center gap-2">
+          <button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-primary-300 bg-primary-50 text-sm font-medium text-primary-600 hover:bg-primary-100 transition-all cursor-pointer">
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M15.666 3.888A2.25 2.25 0 0013.5 2.25h-3c-1.03 0-1.9.693-2.166 1.638m7.332 0c.055.194.084.4.084.612v0a.75.75 0 01-.75.75H9.75a.75.75 0 01-.75-.75v0c0-.212.03-.418.084-.612m7.332 0c.646.049 1.288.11 1.927.184 1.1.128 1.907 1.077 1.907 2.185V19.5a2.25 2.25 0 01-2.25 2.25H6.75A2.25 2.25 0 014.5 19.5V6.257c0-1.108.806-2.057 1.907-2.185a48.208 48.208 0 011.927-.184"/>
+            </svg>
+            复制选中 (3)
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 状态 3：复制成功反馈 -->
+    <section>
+      <h3 class="text-xs font-medium text-neutral-500 mb-3">状态 3：复制成功（1.5 秒后恢复）</h3>
+      <div class="rounded-xl border border-success-500/30 bg-success-50/50 px-4 py-3 shadow-card flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <span class="flex h-5 w-5 items-center justify-center rounded-full bg-success-500">
+            <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+            </svg>
+          </span>
+          <span class="text-sm font-medium text-success-600">已复制到剪贴板</span>
+        </div>
+        <button class="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg border border-success-500/30 bg-success-50 text-sm font-medium text-success-600 cursor-default">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/>
+          </svg>
+          已复制
+        </button>
+      </div>
+    </section>
+
+    <!-- 实现说明 -->
+    <section class="mt-8 rounded-xl border border-blue-200 bg-blue-50 p-4">
+      <h4 class="text-sm font-semibold text-blue-900 mb-2">实现说明</h4>
+      <ul class="text-xs text-blue-800 space-y-1.5 list-disc list-inside">
+        <li>操作栏位于生成结果区域顶部，替代原有的简单"复制全部"按钮</li>
+        <li>当用户勾选任意标题/卡片/正文时，操作栏切换为"选中"状态</li>
+        <li>复制成功后显示绿色反馈 1.5 秒，然后恢复原状</li>
+        <li>"复制全部"始终可用，"复制选中"仅在有选中项时可用</li>
+        <li>复制内容格式：标题用换行分隔，卡片用 --- 分隔，正文原样复制</li>
+      </ul>
+    </section>
+
+  </main>
+</body>
+</html>
