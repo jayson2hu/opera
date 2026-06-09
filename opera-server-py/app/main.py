@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -7,6 +9,12 @@ from app.config import get_settings, validate_config
 from app.routes.compose import router as compose_router
 from app.routes.generate import router as generate_router
 from app.routes.wechat_compose import router as wechat_compose_router
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
+)
+logger = logging.getLogger("opera-server-py")
 
 
 def create_app() -> FastAPI:
@@ -39,7 +47,7 @@ def create_app() -> FastAPI:
 
     @app.exception_handler(Exception)
     async def handle_exception(_request: Request, exc: Exception) -> JSONResponse:
-        print(f"[opera-server-py] Unhandled error: {exc}")
+        logger.exception("Unhandled error")
         return JSONResponse(status_code=500, content={"error": "Internal server error"})
 
     app.include_router(generate_router)

@@ -1,7 +1,10 @@
+import logging
 from functools import lru_cache
 from typing import Literal
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+logger = logging.getLogger("opera-server-py")
 
 ProviderId = Literal["anthropic", "anthropic_compat", "openai", "openai_compat", "deepseek", "custom"]
 VALID_PROVIDER_VALUES: tuple[ProviderId, ...] = (
@@ -18,7 +21,7 @@ VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)
 def parse_provider(value: str | None) -> ProviderId:
     normalized = (value or "anthropic").lower()
     if normalized not in VALID_PROVIDERS:
-        print(f'[opera-server-py] Unknown AI_PROVIDER "{value}", falling back to "anthropic"')
+        logger.warning('Unknown AI_PROVIDER "%s", falling back to "anthropic"', value)
         return "anthropic"
     return normalized  # type: ignore[return-value]
 

@@ -1,8 +1,7 @@
-import json
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 
 from app.config import VALID_PROVIDER_VALUES, get_settings
 from app.prompts import (
@@ -13,17 +12,22 @@ from app.prompts import (
     build_titles_prompt,
 )
 from app.providers.factory import create_provider, get_available_providers
+from app.routes._shared import (
+    VALID_LENGTH_VALUES,
+    VALID_LENGTHS,
+    VALID_PROVIDERS,
+    VALID_TONE_VALUES,
+    VALID_TONES,
+    logger,
+    parse_json_body,
+    require_string_list,
+    sse_response,
+)
 from app.sse import format_sse
-from app.types import GenerateRequestModel, ProviderId, TagGroup, TargetLength, ToneType
+from app.types import GenerateRequestModel, TagGroup
 from app.utils import extract_json, preprocess_article_text
 
 router = APIRouter(prefix="/api")
-VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
-VALID_LENGTH_VALUES: tuple[TargetLength, ...] = ("short", "medium", "long")
-VALID_TONES: set[ToneType] = set(VALID_TONE_VALUES)
-VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)
-VALID_LENGTHS: set[TargetLength] = set(VALID_LENGTH_VALUES)
-
 
 
 def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel | None]:
@@ -81,17 +85,11 @@ def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel 
     )
 
 
-def require_string_list(value: Any, error_message: str) -> list[str]:
-    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        raise RuntimeError(error_message)
-    return value
-
-
 def read_string_list_response(parsed: Any, key: str, error_message: str) -> list[str]:
     if isinstance(parsed, list):
-        return require_string_list(parsed, error_message)
+        return require_string_list(parsed, error_message, allow_empty=True)
     if isinstance(parsed, dict):
-        return require_string_list(parsed.get(key), error_message)
+        return require_string_list(parsed.get(key), error_message, allow_empty=True)
     raise RuntimeError(error_message)
 
 
@@ -102,10 +100,7 @@ async def providers() -> dict[str, object]:
 
 @router.post("/generate")
 async def generate(request: Request):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        body = None
+    body = await parse_json_body(request)
 
     valid, error, payload = validate_request(body)
     if not valid or payload is None:
@@ -142,26 +137,15 @@ async def generate(request: Request):
         except Exception as exc:
             if await request.is_disconnected():
                 return
-            print(f"[opera-server-py] Generation error ({type(exc).__name__}): {exc!r}")
+            logger.exception("Generation error")
             yield format_sse("error", {"error": str(exc) or "Unknown error during generation"})
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    return sse_response(event_stream())
 
 
 @router.post("/generate/continue")
 async def generate_continue(request: Request):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        body = None
+    body = await parse_json_body(request)
 
     valid, error, payload = validate_request(body)
     if not valid or payload is None:
@@ -182,18 +166,10 @@ async def generate_continue(request: Request):
         except Exception as exc:
             if await request.is_disconnected():
                 return
-            print(f"[opera-server-py] Generation error ({type(exc).__name__}): {exc!r}")
+            logger.exception("Generation error")
             yield format_sse("error", {"error": str(exc) or "Unknown error during generation"})
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    return sse_response(event_stream())
 
 
 async def generate_from_points(request: Request, provider: Any, payload: GenerateRequestModel, points: list[str]):
@@ -203,6 +179,7 @@ async def generate_from_points(request: Request, provider: Any, payload: Generat
     cover_titles = require_string_list(
         extract_json(titles_raw).get("coverTitles"),
         "Invalid titles response",
+        allow_empty=True,
     )
     if await request.is_disconnected():
         return
@@ -214,6 +191,7 @@ async def generate_from_points(request: Request, provider: Any, payload: Generat
     cards = require_string_list(
         extract_json(cards_raw).get("cards"),
         "Invalid cards response",
+        allow_empty=True,
     )
     if await request.is_disconnected():
         return

@@ -1,8 +1,7 @@
-import json
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 
 from app.config import VALID_PROVIDER_VALUES, get_settings
 from app.prompts_wechat import (
@@ -12,11 +11,18 @@ from app.prompts_wechat import (
     build_wechat_title_prompt,
 )
 from app.providers.factory import create_provider
+from app.routes._shared import (
+    VALID_LENGTH_VALUES,
+    VALID_LENGTHS,
+    VALID_PROVIDERS,
+    VALID_TONE_VALUES,
+    VALID_TONES,
+    logger,
+    parse_json_body,
+    sse_response,
+)
 from app.sse import format_sse
 from app.types import (
-    ProviderId,
-    TargetLength,
-    ToneType,
     WeChatArticleType,
     WeChatComposeRequestModel,
     WeChatRegenerateTarget,
@@ -24,19 +30,14 @@ from app.types import (
 from app.utils import extract_json
 
 router = APIRouter(prefix="/api")
-VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
 VALID_ARTICLE_TYPE_VALUES: tuple[WeChatArticleType, ...] = (
     "insight",
     "guide",
     "story",
     "briefing",
 )
-VALID_LENGTH_VALUES: tuple[TargetLength, ...] = ("short", "medium", "long")
 VALID_REGENERATE_VALUES: tuple[WeChatRegenerateTarget, ...] = ("title", "digest", "body")
-VALID_TONES: set[ToneType] = set(VALID_TONE_VALUES)
-VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)
 VALID_ARTICLE_TYPES: set[WeChatArticleType] = set(VALID_ARTICLE_TYPE_VALUES)
-VALID_LENGTHS: set[TargetLength] = set(VALID_LENGTH_VALUES)
 VALID_REGENERATES: set[WeChatRegenerateTarget] = set(VALID_REGENERATE_VALUES)
 
 
@@ -110,10 +111,7 @@ def require_structure(value: Any) -> dict[str, object]:
 
 @router.post("/wechat/compose")
 async def compose_wechat(request: Request):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        body = None
+    body = await parse_json_body(request)
 
     valid, error, payload = validate_request(body)
     if not valid or payload is None:
@@ -216,15 +214,7 @@ async def compose_wechat(request: Request):
         except Exception as exc:
             if await request.is_disconnected():
                 return
-            print(f"[opera-server-py] WeChat compose error ({type(exc).__name__}): {exc!r}")
+            logger.exception("WeChat compose error")
             yield format_sse("error", {"error": str(exc) or "Unknown error during wechat compose"})
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    return sse_response(event_stream())

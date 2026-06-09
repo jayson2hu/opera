@@ -1,8 +1,7 @@
-import json
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 
 from app.config import VALID_PROVIDER_VALUES, get_settings
 from app.prompts_composer import (
@@ -13,31 +12,34 @@ from app.prompts_composer import (
 )
 from app.providers.base import LLMProvider
 from app.providers.factory import create_provider
+from app.routes._shared import (
+    VALID_LENGTH_VALUES,
+    VALID_LENGTHS,
+    VALID_PROVIDERS,
+    VALID_TONE_VALUES,
+    VALID_TONES,
+    logger,
+    parse_json_body,
+    require_string_list,
+    sse_response,
+)
 from app.sse import format_sse
 from app.types import (
     ComposeRequestModel,
     ComposerRegenerateTarget,
     ContentType,
-    ProviderId,
-    TargetLength,
-    ToneType,
 )
 from app.utils import extract_json
 
 router = APIRouter(prefix="/api")
-VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
 VALID_CONTENT_TYPE_VALUES: tuple[ContentType, ...] = (
     "recommend",
     "knowledge",
     "story",
     "tutorial",
 )
-VALID_LENGTH_VALUES: tuple[TargetLength, ...] = ("short", "medium", "long")
 VALID_REGENERATE_VALUES: tuple[ComposerRegenerateTarget, ...] = ("title", "body", "tags")
-VALID_TONES: set[ToneType] = set(VALID_TONE_VALUES)
-VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)
 VALID_CONTENT_TYPES: set[ContentType] = set(VALID_CONTENT_TYPE_VALUES)
-VALID_LENGTHS: set[TargetLength] = set(VALID_LENGTH_VALUES)
 VALID_REGENERATES: set[ComposerRegenerateTarget] = set(VALID_REGENERATE_VALUES)
 
 
@@ -89,12 +91,6 @@ def validate_request(body: Any) -> tuple[bool, str | None, ComposeRequestModel |
     )
 
 
-def require_string_list(value: Any, error_message: str) -> list[str]:
-    if not isinstance(value, list) or not all(isinstance(item, str) and item.strip() for item in value):
-        raise RuntimeError(error_message)
-    return [item.strip() for item in value]
-
-
 def require_structure(value: Any) -> dict[str, object]:
     if not isinstance(value, dict):
         raise RuntimeError("Invalid composer extraction response")
@@ -130,10 +126,7 @@ async def collect_stream_text(provider: LLMProvider, system: str, user: str) -> 
 
 @router.post("/compose")
 async def compose(request: Request):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        body = None
+    body = await parse_json_body(request)
 
     valid, error, payload = validate_request(body)
     if not valid or payload is None:
@@ -251,15 +244,7 @@ async def compose(request: Request):
         except Exception as exc:
             if await request.is_disconnected():
                 return
-            print(f"[opera-server-py] Composer error ({type(exc).__name__}): {exc!r}")
+            logger.exception("Composer error")
             yield format_sse("error", {"error": str(exc) or "Unknown error during compose"})
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    return sse_response(event_stream())
