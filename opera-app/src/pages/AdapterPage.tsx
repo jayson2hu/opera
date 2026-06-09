@@ -8,6 +8,7 @@ import type {
   ToneType,
 } from '../types';
 import { buildApiUrl, GENERATION_STEPS } from '../constants';
+import { streamSSE } from '../lib/sse';
 import TextInput from '../components/TextInput';
 import ToneSelector from '../components/ToneSelector';
 import ProviderSelector from '../components/ProviderSelector';
@@ -104,76 +105,44 @@ export default function AdapterPage({
       tagGroups: [],
     };
 
-    const response = await fetch(buildApiUrl(path), {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
+    await streamSSE(buildApiUrl(path), body, {
       signal: controller.signal,
-    });
-
-    if (!response.ok) {
-      const payload = await response.json().catch(() => ({ error: 'Request failed' }));
-      throw new Error(payload.error || `HTTP ${response.status}`);
-    }
-
-    const reader = response.body?.getReader();
-    if (!reader) throw new Error('No response body');
-
-    const decoder = new TextDecoder();
-    let buffer = '';
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop() || '';
-
-      let eventType = '';
-      for (const line of lines) {
-        if (line.startsWith('event: ')) {
-          eventType = line.slice(7).trim();
-        } else if (line.startsWith('data: ') && eventType) {
-          const data = JSON.parse(line.slice(6));
-
-          switch (eventType) {
-            case 'step':
-              setCurrentStep(data.step as GenerationStep);
-              if (data.step === 'done' || data.step === 'paused') setIsGenerating(false);
-              break;
-            case 'extraction_points':
-              setExtractedPoints(Array.isArray(data.points) ? data.points : []);
-              setCurrentStep('paused');
-              break;
-            case 'titles':
-              partial.coverTitles = data.coverTitles;
-              setResult({ ...partial });
-              setShowTitles(true);
-              outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-              break;
-            case 'cards':
-              partial.cards = data.cards;
-              setResult({ ...partial });
-              setShowCards(true);
-              break;
-            case 'caption':
-              partial.caption = data.caption;
-              setResult({ ...partial });
-              setShowCaption(true);
-              break;
-            case 'tags':
-              partial.tagGroups = data.tagGroups as TagGroup[];
-              setResult({ ...partial });
-              setShowTags(true);
-              break;
-            case 'error':
-              throw new Error(data.error || 'Generation failed');
-          }
-          eventType = '';
+      onEvent: (event, data) => {
+        switch (event) {
+          case 'step':
+            setCurrentStep(data.step as GenerationStep);
+            if (data.step === 'done' || data.step === 'paused') setIsGenerating(false);
+            break;
+          case 'extraction_points':
+            setExtractedPoints(Array.isArray(data.points) ? data.points : []);
+            setCurrentStep('paused');
+            break;
+          case 'titles':
+            partial.coverTitles = data.coverTitles;
+            setResult({ ...partial });
+            setShowTitles(true);
+            outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            break;
+          case 'cards':
+            partial.cards = data.cards;
+            setResult({ ...partial });
+            setShowCards(true);
+            break;
+          case 'caption':
+            partial.caption = data.caption;
+            setResult({ ...partial });
+            setShowCaption(true);
+            break;
+          case 'tags':
+            partial.tagGroups = data.tagGroups as TagGroup[];
+            setResult({ ...partial });
+            setShowTags(true);
+            break;
+          case 'error':
+            throw new Error(data.error || 'Generation failed');
         }
-      }
-    }
+      },
+    });
   }, []);
 
   const handleGenerate = useCallback(async () => {

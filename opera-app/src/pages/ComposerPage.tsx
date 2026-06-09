@@ -12,6 +12,7 @@ import type {
   ToneType,
 } from '../types';
 import { buildApiUrl, COMPOSER_STEPS, countChars } from '../constants';
+import { streamSSE } from '../lib/sse';
 import ProviderSelector from '../components/ProviderSelector';
 import ProgressIndicator from '../components/ProgressIndicator';
 import ToneSelector from '../components/ToneSelector';
@@ -149,71 +150,39 @@ export default function ComposerPage({
       };
 
       try {
-        const response = await fetch(buildApiUrl('/api/compose'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          const body = await response.json().catch(() => ({ error: 'Request failed' }));
-          throw new Error(getComposeRequestError(response.status, body.error));
-        }
-
-        const reader = response.body?.getReader();
-        if (!reader) throw new Error('No response body');
-
-        const decoder = new TextDecoder();
-        let buffer = '';
         let didScroll = false;
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          let eventType = '';
-          for (const line of lines) {
-            if (line.startsWith('event: ')) {
-              eventType = line.slice(7).trim();
-            } else if (line.startsWith('data: ') && eventType) {
-              const data = JSON.parse(line.slice(6));
-
-              switch (eventType) {
-                case 'step':
-                  setCurrentStep(data.step as ComposerStep);
-                  if (data.step === 'done') setIsGenerating(false);
-                  break;
-                case 'title':
-                  partial.title = data.title;
-                  setResult({ ...partial });
-                  break;
-                case 'body':
-                  partial.body = data.body;
-                  setResult({ ...partial });
-                  break;
-                case 'tags':
-                  partial.tags = data.tags;
-                  partial.imageKeywords = data.imageKeywords;
-                  setResult({ ...partial });
-                  break;
-                case 'error':
-                  throw new Error(data.error || 'Compose failed');
-              }
-
-              if (!didScroll && (eventType === 'title' || eventType === 'body')) {
-                outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                didScroll = true;
-              }
-
-              eventType = '';
+        await streamSSE(buildApiUrl('/api/compose'), payload, {
+          signal: controller.signal,
+          mapHttpError: (status, body) => getComposeRequestError(status, body.error),
+          onEvent: (event, data) => {
+            switch (event) {
+              case 'step':
+                setCurrentStep(data.step as ComposerStep);
+                if (data.step === 'done') setIsGenerating(false);
+                break;
+              case 'title':
+                partial.title = data.title;
+                setResult({ ...partial });
+                break;
+              case 'body':
+                partial.body = data.body;
+                setResult({ ...partial });
+                break;
+              case 'tags':
+                partial.tags = data.tags;
+                partial.imageKeywords = data.imageKeywords;
+                setResult({ ...partial });
+                break;
+              case 'error':
+                throw new Error(data.error || 'Compose failed');
             }
-          }
-        }
+
+            if (!didScroll && (event === 'title' || event === 'body')) {
+              outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              didScroll = true;
+            }
+          },
+        });
       } catch (err: unknown) {
         if (controller.signal.aborted) return;
         setError(err instanceof Error ? err.message : 'Unknown error');

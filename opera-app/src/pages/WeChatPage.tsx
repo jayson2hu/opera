@@ -18,6 +18,7 @@ import {
   WECHAT_DRAFT_STORAGE_KEY,
   WECHAT_STEPS,
 } from '../constants';
+import { streamSSE } from '../lib/sse';
 import ProviderSelector from '../components/ProviderSelector';
 import ProgressIndicator from '../components/ProgressIndicator';
 import ToneSelector from '../components/ToneSelector';
@@ -94,7 +95,7 @@ export default function WeChatPage({
   const [currentStep, setCurrentStep] = useState<WeChatStep>('extracting');
   const [result, setResult] = useState<WeChatComposeResult | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [drafts, setDrafts] = useState<WeChatDraftItem[]>([]);
+  const [drafts, setDrafts] = useState<WeChatDraftItem[]>(readStoredDrafts);
   const [draftStatus, setDraftStatus] = useState<WeChatDraftStatus>('not_saved');
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
@@ -131,9 +132,6 @@ export default function WeChatPage({
   const paragraphCount = countParagraphs(result?.body ?? '');
 
   useEffect(() => {
-    window.setTimeout(() => {
-      setDrafts(readStoredDrafts());
-    }, 0);
     return () => {
       abortRef.current?.abort();
     };
@@ -187,70 +185,38 @@ export default function WeChatPage({
       };
 
       try {
-        const response = await fetch(buildApiUrl('/api/wechat/compose'), {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal: controller.signal,
-        });
-
-        if (!response.ok) {
-          const body = await response.json().catch(() => ({ error: 'Request failed' }));
-          throw new Error(getComposeRequestError(response.status, body.error));
-        }
-
-        const reader = response.body?.getReader();
-        if (!reader) throw new Error('No response body');
-
-        const decoder = new TextDecoder();
-        let buffer = '';
         let didScroll = false;
-
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-
-          buffer += decoder.decode(value, { stream: true });
-          const lines = buffer.split('\n');
-          buffer = lines.pop() || '';
-
-          let eventType = '';
-          for (const line of lines) {
-            if (line.startsWith('event: ')) {
-              eventType = line.slice(7).trim();
-            } else if (line.startsWith('data: ') && eventType) {
-              const data = JSON.parse(line.slice(6));
-
-              switch (eventType) {
-                case 'step':
-                  setCurrentStep(data.step as WeChatStep);
-                  if (data.step === 'done') setIsGenerating(false);
-                  break;
-                case 'title':
-                  partial.title = data.title;
-                  setResult({ ...partial });
-                  break;
-                case 'digest':
-                  partial.digest = data.digest;
-                  setResult({ ...partial });
-                  break;
-                case 'body':
-                  partial.body = data.body;
-                  setResult({ ...partial });
-                  break;
-                case 'error':
-                  throw new Error(data.error || 'Compose failed');
-              }
-
-              if (!didScroll && (eventType === 'title' || eventType === 'digest' || eventType === 'body')) {
-                outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                didScroll = true;
-              }
-
-              eventType = '';
+        await streamSSE(buildApiUrl('/api/wechat/compose'), payload, {
+          signal: controller.signal,
+          mapHttpError: (status, body) => getComposeRequestError(status, body.error),
+          onEvent: (event, data) => {
+            switch (event) {
+              case 'step':
+                setCurrentStep(data.step as WeChatStep);
+                if (data.step === 'done') setIsGenerating(false);
+                break;
+              case 'title':
+                partial.title = data.title;
+                setResult({ ...partial });
+                break;
+              case 'digest':
+                partial.digest = data.digest;
+                setResult({ ...partial });
+                break;
+              case 'body':
+                partial.body = data.body;
+                setResult({ ...partial });
+                break;
+              case 'error':
+                throw new Error(data.error || 'Compose failed');
             }
-          }
-        }
+
+            if (!didScroll && (event === 'title' || event === 'digest' || event === 'body')) {
+              outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              didScroll = true;
+            }
+          },
+        });
       } catch (err: unknown) {
         if (controller.signal.aborted) return;
         setError(err instanceof Error ? err.message : 'Unknown error');
