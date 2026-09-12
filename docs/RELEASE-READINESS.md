@@ -7,6 +7,12 @@ native-device acceptance.** This checkpoint supersedes the earlier Docker/browse
 deferral, not the outstanding release gates. See the [current acceptance report](ACCEPTANCE-2026-09-12-RECHECK.md)
 and [machine-readable evidence](acceptance/2026-09-12-recheck.json).
 
+An [independent post-commit run](FINAL-ACCEPTANCE-2026-09-12.md) verifies the same
+production code and is archived separately. The user subsequently authorized pushing
+the acceptance commits to `main`; see the [updated commit/sync scope](PROGRESS-2026-09-12.md).
+Earlier reports' "not pushed" statements describe those completed runs, not a permanent
+restriction. Push authorization does not imply remote CI success or release approval.
+
 - Frontend: 136 tests / 20 files, ESLint, TypeScript/Vite passed.
 - Backend: 180 application tests, 5 dependency-lock tests and 4 runner-safety tests;
   combined 189 passed on Python 3.12. Dependency compatibility/closure and Ruff passed.
