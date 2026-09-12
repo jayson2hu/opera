@@ -25,6 +25,7 @@ import {
 } from '../lib/draftIntegrity';
 import { streamSSE } from '../lib/sse';
 import { toast } from '../lib/toast';
+import { COPY_FAILURE_MESSAGE, copyTextToClipboard } from '../lib/clipboard';
 import ToneSelector from '../components/ToneSelector';
 import ProviderSelector from '../components/ProviderSelector';
 import ProgressIndicator from '../components/ProgressIndicator';
@@ -284,17 +285,10 @@ export default function AdapterPage({
   );
 
   const copyText = useCallback(async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+    if (!await copyTextToClipboard(text)) {
+      setCopyActionDone(false);
+      toast(COPY_FAILURE_MESSAGE);
+      return;
     }
     setCopyActionDone(true);
     window.setTimeout(() => setCopyActionDone(false), 1500);
@@ -551,9 +545,10 @@ export default function AdapterPage({
             <SectionCard accent="emerald">
               <Caption
                 text={result.caption}
+                contextKey={contentFingerprint(result)}
                 tone="primary"
                 onChange={(caption) => setResult((current) => current ? { ...current, caption } : current)}
-                onBeforeChange={() => { workspace.checkpoint('正文编辑前'); }}
+                onBeforeChange={() => workspace.checkpoint('正文编辑前')}
                 disabled={false}
                 onCustomEdit={handleParagraphRewrite}
               />

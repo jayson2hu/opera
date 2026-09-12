@@ -23,7 +23,7 @@ export default function DraftWorkspaceBar({ draft, onNew, onRestore, configurati
           <button type="button" onClick={onNew} disabled={!onNew} className="rounded-lg border border-neutral-200 px-2 py-1.5 hover:bg-neutral-50">新建稿件</button>
           <button type="button" onClick={() => toast(draft.checkpoint() ? '当前版本已留档' : '版本暂存内存，请先导出备份')} className="rounded-lg border border-neutral-200 px-2 py-1.5 hover:bg-neutral-50">保存版本</button>
           <button type="button" onClick={() => dialog.current?.showModal()} className="rounded-lg border border-neutral-200 px-2 py-1.5 hover:bg-neutral-50">版本记录</button>
-          <button type="button" onClick={() => { try { draft.exportBackup(); } catch { toast('导出未成功，请先复制正文备份'); } }} className="rounded-lg bg-neutral-800 px-2 py-1.5 text-white">导出稿件备份</button>
+          <button type="button" onClick={() => { try { draft.exportBackup(); } catch { toast('导出未成功，请先复制正文备份'); } }} className="rounded-lg bg-neutral-800 px-2 py-1.5 text-neutral-50">导出稿件备份</button>
         </div>
       </div>
       {configurationChanged && <p className="mt-2 text-xs leading-5 text-primary-700">下一次生成配置已改变；当前稿件保留原来的生成来源，不会被清空。新结果确认后才应用。</p>}

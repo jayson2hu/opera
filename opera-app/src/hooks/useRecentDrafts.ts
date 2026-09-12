@@ -165,10 +165,11 @@ function getActivitySnapshot(): CreationActivity[] {
     const date = toLocalDateKey(draft.savedAt);
     return date ? [{ kind: draft.kind, date }] : [];
   });
-  const fresh = mergeCreationActivities(
-    readCreationActivities(window.localStorage),
-    legacyActivities,
-  );
+  let storedActivities: CreationActivity[] = [];
+  try {
+    storedActivities = readCreationActivities(window.localStorage);
+  } catch { /* The localStorage getter itself may throw in privacy-restricted browsers. */ }
+  const fresh = mergeCreationActivities(storedActivities, legacyActivities);
   const key = fresh.map((activity) => `${activity.date}@${activity.kind}`).join('|');
   if (key !== activityCacheKey) {
     activityCacheKey = key;

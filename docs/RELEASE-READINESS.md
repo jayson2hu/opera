@@ -1,5 +1,24 @@
 # Release Readiness
 
+## Ubuntu / Docker acceptance checkpoint — 2026-09-12
+
+**Engineering checks passed; final release remains NO-GO pending live-provider and
+native-device acceptance.** This checkpoint supersedes the earlier Docker/browser
+deferral, not the outstanding release gates. See the [current acceptance report](ACCEPTANCE-2026-09-12.md)
+and [machine-readable evidence](acceptance/2026-09-12-results.json).
+
+- Frontend: 136 tests / 20 files, ESLint, TypeScript/Vite passed.
+- Backend: 173 application tests plus 4 runner-safety tests; combined 177 passed.
+- Docker production images built and started: direct API 67/67, Nginx proxy 69/69.
+- Chromium interaction: 30/30 groups; browser → Docker → fixture journeys: 3/3.
+- Ten product/deployment defect groups fixed and rechecked. CI now includes Ruff,
+  image build/start and HTTP/proxy acceptance; remote CI has not run for these uncommitted changes.
+- Paid live providers, native Safari/iOS and physical IME remain unverified.
+  No unauthenticated public/SaaS release is approved.
+
+The records below describe earlier checkpoints. Their “not run” entries and commit/push
+statements must not be read as current state when superseded above.
+
 ## Progress checkpoint — 2026-09-12
 
 The user requested a progress record and remote repository push, not a release. Local checks were rerun: frontend 130 tests / 18 files, backend 164 tests, ESLint, TypeScript/Vite build, and Ruff all passed (one existing backend deprecation warning). See [progress and push scope](PROGRESS-2026-09-12.md). Browser, Docker, and paid live-model gates remain open; **NO-GO remains unchanged**. Pushing a feature branch does not trigger the current main/PR-only CI configuration and is not CI approval.

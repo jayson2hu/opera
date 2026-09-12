@@ -186,6 +186,10 @@ async def compose(request: Request):
             parsed.get("imageKeywords"),
             "Invalid composer image keywords response",
         )
+        if not tags:
+            raise RuntimeError("Invalid composer tags response")
+        if not image_keywords:
+            raise RuntimeError("Invalid composer image keywords response")
         return tags, image_keywords
 
     async def event_stream():

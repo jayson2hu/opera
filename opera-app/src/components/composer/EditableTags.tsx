@@ -77,6 +77,7 @@ export default function EditableTags({
           onChange={(event) => setDraftTag(event.target.value)}
           onBlur={commitDraft}
           onKeyDown={(event) => {
+            if (event.nativeEvent.isComposing) return;
             if (event.key === 'Enter' || event.key === ',') {
               event.preventDefault();
               commitDraft();

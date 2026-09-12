@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import CopyButton from './CopyButton';
+import { COPY_FAILURE_MESSAGE, copyTextToClipboard } from '../lib/clipboard';
+import { toast } from '../lib/toast';
 
 interface CoverTitlesProps {
   titles: string[];
@@ -14,17 +16,10 @@ export default function CoverTitles({ titles, selectedIndices, onToggleSelect }:
   if (titles.length === 0) return null;
 
   const handleCopyTitle = async (title: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(title);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = title;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+    if (!await copyTextToClipboard(title)) {
+      setCopiedIndex(null);
+      toast(COPY_FAILURE_MESSAGE);
+      return;
     }
 
     setCopiedIndex(index);

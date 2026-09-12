@@ -1,5 +1,7 @@
 import type { TagGroup } from '../types';
 import CopyButton from './CopyButton';
+import { COPY_FAILURE_MESSAGE, copyTextToClipboard } from '../lib/clipboard';
+import { toast } from '../lib/toast';
 
 interface HashtagGroupsProps {
   groups: TagGroup[];
@@ -92,11 +94,7 @@ function TagChip({
   border: string;
 }) {
   const handleClick = async () => {
-    try {
-      await navigator.clipboard.writeText(`#${tag}`);
-    } catch {
-      // Copy failure is non-blocking.
-    }
+    toast(await copyTextToClipboard(`#${tag}`) ? '标签已复制' : COPY_FAILURE_MESSAGE);
   };
 
   return (

@@ -83,6 +83,7 @@ Endpoints:
 - `GET /api/health`
 - `GET /api/providers`
 - `POST /api/generate`
+- `POST /api/generate/continue`
 - `POST /api/compose`
 - `POST /api/wechat/compose`
 - `POST /api/rewrite-paragraph`
@@ -94,8 +95,10 @@ three composition endpoints remain SSE streams.
 SSE events used by the frontend:
 
 - `step`
+- `extraction_points`
 - `titles`
 - `cards`
+- `cards_v2` (additive typed-card event; legacy `cards` remains supported)
 - `caption`
 - `title`
 - `digest`
@@ -106,6 +109,7 @@ SSE events used by the frontend:
 Expected step values:
 
 - `extracting`
+- `paused` (article extraction waits for user confirmation before `/generate/continue`)
 - `titles`
 - `cards`
 - `caption`
@@ -114,6 +118,24 @@ Expected step values:
 - `body`
 - `tags`
 - `done`
+
+## Draft and candidate architecture
+
+`useDraftWorkspace` and `draftWorkspace` own browser-local draft IDs, schema-versioned
+records, revision checks, migration, and version snapshots. The three flow pages own
+editing and generation state; shared editors expose manual editing and explicit AI
+candidate approval. Candidate application compares the complete current result with
+the request snapshot and saves the previous version before replacing content.
+
+Local drafts remain editable when providers are unavailable. Images and unapproved
+candidates are temporary; localStorage is not cross-window transactional storage or a
+cloud draft service. `currentContent` on partial compose requests supplies the current
+title/body/digest so the backend generates only the selected block.
+
+Production requests follow React → same-origin Nginx `/api` proxy → FastAPI routes →
+provider adapters. Docker defaults bind to loopback; a deployment that permits remote
+access must supply its own access control. Integration fixtures in `tests/acceptance/`
+exercise the actual production images and protocol adapters without a paid provider.
 
 ## Legacy Node Backend
 

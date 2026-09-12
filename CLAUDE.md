@@ -4,7 +4,9 @@ This file guides Claude Code when working in this repository.
 
 ## Overview
 
-**Opera** is a content adaptation tool that converts WeChat Official Account (WOA) long-form articles into Xiaohongshu (XHS) post packages.
+**Opera** is a content creation workspace with three approved flows: WeChat article
+composition, long-form article adaptation to Xiaohongshu, and Xiaohongshu original
+composition. The original adaptation MVP described below is one of these flows.
 
 The repository already contains a working frontend in `opera-app/`, a default FastAPI backend in `opera-server-py/`, and a legacy Node backend in `opera-server/` kept only for rollback/reference. Work should stay aligned with the validated MVP scope and must not expand into publishing, account systems, or image editing unless the product definition is explicitly updated.
 
@@ -31,7 +33,8 @@ The primary target user is an **overwhelmed solo creator** who:
 
 ## Current Phase
 
-The project is in **Phase 1: Prototype / active iteration**.
+The project is in **MVP acceptance / active iteration**. Use
+`docs/RELEASE-READINESS.md` for the current verification and release decision.
 
 This means:
 - the frontend and backend already exist and must be treated as the current working baseline
@@ -44,16 +47,20 @@ The next technical steps should build on the current FastAPI + React baseline, n
 
 ## MVP Boundary
 
-Treat the following as the hard scope for V1.
+The latest approved scope is recorded in `docs/PRODUCT-IMPROVEMENT-IMPLEMENTATION.md`
+and `docs/DRAFT-WORKSPACE-CONTRACT.md`. Retain all three workflows and their local
+draft/version/editor capabilities. The list below describes the original adaptation
+flow; it must not be used to remove the two approved composition flows.
 
 ### Input
-- pasted article text only
+- pasted article text for adaptation; topic text for the two composition flows
 
 ### Output
 - structured XHS post package
 - slide text cards
 - caption
 - hashtags or tag suggestions
+- editable Xiaohongshu original posts and WeChat title/digest/body drafts
 
 ### Explicitly Out of Scope
 - URL scraping
@@ -114,14 +121,17 @@ Reason:
 
 Use the following files as the main project references:
 
-- `handoff.md` — project-level product scope, architecture baseline, and current default backend
-- `dev-handoff.md` — engineering progress, verification history, and current status
-- `opera-server-py/HANDOFF-FASTAPI.md` — default backend runbook and acceptance baseline
-- `feature-xhs-composer/PRD.md` — approved product and implementation baseline for the composer follow-up work
+- `docs/PROJECT.md` — architecture, supported runtime, API and draft responsibilities
+- `docs/PRODUCT-IMPROVEMENT-IMPLEMENTATION.md` — approved scope and implementation decisions
+- `docs/DRAFT-WORKSPACE-CONTRACT.md` — data and candidate contracts, acceptance matrix
+- `docs/RELEASE-READINESS.md` — current release gates and verification evidence
+- `docs/DEPLOYMENT.md` — supported local/Docker deployment and isolation
+- `docs/features/` — historical feature PRDs
 - `skills/` — Claude Code skill definitions
 - `skills-lock.json` — skill version lock file
 
-If there is any ambiguity, prefer `handoff.md` for product scope decisions and `opera-server-py/HANDOFF-FASTAPI.md` for backend runtime/acceptance decisions.
+The old handoff files are archived under `docs/archive/`. Their earlier scope and
+test counts do not override the current implementation ledger and release gates.
 
 ## Skills Context
 

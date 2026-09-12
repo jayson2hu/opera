@@ -1,0 +1,1060 @@
+{
+  "nativeHttp": {
+    "total": 67,
+    "passed": 67,
+    "failures": [],
+    "fixtureCalls": 75,
+    "checks": [
+      {
+        "name": "health",
+        "passed": true
+      },
+      {
+        "name": "not_found",
+        "passed": true
+      },
+      {
+        "name": "providers_no_secrets",
+        "passed": true
+      },
+      {
+        "name": "cors_True",
+        "passed": true
+      },
+      {
+        "name": "cors_False",
+        "passed": true
+      },
+      {
+        "name": "/api/generate:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/generate/continue:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate/continue:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate/continue:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/rewrite-paragraph:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/rewrite-paragraph:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/rewrite-paragraph:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "deepseek:generate_pause",
+        "passed": true
+      },
+      {
+        "name": "deepseek:generate_continue",
+        "passed": true
+      },
+      {
+        "name": "deepseek:rewrite",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "anthropic:generate_pause",
+        "passed": true
+      },
+      {
+        "name": "anthropic:generate_continue",
+        "passed": true
+      },
+      {
+        "name": "anthropic:rewrite",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "openai:generate_pause",
+        "passed": true
+      },
+      {
+        "name": "openai:generate_continue",
+        "passed": true
+      },
+      {
+        "name": "openai:rewrite",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:current_title",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:current_body",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:current_tags",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:current_title",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:current_digest",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:current_body",
+        "passed": true
+      },
+      {
+        "name": "model_allowlist",
+        "passed": true
+      },
+      {
+        "name": "long_output_budget",
+        "passed": true
+      }
+    ]
+  },
+  "dockerBackend": {
+    "total": 67,
+    "passed": 67,
+    "failures": [],
+    "fixtureCalls": 75,
+    "checks": [
+      {
+        "name": "health",
+        "passed": true
+      },
+      {
+        "name": "not_found",
+        "passed": true
+      },
+      {
+        "name": "providers_no_secrets",
+        "passed": true
+      },
+      {
+        "name": "cors_True",
+        "passed": true
+      },
+      {
+        "name": "cors_False",
+        "passed": true
+      },
+      {
+        "name": "/api/generate:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/generate/continue:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate/continue:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate/continue:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/rewrite-paragraph:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/rewrite-paragraph:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/rewrite-paragraph:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "deepseek:generate_pause",
+        "passed": true
+      },
+      {
+        "name": "deepseek:generate_continue",
+        "passed": true
+      },
+      {
+        "name": "deepseek:rewrite",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "anthropic:generate_pause",
+        "passed": true
+      },
+      {
+        "name": "anthropic:generate_continue",
+        "passed": true
+      },
+      {
+        "name": "anthropic:rewrite",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "openai:generate_pause",
+        "passed": true
+      },
+      {
+        "name": "openai:generate_continue",
+        "passed": true
+      },
+      {
+        "name": "openai:rewrite",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:current_title",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:current_body",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:current_tags",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:current_title",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:current_digest",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:current_body",
+        "passed": true
+      },
+      {
+        "name": "model_allowlist",
+        "passed": true
+      },
+      {
+        "name": "long_output_budget",
+        "passed": true
+      }
+    ]
+  },
+  "dockerProxy": {
+    "total": 69,
+    "passed": 69,
+    "failures": [],
+    "fixtureCalls": 75,
+    "checks": [
+      {
+        "name": "health",
+        "passed": true
+      },
+      {
+        "name": "not_found",
+        "passed": true
+      },
+      {
+        "name": "providers_no_secrets",
+        "passed": true
+      },
+      {
+        "name": "frontend_html",
+        "passed": true
+      },
+      {
+        "name": "frontend_javascript",
+        "passed": true
+      },
+      {
+        "name": "cors_True",
+        "passed": true
+      },
+      {
+        "name": "cors_False",
+        "passed": true
+      },
+      {
+        "name": "/api/generate:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/generate/continue:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate/continue:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/generate/continue:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "/api/rewrite-paragraph:broken_json",
+        "passed": true
+      },
+      {
+        "name": "/api/rewrite-paragraph:array_json",
+        "passed": true
+      },
+      {
+        "name": "/api/rewrite-paragraph:invalid_utf8",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "deepseek:/api/wechat/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "deepseek:generate_pause",
+        "passed": true
+      },
+      {
+        "name": "deepseek:generate_continue",
+        "passed": true
+      },
+      {
+        "name": "deepseek:rewrite",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "anthropic:/api/wechat/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "anthropic:generate_pause",
+        "passed": true
+      },
+      {
+        "name": "anthropic:generate_continue",
+        "passed": true
+      },
+      {
+        "name": "anthropic:rewrite",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:full_flow",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:sse_headers",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:incremental_stream",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:stub-truncated",
+        "passed": true
+      },
+      {
+        "name": "openai:/api/wechat/compose:stub-error",
+        "passed": true
+      },
+      {
+        "name": "openai:generate_pause",
+        "passed": true
+      },
+      {
+        "name": "openai:generate_continue",
+        "passed": true
+      },
+      {
+        "name": "openai:rewrite",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:current_title",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:current_body",
+        "passed": true
+      },
+      {
+        "name": "/api/compose:current_tags",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:current_title",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:current_digest",
+        "passed": true
+      },
+      {
+        "name": "/api/wechat/compose:current_body",
+        "passed": true
+      },
+      {
+        "name": "model_allowlist",
+        "passed": true
+      },
+      {
+        "name": "long_output_budget",
+        "passed": true
+      }
+    ]
+  },
+  "browserMock": [
+    {
+      "name": "B06-dark-button-contrast",
+      "status": "PASS"
+    },
+    {
+      "name": "B01-storage-getter",
+      "status": "PASS"
+    },
+    {
+      "name": "B02-paragraph-other-field-stale",
+      "status": "PASS"
+    },
+    {
+      "name": "B03-tags-ime",
+      "status": "PASS"
+    },
+    {
+      "name": "B04-clipboard-false",
+      "status": "PASS"
+    },
+    {
+      "name": "B05-paragraph-checkpoint-failure",
+      "status": "PASS"
+    },
+    {
+      "name": "M05-paragraph-accept-discard-stale-composer",
+      "status": "PASS"
+    },
+    {
+      "name": "M07-switch-page-aborts-composer",
+      "status": "PASS"
+    },
+    {
+      "name": "M13-output-matrix-composer",
+      "status": "PASS"
+    },
+    {
+      "name": "M05-paragraph-accept-discard-stale-wechat",
+      "status": "PASS"
+    },
+    {
+      "name": "M07-switch-page-aborts-wechat",
+      "status": "PASS"
+    },
+    {
+      "name": "M13-output-matrix-wechat",
+      "status": "PASS"
+    },
+    {
+      "name": "M05-paragraph-accept-discard-stale-adapter",
+      "status": "PASS"
+    },
+    {
+      "name": "M07-switch-page-aborts-adapter",
+      "status": "PASS"
+    },
+    {
+      "name": "M13-output-matrix-adapter",
+      "status": "PASS"
+    },
+    {
+      "name": "M01-M02-M03-M04-composer",
+      "status": "PASS"
+    },
+    {
+      "name": "M05-M06-M07-M08-M09-composer",
+      "status": "PASS"
+    },
+    {
+      "name": "M01-M02-M03-M04-wechat",
+      "status": "PASS"
+    },
+    {
+      "name": "M05-M06-M07-M08-M09-wechat",
+      "status": "PASS"
+    },
+    {
+      "name": "M01-M02-M03-M04-adapter",
+      "status": "PASS"
+    },
+    {
+      "name": "M05-M06-M07-M08-M09-adapter",
+      "status": "PASS"
+    },
+    {
+      "name": "M10-version-roundtrip",
+      "status": "PASS"
+    },
+    {
+      "name": "M11-storage-quota-navigation-backup",
+      "status": "PASS"
+    },
+    {
+      "name": "M11-external-modify",
+      "status": "PASS"
+    },
+    {
+      "name": "M11-external-delete",
+      "status": "PASS"
+    },
+    {
+      "name": "M12-delete-confirm-failure-and-clear",
+      "status": "PASS"
+    },
+    {
+      "name": "M13-layout-theme-keyboard-matrix",
+      "status": "PASS"
+    },
+    {
+      "name": "M14-copy-json-image-reselection",
+      "status": "PASS"
+    },
+    {
+      "name": "M14-card-select-export",
+      "status": "PASS"
+    },
+    {
+      "name": "M15-convert-preserves-both-existing-drafts",
+      "status": "PASS"
+    }
+  ],
+  "browserIntegration": [
+    {
+      "name": "integration-generation-delivery-composer",
+      "status": "PASS"
+    },
+    {
+      "name": "integration-generation-delivery-wechat",
+      "status": "PASS"
+    },
+    {
+      "name": "integration-generation-delivery-adapter",
+      "status": "PASS"
+    }
+  ],
+  "baseCommit": "a9728fa",
+  "worktree": "uncommitted acceptance fixes",
+  "frontend": {
+    "tests": 136,
+    "files": 20,
+    "lint": "passed",
+    "build": "passed"
+  },
+  "backend": {
+    "applicationTests": 173,
+    "runnerSafetyTests": 4,
+    "combinedTests": 177,
+    "lint": "passed",
+    "ruffVersion": "0.16.7",
+    "lintRules": [
+      "E4",
+      "E7",
+      "E9",
+      "F"
+    ],
+    "deprecationWarnings": 2
+  },
+  "environment": {
+    "os": "Ubuntu 22.04.3",
+    "node": "22.22.2",
+    "pythonTests": "3.12.13",
+    "pythonDocker": "3.12.14",
+    "docker": "29.1.3",
+    "compose": "5.5.1",
+    "playwright": "1.63.0",
+    "browser": "Chromium"
+  },
+  "browserMatrix": {
+    "viewports": [
+      390,
+      860,
+      1440,
+      1920
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "outputScenarios": 24,
+    "configurationScenarios": 8,
+    "physicalIme": false,
+    "nativeSafari": false
+  },
+  "sourceSnapshot": {
+    "checked": 135,
+    "mismatches": 0
+  },
+  "images": {
+    "backend": "sha256:8cdebe60c2edc9c5d8eef883c2933b18b9023b0dafd147a065514b9a7cb3adb5",
+    "frontend": "sha256:5601a7d6b85c549a2e2b1419092256850a588e60dd4b8f76897352918025f311"
+  },
+  "realModelCalls": 0,
+  "cleanup": {
+    "completed": true,
+    "temporaryDirectoryRemoved": "/tmp/opera-acceptance-20260912-re6DVt",
+    "temporaryDirectorySizeBeforeRemoval": "approximately 1.3 GiB",
+    "ownedRepoCachesRemoved": [
+      ".ruff_cache",
+      "tests/acceptance/__pycache__"
+    ],
+    "testContainersRemaining": 0,
+    "testImagesRemaining": 0,
+    "testNetworksRemaining": 0,
+    "testVolumesRemaining": 0,
+    "testBuilderRemaining": false,
+    "testProcessesRemaining": 0,
+    "testPortsReleased": [
+      13001,
+      18080,
+      18081
+    ],
+    "originalContainerPreserved": "b8725b2ee145",
+    "originalImagePreserved": "sha256:87c0bc86d4a8d6a5aff670bbdfea18bfe28decfee0888924301b502d57fe303e",
+    "originalNetworksPreserved": [
+      "bridge",
+      "cliproxyapi_default",
+      "host",
+      "none"
+    ],
+    "originalBackendEnvironmentAndCachesPreserved": true
+  }
+}

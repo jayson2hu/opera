@@ -275,7 +275,7 @@ async def generate_from_points(request: Request, provider: Any, payload: Generat
         max_tokens=OUTPUT_MAX_TOKENS[payload.targetLength],
     )
     caption = extract_json(caption_raw).get("caption")
-    if not isinstance(caption, str) or not caption:
+    if not isinstance(caption, str) or not caption.strip():
         raise RuntimeError("Invalid caption response")
     if await request.is_disconnected():
         return
@@ -285,9 +285,16 @@ async def generate_from_points(request: Request, provider: Any, payload: Generat
     tags_prompt = build_tags_prompt(payload.text, points, payload.tone)
     tags_raw = await provider.call(tags_prompt["system"], tags_prompt["user"])
     raw_groups = extract_json(tags_raw).get("tagGroups")
-    if not isinstance(raw_groups, list):
+    if not isinstance(raw_groups, list) or not raw_groups:
         raise RuntimeError("Invalid tags response")
     tag_groups = [TagGroup.model_validate(group).model_dump() for group in raw_groups]
+    if any(
+        not group["label"].strip()
+        or not group["tags"]
+        or any(not tag.strip() for tag in group["tags"])
+        for group in tag_groups
+    ):
+        raise RuntimeError("Invalid tags response")
     if await request.is_disconnected():
         return
     yield format_sse("tags", {"tagGroups": tag_groups})

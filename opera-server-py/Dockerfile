@@ -7,12 +7,13 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-COPY pyproject.toml ./
-COPY app ./app
+COPY requirements.lock ./
 
-RUN python -m pip install --upgrade pip \
-    && python -m pip install .
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install --require-hashes --only-binary=:all: -r requirements.lock
+
+COPY app ./app
 
 EXPOSE 3001
 
-CMD ["sh", "-c", "python -m uvicorn app.main:app --host ${HOST:-0.0.0.0} --port ${PORT:-3001}"]
+CMD ["sh", "-c", "exec python -m uvicorn app.main:app --host ${HOST:-0.0.0.0} --port ${PORT:-3001}"]

@@ -23,10 +23,20 @@ jobs:
           python-version: "3.12"
 
       - name: Install backend dependencies
-        run: python -m pip install -e ".[dev]"
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r requirements-dev.lock
+
+      - name: Check installed dependency compatibility
+        run: python -m pip check
+
+      - name: Check dependency locks against project metadata
+        run: python scripts/check_dependency_locks.py
 
       - name: Run backend tests
-        run: python -m pytest -q
+        run: python -m pytest -q tests ../tests/acceptance/test_http_acceptance.py
+
+      - name: Lint backend and acceptance runner
+        run: python -m ruff check app tests scripts ../tests/acceptance
 
   frontend:
     name: Frontend test, lint, and build
@@ -46,6 +56,9 @@ jobs:
       - name: Install frontend dependencies
         run: npm ci
 
+      - name: Audit frontend dependency lock
+        run: npm audit --include=dev --audit-level=low
+
       - name: Test frontend
         run: npm run test
 
@@ -56,8 +69,14 @@ jobs:
         run: npm run build
 
   docker-config:
-    name: Docker Compose contracts
+    name: Docker build and acceptance
     runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      COMPOSE_PROJECT_NAME: opera-acceptance-ci
+      OPERA_FRONTEND_PORT: "18080"
+      OPERA_BACKEND_PORT: "13001"
+      OPERA_FIXTURE_PORT: "18081"
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -75,3 +94,51 @@ jobs:
 
       - name: Validate frontend API base interpolation
         run: python opera-server-py/scripts/check_compose_api_base.py
+
+      - name: Install HTTP acceptance dependencies
+        run: |
+          python -m pip install --require-hashes --only-binary=:all: -r opera-server-py/requirements.lock
+
+      - name: Build and start isolated production stack
+        run: docker compose -f docker-compose.yml -f tests/acceptance/compose.yml up --build --detach --wait --wait-timeout 120
+
+      - name: Exercise backend HTTP and provider protocols
+        run: python tests/acceptance/http_acceptance.py --base-url http://127.0.0.1:13001 --stub-url http://127.0.0.1:18081 --output-dir "${RUNNER_TEMP}/opera-backend-acceptance"
+
+      - name: Exercise production Nginx proxy and streaming
+        run: python tests/acceptance/http_acceptance.py --base-url http://127.0.0.1:18080 --stub-url http://127.0.0.1:18081 --through-proxy --output-dir "${RUNNER_TEMP}/opera-proxy-acceptance"
+
+      - name: Set up Node.js for browser acceptance
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install isolated Chromium acceptance tools
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/opera-browsers
+        run: |
+          npm install --no-save --prefix "${RUNNER_TEMP}/opera-browser-tools" @playwright/test@1.63.0
+          "${RUNNER_TEMP}/opera-browser-tools/node_modules/.bin/playwright" install --with-deps --only-shell chromium
+
+      - name: Verify browser interactions and Docker journeys
+        env:
+          PLAYWRIGHT_BROWSERS_PATH: ${{ runner.temp }}/opera-browsers
+        run: |
+          node tests/acceptance/browser-acceptance.mjs --url http://127.0.0.1:18080 --mode mock --dependency-dir "${RUNNER_TEMP}/opera-browser-tools" --runtime-dir "${RUNNER_TEMP}/opera-browser-runtime" --output-dir "${RUNNER_TEMP}/opera-browser-acceptance/mock"
+          node tests/acceptance/browser-acceptance.mjs --url http://127.0.0.1:18080 --mode integration --dependency-dir "${RUNNER_TEMP}/opera-browser-tools" --runtime-dir "${RUNNER_TEMP}/opera-browser-runtime" --output-dir "${RUNNER_TEMP}/opera-browser-acceptance/integration"
+
+      - name: Preserve acceptance evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: opera-acceptance-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/opera-backend-acceptance
+            ${{ runner.temp }}/opera-proxy-acceptance
+            ${{ runner.temp }}/opera-browser-acceptance
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Clean up acceptance resources
+        if: always()
+        run: docker compose -f docker-compose.yml -f tests/acceptance/compose.yml down --volumes --rmi all

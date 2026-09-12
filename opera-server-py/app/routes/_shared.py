@@ -67,7 +67,7 @@ async def parse_json_body(request: Request) -> Any:
     """Return the parsed JSON body, or None when the body is missing/invalid."""
     try:
         return await request.json()
-    except json.JSONDecodeError:
+    except (json.JSONDecodeError, UnicodeDecodeError):
         return None
 
 

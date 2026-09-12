@@ -27,6 +27,7 @@ import {
 import { createWeChatDraftParameterKey, isProviderId } from '../lib/generationDraftConsistency';
 import { streamSSE } from '../lib/sse';
 import { toast } from '../lib/toast';
+import { COPY_FAILURE_MESSAGE, copyTextToClipboard } from '../lib/clipboard';
 import { parseStoredWeChatDrafts, persistWeChatDrafts } from '../lib/weChatDraftStorage';
 import ProgressIndicator from '../components/ProgressIndicator';
 import ProviderSelector from '../components/ProviderSelector';
@@ -383,17 +384,9 @@ export default function WeChatPage({
   }, [onRestoreDraft]);
   const handleCopyAll = useCallback(async () => {
     if (!fullText) return;
-    try {
-      await navigator.clipboard.writeText(fullText);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = fullText;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+    if (!await copyTextToClipboard(fullText)) {
+      toast(COPY_FAILURE_MESSAGE);
+      return;
     }
     toast('已复制公众号草稿到剪贴板');
   }, [fullText]);
@@ -553,9 +546,9 @@ export default function WeChatPage({
               disabled={isGenerating}
             />
 
-            <BodyEditor value={result.body} tone="emerald"
+            <BodyEditor value={result.body} contextKey={contentFingerprint(result)} tone="emerald"
               onChange={(body) => updateResult((current) => ({ ...current, body }))}
-              onBeforeChange={() => { workspace.checkpoint('正文编辑前'); }}
+              onBeforeChange={() => workspace.checkpoint('正文编辑前')}
               onRewrite={handleParagraphRewrite} onRegenerate={() => void runCompose("body")}
               canRegenerate={canRegenerate} disabled={false} />
             {inlineImagesEnabled && <div className="mt-5 space-y-4">

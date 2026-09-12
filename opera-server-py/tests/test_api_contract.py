@@ -148,6 +148,26 @@ def test_generate_empty_body_returns_400(client: TestClient) -> None:
     assert response.json() == {"error": "text is required and must be non-empty"}
 
 
+@pytest.mark.parametrize(
+    "endpoint",
+    [
+        "/api/generate",
+        "/api/generate/continue",
+        "/api/compose",
+        "/api/wechat/compose",
+        "/api/rewrite-paragraph",
+    ],
+)
+def test_invalid_utf8_request_body_returns_400(client: TestClient, endpoint: str) -> None:
+    response = client.post(
+        endpoint,
+        content=b"\xff",
+        headers={"Content-Type": "application/json"},
+    )
+    assert response.status_code == 400
+    assert response.json() == {"error": "Request body is required"}
+
+
 def test_generate_invalid_tone_returns_400(client: TestClient) -> None:
     response = client.post("/api/generate", json={"text": "hello", "tone": "bad"})
     assert response.status_code == 400
@@ -167,11 +187,14 @@ def test_provider_model_lists_and_names() -> None:
     settings = Settings(
         ai_provider="openai",
         anthropic_api_key="anthropic-key",
+        anthropic_model="claude-sonnet-4-20250514",
         anthropic_models="claude-a, claude-b, claude-a",
         anthropic_compat_api_key="anthropic-compat-key",
         anthropic_compat_base_url="https://claude.example.com",
         anthropic_compat_model="claude-third-party",
         openai_api_key="openai-key",
+        openai_model="gpt-5.2",
+        openai_chatgpt_model="gpt-5.2-chat-latest",
         openai_models="gpt-a, gpt-b, gpt-a",
         openai_compat_api_key="openai-compat-key",
         openai_compat_base_url="https://openai.example.com/v1",

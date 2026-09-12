@@ -61,6 +61,86 @@ class FailingGenerateProvider:
 
 
 @pytest.mark.parametrize(
+    ("caption", "tag_groups", "expected_error"),
+    [
+        ("   ", [{"type": "broad", "label": "标签", "tags": ["写作"]}], "Invalid caption response"),
+        ("有效发布正文", [], "Invalid tags response"),
+        ("有效发布正文", [{"type": "broad", "label": "标签", "tags": []}], "Invalid tags response"),
+        ("有效发布正文", [{"type": "broad", "label": "标签", "tags": ["   "]}], "Invalid tags response"),
+        ("有效发布正文", [{"type": "broad", "label": "   ", "tags": ["写作"]}], "Invalid tags response"),
+    ],
+)
+def test_generate_rejects_empty_final_outputs_without_done(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    caption: str,
+    tag_groups: list[dict[str, object]],
+    expected_error: str,
+) -> None:
+    responses = [
+        {"coverTitles": ["标题一", "标题二", "标题三"]},
+        {"cards": ["卡片一", "卡片二", "卡片三", "卡片四", "卡片五"]},
+        {"caption": caption},
+        {"tagGroups": tag_groups},
+    ]
+    monkeypatch.setattr(
+        generate_route,
+        "create_provider",
+        lambda *_args, **_kwargs: SequenceGenerateProvider(
+            [json.dumps(response) for response in responses]
+        ),
+    )
+    with client.stream(
+        "POST",
+        "/api/generate/continue",
+        json={"text": "有效的来源文章", "tone": "knowledge", "points": ["观点一", "观点二", "观点三"]},
+    ) as response:
+        events = parse_sse(response)
+    assert events[-1] == ("error", {"error": expected_error})
+    assert ("step", {"step": "done"}) not in events
+
+
+@pytest.mark.parametrize("empty_field", ["tags", "imageKeywords"])
+@pytest.mark.parametrize("regenerate", [None, "tags"])
+def test_composer_rejects_empty_publish_metadata_without_done(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+    empty_field: str,
+    regenerate: str | None,
+) -> None:
+    metadata = {"tags": ["写作"], "imageKeywords": ["书桌"]}
+    metadata[empty_field] = []
+
+    class ComposerProvider(SequenceGenerateProvider):
+        async def stream(self, _system: str, _user: str) -> AsyncIterator[str]:
+            yield "完整且有效的创作正文"
+
+    provider = ComposerProvider([
+        json.dumps({
+            "angle": "创作流程", "audience": "内容创作者", "hook": "写作技巧", "cta": "尝试练习",
+            "outline": ["开始写作", "检查内容", "发布稿件"], "mustMention": ["内容质量"],
+        }),
+        json.dumps({"title": "有效创作标题"}),
+        json.dumps(metadata),
+    ])
+    monkeypatch.setattr(compose_route, "create_provider", lambda *_args: provider)
+    response = client.post("/api/compose", json={
+        "topic": "如何建立稳定且可重复使用的内容创作流程",
+        "contentType": "knowledge", "tone": "knowledge", "targetLength": "medium",
+        "regenerate": regenerate,
+    })
+    events = parse_sse(response)
+    expected_error = (
+        "Invalid composer tags response"
+        if empty_field == "tags"
+        else "Invalid composer image keywords response"
+    )
+    assert events[-1] == ("error", {"error": expected_error})
+    assert not any(name == "tags" for name, _payload in events)
+    assert ("step", {"step": "done"}) not in events
+
+
+@pytest.mark.parametrize(
     "extraction_payload",
     [
         [],
@@ -739,6 +819,39 @@ def test_anthropic_call_honors_budget_and_rejects_max_tokens_stop(
         asyncio.run(provider.call("system", "user", max_tokens=4096))
 
     assert requests[0]["json"]["max_tokens"] == 4096  # type: ignore[index]
+
+
+@pytest.mark.parametrize(
+    ("provider", "lines"),
+    [
+        (
+            AnthropicProvider("key", "https://anthropic.example", "model"),
+            [
+                'data:{"type":"content_block_delta","delta":{"type":"text_delta","text":"完整正文"}}',
+                'data:{"type":"message_stop"}',
+            ],
+        ),
+        (
+            OpenAICompatProvider("key", "https://openai.example/v1", "model"),
+            [
+                'data:{"choices":[{"delta":{"content":"完整正文"},"finish_reason":null}]}',
+                'data:{"choices":[{"delta":{},"finish_reason":"stop"}]}',
+                'data:[DONE]',
+            ],
+        ),
+    ],
+)
+def test_provider_stream_accepts_data_without_optional_space(
+    monkeypatch: pytest.MonkeyPatch,
+    provider: AnthropicProvider | OpenAICompatProvider,
+    lines: list[str],
+) -> None:
+    monkeypatch.setattr(httpx, "AsyncClient", fake_async_client([], lines=lines))
+
+    async def collect() -> str:
+        return "".join([chunk async for chunk in provider.stream("system", "user")])
+
+    assert asyncio.run(collect()) == "完整正文"
 
 
 def test_anthropic_call_combines_multiple_text_blocks(

@@ -1,0 +1,44 @@
+# Apply after the production docker-compose.yml. Uses the actual production images
+# and provider adapters, with a local model protocol fixture and no real API key.
+services:
+  backend:
+    image: ${COMPOSE_PROJECT_NAME:?Set a unique acceptance project name}-backend
+    env_file: !reset []
+    depends_on:
+      model-fixture:
+        condition: service_healthy
+    environment:
+      AI_PROVIDER: deepseek
+      CORS_ORIGINS: http://localhost:5173
+      DEEPSEEK_API_KEY: acceptance-placeholder-key
+      DEEPSEEK_BASE_URL: http://model-fixture:18081
+      DEEPSEEK_MODEL: stub-model
+      DEEPSEEK_MODELS: stub-model,stub-truncated,stub-error
+      ANTHROPIC_API_KEY: acceptance-placeholder-key
+      ANTHROPIC_BASE_URL: http://model-fixture:18081
+      ANTHROPIC_MODEL: stub-model
+      ANTHROPIC_MODELS: stub-model,stub-truncated,stub-error
+      OPENAI_API_KEY: acceptance-placeholder-key
+      OPENAI_BASE_URL: http://model-fixture:18081
+      OPENAI_MODEL: stub-model
+      OPENAI_CHATGPT_MODEL: stub-model
+      OPENAI_MODELS: stub-model,stub-truncated,stub-error
+    restart: "no"
+  frontend:
+    image: ${COMPOSE_PROJECT_NAME:?Set a unique acceptance project name}-frontend
+    restart: "no"
+  model-fixture:
+    image: ${COMPOSE_PROJECT_NAME:?Set a unique acceptance project name}-backend
+    pull_policy: never
+    command: [python, -m, uvicorn, http_acceptance:stub, --app-dir, /acceptance, --host, 0.0.0.0, --port, "18081", --no-access-log]
+    volumes:
+      - ./tests/acceptance/http_acceptance.py:/acceptance/http_acceptance.py:ro
+    ports:
+      - "127.0.0.1:${OPERA_FIXTURE_PORT:-18081}:18081"
+    restart: "no"
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:18081/calls').read()"]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+      start_period: 3s

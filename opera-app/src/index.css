@@ -145,6 +145,20 @@
 [data-theme="dark"] .bg-neutral-900\/40 { background-color: rgb(0 0 0 / 0.58); }
 [data-theme="dark"] .bg-neutral-900\/95 { background-color: rgb(20 17 15 / 0.95); }
 
+/* Dark-theme action fills are bright; pair them with a dark foreground. */
+[data-theme="dark"] button.text-white.bg-primary-500,
+[data-theme="dark"] button.text-white.bg-primary-600,
+[data-theme="dark"] button.text-white.bg-accent-500,
+[data-theme="dark"] button.text-white.bg-accent-600,
+[data-theme="dark"] button.text-white.bg-emerald-500,
+[data-theme="dark"] button.text-white.bg-emerald-600,
+[data-theme="dark"] button.text-white.bg-error-500,
+[data-theme="dark"] button.text-white.from-primary-500,
+[data-theme="dark"] button.text-white.from-accent-500,
+[data-theme="dark"] button.text-white.from-emerald-500 {
+  color: var(--color-neutral-50);
+}
+
 /* The phone is a platform preview, so it intentionally stays in light mode. */
 [data-theme="dark"] .opera-light-preview {
   color-scheme: light;

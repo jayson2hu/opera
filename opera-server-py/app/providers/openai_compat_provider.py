@@ -140,10 +140,10 @@ class OpenAICompatProvider(LLMProvider):
                 ) as response:
                     response.raise_for_status()
                     async for line in response.aiter_lines():
-                        if not line or not line.startswith("data: "):
+                        if not line or not line.startswith("data:"):
                             continue
 
-                        raw = line[6:].strip()
+                        raw = line[5:].strip()
                         if not raw:
                             continue
                         if raw == "[DONE]":

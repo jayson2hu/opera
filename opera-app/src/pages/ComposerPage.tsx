@@ -22,6 +22,7 @@ import {
 import { createComposerDraftParameterKey, isProviderId } from '../lib/generationDraftConsistency';
 import { streamSSE } from '../lib/sse';
 import { toast } from '../lib/toast';
+import { COPY_FAILURE_MESSAGE, copyTextToClipboard } from '../lib/clipboard';
 import ProgressIndicator from '../components/ProgressIndicator';
 import ProviderSelector from '../components/ProviderSelector';
 import SplitFlow from '../components/SplitFlow';
@@ -406,17 +407,9 @@ export default function ComposerPage({
 
   const handleCopy = useCallback(async () => {
     if (!fullText) return;
-    try {
-      await navigator.clipboard.writeText(fullText);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = fullText;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+    if (!await copyTextToClipboard(fullText)) {
+      toast(COPY_FAILURE_MESSAGE);
+      return;
     }
     toast('已复制完整笔记');
   }, [fullText]);
@@ -501,7 +494,7 @@ export default function ComposerPage({
         />
         <BigBtn onClick={() => void runCompose()} disabled={!canGenerate} loading={isGenerating} tone="accent">
           <span>{isGenerating ? '生成中…' : isComplete ? '重新生成' : '生成原创帖子'}</span>
-          {!isGenerating && <kbd className="rounded border border-white/30 px-1.5 py-0.5 text-[10px] font-medium text-white/80">{primaryShortcut}</kbd>}
+          {!isGenerating && <kbd className="rounded border border-current px-1.5 py-0.5 text-[10px] font-medium text-current opacity-80">{primaryShortcut}</kbd>}
         </BigBtn>
         <p className={`text-xs text-center ${canSubmitBase && !loading ? 'text-accent-600' : 'text-warning-600'}`}>
           {loading ? '模型配置加载中…' : canSubmitBase ? '准备就绪' : `还需要：${missingRequirements.join('、')}`}
@@ -630,9 +623,9 @@ export default function ComposerPage({
                 disabled={isGenerating}
                 tone="accent"
               />
-              <BodyEditor value={result.body} tone="accent"
+              <BodyEditor value={result.body} contextKey={contentFingerprint(result)} tone="accent"
                 onChange={(body) => setResult((current) => current ? { ...current, body } : current)}
-                onBeforeChange={() => { workspace.checkpoint('正文编辑前'); }}
+                onBeforeChange={() => workspace.checkpoint('正文编辑前')}
                 onRewrite={handleParagraphRewrite} onRegenerate={() => void runCompose("body")}
                 canRegenerate={canRegenerate} disabled={false} />
               {result && (

@@ -1,4 +1,6 @@
 import { useCallback, useState } from 'react';
+import { COPY_FAILURE_MESSAGE, copyTextToClipboard } from '../lib/clipboard';
+import { toast } from '../lib/toast';
 
 interface CopyButtonProps {
   text: string;
@@ -16,22 +18,13 @@ export default function CopyButton({
   const [copied, setCopied] = useState(false);
 
   const handleCopy = useCallback(async () => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = text;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1500);
+    if (!await copyTextToClipboard(text)) {
+      setCopied(false);
+      toast(COPY_FAILURE_MESSAGE);
+      return;
     }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1500);
   }, [text]);
 
   const sizeClasses =

@@ -11,7 +11,7 @@ interface Props {
   tone?: EditableBlockTone;
   onCustomEdit?: (prompt: string, original: string, signal?: AbortSignal) => Promise<string> | string;
   onChange?: (next: string) => void;
-  onBeforeChange?: () => void;
+  onBeforeChange?: () => boolean | void;
   className?: string;
   children?: ReactNode;
 }
@@ -36,9 +36,14 @@ export default function EditableBlock({
   const id = useId();
   useEffect(() => () => { request.current?.abort(); }, []);
   const stale = (edit: Edit) => edit.source !== text || edit.context !== contextKey;
-  const apply = (edit: Edit) => {
+  const apply = (edit: Edit, requireSavedVersion = false) => {
     if (stale(edit)) { setError('原稿已改变，请放弃旧候选并基于最新内容重试。'); return; }
-    onBeforeChange?.(); onChange?.(edit.text);
+    const saved = onBeforeChange?.();
+    if (requireSavedVersion && saved === false) {
+      setError('原稿版本尚未保存，候选未应用。请先导出稿件备份，恢复保存后再重试。');
+      return;
+    }
+    onChange?.(edit.text);
     setManual(null); setCandidate(null); setError(null); setPanelOpen(false);
   };
   const generate = async (instruction = prompt) => {
@@ -105,7 +110,7 @@ export default function EditableBlock({
           {stale(candidate) && <p role="alert" className="text-xs text-red-600">原稿已改变，此候选已过期。请放弃后重新生成。</p>}
           <div className="flex justify-end gap-2 text-xs">
             <button type="button" onClick={() => setCandidate(null)} className="rounded-lg border px-3 py-2">放弃候选</button>
-            <button type="button" disabled={stale(candidate) || !candidate.text.trim()} onClick={() => apply(candidate)}
+            <button type="button" disabled={stale(candidate) || !candidate.text.trim()} onClick={() => apply(candidate, true)}
               className={'rounded-lg px-3 py-2 text-white disabled:opacity-40 ' + BUTTON_TONE[tone]}>应用候选</button>
           </div>
         </div>}

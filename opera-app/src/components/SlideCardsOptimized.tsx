@@ -5,6 +5,7 @@ import { readPreferences } from '../lib/preferences';
 import { getSlideCardContent, getSlideCardType, updateSlideCardContent } from '../lib/slideCards';
 import type { SlideCardType, SlideCardValue } from '../types';
 import { toast } from '../lib/toast';
+import { COPY_FAILURE_MESSAGE, copyTextToClipboard } from '../lib/clipboard';
 
 interface SlideCardsOptimizedProps {
   cards: SlideCardValue[];
@@ -68,17 +69,10 @@ export default function SlideCardsOptimized({
   };
 
   const handleCopyCard = async (card: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(card);
-    } catch {
-      const textarea = document.createElement('textarea');
-      textarea.value = card;
-      textarea.style.position = 'fixed';
-      textarea.style.opacity = '0';
-      document.body.appendChild(textarea);
-      textarea.select();
-      document.execCommand('copy');
-      textarea.remove();
+    if (!await copyTextToClipboard(card)) {
+      setCopiedIndex(null);
+      toast(COPY_FAILURE_MESSAGE);
+      return;
     }
     setCopiedIndex(index);
     window.setTimeout(() => setCopiedIndex((current) => (current === index ? null : current)), 1500);

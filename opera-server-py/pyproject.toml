@@ -20,8 +20,16 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = [
-  "pytest>=8.2,<9.0"
+  # Starlette's current TestClient uses httpx2; providers intentionally keep httpx.
+  "httpx2>=2.12,<3.0",
+  "packaging>=25,<27",
+  "pytest>=8.2,<9.0",
+  "ruff==0.16.7"
 ]
+
+[tool.ruff.lint]
+# Keep the established correctness checks stable across Ruff default changes.
+select = ["E4", "E7", "E9", "F"]
 
 [tool.pytest.ini_options]
 addopts = "-q"

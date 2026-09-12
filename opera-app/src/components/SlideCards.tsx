@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import CopyButton from './CopyButton';
+import { COPY_FAILURE_MESSAGE, copyTextToClipboard } from '../lib/clipboard';
+import { toast } from '../lib/toast';
 
 interface SlideCardsProps {
   cards: string[];
@@ -55,17 +57,10 @@ export default function SlideCards({ cards, selectedIndices, onToggleSelect }: S
   if (cards.length === 0) return null;
 
   const handleCopyCard = async (card: string, index: number) => {
-    try {
-      await navigator.clipboard.writeText(card);
-    } catch {
-      const ta = document.createElement('textarea');
-      ta.value = card;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      document.execCommand('copy');
-      document.body.removeChild(ta);
+    if (!await copyTextToClipboard(card)) {
+      setCopiedIndex(null);
+      toast(COPY_FAILURE_MESSAGE);
+      return;
     }
 
     setCopiedIndex(index);

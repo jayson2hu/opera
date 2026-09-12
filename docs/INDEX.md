@@ -4,6 +4,7 @@ This directory is the canonical documentation location for the project.
 
 ## Current Docs
 
+- [ACCEPTANCE-2026-09-12.md](ACCEPTANCE-2026-09-12.md): **最新验收结果**，Ubuntu/Docker/Chromium 实测、修复、架构对照和清理边界。
 - [PROGRESS-2026-09-12.md](PROGRESS-2026-09-12.md): 进展归档、推送前复测、远程同步范围与待验收项；推送不代表发布完成。
 - [PRODUCT-IMPROVEMENT-IMPLEMENTATION.md](PRODUCT-IMPROVEMENT-IMPLEMENTATION.md): **2026-09-10 当前实施状态**，设计冲突取舍、问题台账、自动化结果和剩余验收。
 - [DRAFT-WORKSPACE-CONTRACT.md](DRAFT-WORKSPACE-CONTRACT.md): 本轮草稿/候选/局部生成契约、数据范围及手工验收步骤。

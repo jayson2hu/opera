@@ -1,5 +1,10 @@
 # 草稿工作台契约与验收手册
 
+> 2026-09-12 执行更新：已执行对应 M01–M15 的 Chromium 自动化场景与 M16 的
+> Docker/本地模型协议桩链路，结果见 [验收报告](ACCEPTANCE-2026-09-12.md)。
+> 原生 Safari/iOS、物理中文输入法和真实付费模型不在本次通过范围；下方
+> “全部待执行”描述仅适用于原 9 月 10 日检查点。
+
 更新：2026-09-10。本轮实现状态见 [实施台账](PRODUCT-IMPROVEMENT-IMPLEMENTATION.md)，发布门禁见 [Release Readiness](RELEASE-READINESS.md)。
 
 ## 1. 已合并的产品方向

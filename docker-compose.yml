@@ -2,14 +2,13 @@ services:
   backend:
     build:
       context: ./opera-server-py
-    container_name: opera-backend
     env_file:
       - ./opera-server-py/.env
     environment:
       HOST: 0.0.0.0
       PORT: 3001
     ports:
-      - "3001:3001"
+      - "${OPERA_BIND_ADDRESS:-127.0.0.1}:${OPERA_BACKEND_PORT:-3001}:3001"
     healthcheck:
       test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:3001/api/health').read()"]
       interval: 10s
@@ -23,10 +22,15 @@ services:
       context: ./opera-app
       args:
         VITE_API_BASE_URL: "${VITE_API_BASE_URL:-}"
-    container_name: opera-frontend
     depends_on:
       backend:
         condition: service_healthy
     ports:
-      - "8080:80"
+      - "${OPERA_BIND_ADDRESS:-127.0.0.1}:${OPERA_FRONTEND_PORT:-8080}:80"
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--spider", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 5s
     restart: unless-stopped
