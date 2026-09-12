@@ -10,12 +10,17 @@ from pathlib import Path
 import httpx
 
 ROOT = Path(__file__).resolve().parents[1]
-EXPECTED_GENERATE_EVENTS = [
+EXPECTED_GENERATE_START_EVENTS = [
     ("step", {"step": "extracting"}),
+    ("extraction_points", None),
+    ("step", {"step": "paused"}),
+]
+EXPECTED_GENERATE_CONTINUE_EVENTS = [
     ("step", {"step": "titles"}),
     ("titles", None),
     ("step", {"step": "cards"}),
     ("cards", None),
+    ("cards_v2", None),
     ("step", {"step": "caption"}),
     ("caption", None),
     ("step", {"step": "tags"}),
@@ -88,17 +93,49 @@ def parse_sse_lines(lines: list[str]) -> list[tuple[str, dict[str, object]]]:
     return events
 
 
-def assert_generate_contract(events: list[tuple[str, dict[str, object]]]) -> None:
-    assert len(events) == 10
+def assert_generate_start_contract(events: list[tuple[str, dict[str, object]]]) -> list[str]:
+    assert len(events) == len(EXPECTED_GENERATE_START_EVENTS)
     for index, (name, payload) in enumerate(events):
-        expected_name, expected_payload = EXPECTED_GENERATE_EVENTS[index]
+        expected_name, expected_payload = EXPECTED_GENERATE_START_EVENTS[index]
         assert name == expected_name
         if expected_payload is not None:
             assert payload == expected_payload
-    assert isinstance(events[2][1]["coverTitles"], list)
-    assert len(events[2][1]["coverTitles"]) == 6
-    assert isinstance(events[4][1]["cards"], list)
-    assert len(events[4][1]["cards"]) == 7
+
+    points = events[1][1]["points"]
+    assert isinstance(points, list)
+    assert 3 <= len(points) <= 8
+    assert all(isinstance(point, str) and point.strip() for point in points)
+    return points
+
+
+def assert_generate_continue_contract(events: list[tuple[str, dict[str, object]]]) -> None:
+    assert len(events) == len(EXPECTED_GENERATE_CONTINUE_EVENTS)
+    for index, (name, payload) in enumerate(events):
+        expected_name, expected_payload = EXPECTED_GENERATE_CONTINUE_EVENTS[index]
+        assert name == expected_name
+        if expected_payload is not None:
+            assert payload == expected_payload
+
+    cover_titles = events[1][1]["coverTitles"]
+    assert isinstance(cover_titles, list)
+    assert len(cover_titles) == 6
+    assert all(isinstance(title, str) and title.strip() for title in cover_titles)
+
+    legacy_cards = events[3][1]["cards"]
+    typed_cards = events[4][1]["cards"]
+    assert isinstance(legacy_cards, list)
+    assert len(legacy_cards) == 7
+    assert all(isinstance(card, str) and card.strip() for card in legacy_cards)
+    assert isinstance(typed_cards, list)
+    assert len(typed_cards) == 7
+    assert all(
+        isinstance(card, dict)
+        and card.get("type") in {"hook", "insight", "method", "scenario", "summary"}
+        and isinstance(card.get("content"), str)
+        and str(card.get("content")).strip()
+        for card in typed_cards
+    )
+    assert [card["content"] for card in typed_cards] == legacy_cards
     assert isinstance(events[6][1]["caption"], str)
     assert isinstance(events[8][1]["tagGroups"], list)
 
@@ -197,10 +234,29 @@ def main() -> None:
             ) as response:
                 assert response.status_code == 200
                 assert "text/event-stream" in response.headers["content-type"]
-                generate_events = parse_sse_lines([line for line in response.iter_lines()])
-            assert_generate_contract(generate_events)
-            print("[PASS] POST /api/generate real-key SSE")
-            print(f"[PASS] Generate SSE events: {len(generate_events)}")
+                generate_start_events = parse_sse_lines([line for line in response.iter_lines()])
+            points = assert_generate_start_contract(generate_start_events)
+            print("[PASS] POST /api/generate extraction/paused SSE")
+
+            with client.stream(
+                "POST",
+                f"{base_url}/api/generate/continue",
+                json={
+                    "text": SAMPLE_ARTICLE,
+                    "tone": "knowledge",
+                    "targetLength": "medium",
+                    "points": points,
+                },
+            ) as response:
+                assert response.status_code == 200
+                assert "text/event-stream" in response.headers["content-type"]
+                generate_continue_events = parse_sse_lines([line for line in response.iter_lines()])
+            assert_generate_continue_contract(generate_continue_events)
+            print("[PASS] POST /api/generate/continue real-key SSE")
+            print(
+                "[PASS] Generate SSE events: "
+                f"{len(generate_start_events)} + {len(generate_continue_events)}"
+            )
 
             compose_invalid = client.post(
                 f"{base_url}/api/compose",

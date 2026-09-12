@@ -153,7 +153,7 @@ def build_composer_tags_prompt(topic: str, title: str, body: str) -> dict[str, s
 {title}
 
 正文：
-{body[:4000]}
+{body}
 
 输出要求：
 - `tags` 生成 6-10 个，不带 # 号，每个 2-10 个中文字符

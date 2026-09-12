@@ -17,6 +17,10 @@ export interface StreamSSEOptions {
   onEvent: (event: string, data: SSEData) => void;
   /** Maps a non-2xx response to a user-facing message. Defaults to `body.error || HTTP <status>`. */
   mapHttpError?: (status: number, body: { error?: string }) => string;
+  /** Identifies the endpoint's business-level completion event. */
+  isTerminalEvent?: (event: string, data: SSEData) => boolean;
+  /** Reject when the response reaches EOF before a valid terminal event. Defaults to false. */
+  requireTerminal?: boolean;
 }
 
 function dispatchBlock(block: string, onEvent: (event: string, data: SSEData) => void): void {
@@ -46,7 +50,17 @@ export async function streamSSE(
   body: unknown,
   options: StreamSSEOptions,
 ): Promise<void> {
-  const { signal, onEvent, mapHttpError } = options;
+  const {
+    signal,
+    onEvent,
+    mapHttpError,
+    isTerminalEvent,
+    requireTerminal = false,
+  } = options;
+
+  if (requireTerminal && !isTerminalEvent) {
+    throw new Error('isTerminalEvent is required when requireTerminal is true');
+  }
 
   const response = await fetch(url, {
     method: 'POST',
@@ -70,6 +84,15 @@ export async function streamSSE(
 
   const decoder = new TextDecoder();
   let buffer = '';
+  let reachedTerminal = false;
+  const dispatchEventBlock = (block: string) => {
+    dispatchBlock(block, (event, data) => {
+      if (isTerminalEvent?.(event, data)) {
+        reachedTerminal = true;
+      }
+      onEvent(event, data);
+    });
+  };
 
   try {
     while (true) {
@@ -82,7 +105,7 @@ export async function streamSSE(
       while (separatorIndex !== -1) {
         const block = buffer.slice(0, separatorIndex);
         buffer = buffer.slice(separatorIndex + 2);
-        dispatchBlock(block, onEvent);
+        dispatchEventBlock(block);
         separatorIndex = buffer.indexOf('\n\n');
       }
     }
@@ -90,7 +113,11 @@ export async function streamSSE(
     // Flush a trailing event that arrived without its closing blank line.
     buffer += decoder.decode();
     if (buffer.trim()) {
-      dispatchBlock(buffer, onEvent);
+      dispatchEventBlock(buffer);
+    }
+
+    if (requireTerminal && !reachedTerminal) {
+      throw new Error('生成连接在完成前意外中断，请重试。');
     }
   } finally {
     // Release the connection promptly, including when onEvent throws on an `error` event.

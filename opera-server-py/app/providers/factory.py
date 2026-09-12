@@ -29,6 +29,12 @@ def create_provider(
     model_override: str | None = None,
 ) -> LLMProvider:
     chosen = provider_id or settings.default_provider
+    if model_override is not None and not is_model_allowed(
+        settings,
+        chosen,
+        model_override,
+    ):
+        raise RuntimeError("Requested model is not configured for the selected provider")
 
     if chosen == "anthropic":
         if not settings.anthropic_api_key:
@@ -147,3 +153,25 @@ def get_available_providers(settings: Settings) -> dict[str, object]:
         )
 
     return {"default": settings.default_provider, "available": available}
+
+
+def is_model_allowed(
+    settings: Settings,
+    provider_id: ProviderId | None,
+    model: str | None,
+) -> bool:
+    """Check a model override against the same list exposed by the providers API."""
+    if model is None:
+        return True
+
+    chosen = provider_id or settings.default_provider
+    available = get_available_providers(settings).get("available")
+    if not isinstance(available, list):
+        return False
+
+    for provider in available:
+        if not isinstance(provider, dict) or provider.get("id") != chosen:
+            continue
+        models = provider.get("models")
+        return isinstance(models, list) and model in models
+    return False

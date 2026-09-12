@@ -8,6 +8,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 from app.config import get_settings, validate_config
 from app.routes.compose import router as compose_router
 from app.routes.generate import router as generate_router
+from app.routes.rewrite_paragraph import router as rewrite_paragraph_router
 from app.routes.wechat_compose import router as wechat_compose_router
 
 logging.basicConfig(
@@ -53,6 +54,7 @@ def create_app() -> FastAPI:
     app.include_router(generate_router)
     app.include_router(compose_router)
     app.include_router(wechat_compose_router)
+    app.include_router(rewrite_paragraph_router)
 
     return app
 

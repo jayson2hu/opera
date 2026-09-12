@@ -1,4 +1,5 @@
-export type AppTab = 'adapter' | 'composer' | 'wechat';
+export type AppView = 'home' | 'wechat' | 'adapter' | 'composer';
+export type FlowKind = Exclude<AppView, 'home'>;
 
 export type ToneType = 'knowledge' | 'casual' | 'bff';
 
@@ -41,11 +42,24 @@ export interface ProviderSelectionProps {
   onModelChange: (model: string) => void;
   loading?: boolean;
   error?: string | null;
+  draftSelection?: import('./lib/draftWorkspace').DraftSelection;
+  onNewDraft?: () => void;
+  onRestoreDraft?: (selection: import('./lib/draftWorkspace').DraftSelection) => void;
 }
+
+export type SlideCardType = 'hook' | 'insight' | 'method' | 'scenario' | 'summary';
+
+export interface SlideCard {
+  type: SlideCardType;
+  content: string;
+}
+
+export type SlideCardValue = string | SlideCard;
 
 export interface GenerationResult {
   coverTitles: string[];
-  cards: string[];
+  /** Supports legacy string cards and typed cards_v2 payloads. */
+  cards: SlideCardValue[];
   caption: string;
   tagGroups: TagGroup[];
 }
@@ -80,6 +94,14 @@ export interface ComposerResult {
   imageKeywords: string[];
 }
 
+export interface CurrentContent {
+  title: string;
+  body: string;
+  digest?: string;
+  draftId?: string;
+  revision?: string;
+}
+
 export interface ComposerRequest {
   topic: string;
   contentType: ContentType;
@@ -88,6 +110,7 @@ export interface ComposerRequest {
   provider?: ProviderId;
   model?: string;
   regenerate?: ComposerRegenerateTarget;
+  currentContent?: CurrentContent;
 }
 
 export type WeChatArticleType = 'insight' | 'guide' | 'story' | 'briefing';
@@ -108,6 +131,7 @@ export interface WeChatComposeRequest {
   provider?: ProviderId;
   model?: string;
   regenerate?: WeChatRegenerateTarget;
+  currentContent?: CurrentContent;
 }
 
 export type WeChatDraftStatus = 'not_saved' | 'queued';

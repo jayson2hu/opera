@@ -6,6 +6,7 @@ interface ImageSuggestionProps {
   images: ComposerDraftImage[];
   onAddImages: (files: File[]) => void;
   onRemoveImage: (id: string) => void;
+  onMoveImage: (id: string, direction: 'left' | 'right') => void;
   error?: string | null;
   disabled?: boolean;
 }
@@ -15,6 +16,7 @@ export default function ImageSuggestion({
   images,
   onAddImages,
   onRemoveImage,
+  onMoveImage,
   error = null,
   disabled = false,
 }: ImageSuggestionProps) {
@@ -67,14 +69,40 @@ export default function ImageSuggestion({
                   <div className="truncate text-xs font-medium text-neutral-600">{image.name}</div>
                   <div className="text-[11px] text-neutral-400">图片 {index + 1}</div>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => onRemoveImage(image.id)}
-                  disabled={disabled}
-                  className="shrink-0 rounded-lg border border-neutral-200 px-2 py-1 text-xs text-neutral-400 hover:border-red-200 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  删除
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onMoveImage(image.id, 'left')}
+                    disabled={disabled || index === 0}
+                    aria-label={`将 ${image.name} 左移`}
+                    title="左移"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 hover:border-accent-200 hover:bg-accent-50 hover:text-accent-600 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onMoveImage(image.id, 'right')}
+                    disabled={disabled || index === images.length - 1}
+                    aria-label={`将 ${image.name} 右移`}
+                    title="右移"
+                    className="flex h-7 w-7 items-center justify-center rounded-lg border border-neutral-200 text-neutral-400 hover:border-accent-200 hover:bg-accent-50 hover:text-accent-600 disabled:cursor-not-allowed disabled:opacity-30"
+                  >
+                    <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+                    </svg>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onRemoveImage(image.id)}
+                    disabled={disabled}
+                    className="rounded-lg border border-neutral-200 px-2 py-1 text-xs text-neutral-400 hover:border-red-200 hover:bg-red-50 hover:text-red-500 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    删除
+                  </button>
+                </div>
               </div>
             </div>
           ))}

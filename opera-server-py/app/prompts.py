@@ -114,12 +114,22 @@ def build_cards_prompt(text: str, points: list[str], tone: ToneType) -> dict[str
 严格规则：
 - 必须输出 7 张卡片。
 - 每张卡片 70-110 个中文字符。
+- 每张卡片必须返回 type 和 content 两个字段，type 只能是 hook、insight、method、scenario、summary。
+- type 要和卡片的实际用途一致：开头痛点用 hook，观点解释用 insight，可执行步骤用 method，使用场景用 scenario，收束行动用 summary。
 - 不要使用“第1张”“卡片1”等编号前缀。
 - 每张卡片本身是一段可直接放进图片里的完整文案。
 - 内容要有信息增量，不要重复同一句话。
 
 请以 JSON 格式输出：
-{{"cards": ["卡片1文案", "卡片2文案", "卡片3文案", "卡片4文案", "卡片5文案", "卡片6文案", "卡片7文案"]}}
+{{"cards": [
+  {{"type": "hook", "content": "开头卡片文案"}},
+  {{"type": "insight", "content": "洞察卡片文案"}},
+  {{"type": "insight", "content": "洞察卡片文案"}},
+  {{"type": "insight", "content": "洞察卡片文案"}},
+  {{"type": "method", "content": "方法卡片文案"}},
+  {{"type": "scenario", "content": "场景卡片文案"}},
+  {{"type": "summary", "content": "行动总结文案"}}
+]}}
 
 原文：
 {text}""",

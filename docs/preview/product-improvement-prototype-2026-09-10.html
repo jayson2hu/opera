@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Opera 产品改善交互原型：稿件恢复、版本保护、直接编辑、局部生成与解释性检查；对应七项产品审核。">
+  <title>Opera · 内容工作台 / 可操作设计原型</title>
+  <style>
+    :root{--canvas:#f6f5f1;--paper:#fff;--ink:#302e29;--muted:#77756c;--line:#e7e5dd;--orange:#bd571e;--orange-bg:#fbefe4;--green:#386751;--green-bg:#edf4ee;--purple:#746184;--purple-bg:#f3eef8;--red:#a34338;--red-bg:#fbefed;--shadow:0 8px 28px #302e2905;--radius:15px}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:24px}body{margin:0;background:var(--canvas);color:var(--ink);font:14px/1.7 "Segoe UI","PingFang SC","Microsoft YaHei",sans-serif}button,input,textarea,select{font:inherit}button,a,input,textarea,select,summary{-webkit-tap-highlight-color:transparent}button{cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,summary:focus-visible{outline:3px solid #bd571e70;outline-offset:3px}a{color:inherit;text-underline-offset:4px}h1,h2,h3,h4,p{margin:0}h1,h2,h3,h4{line-height:1.4}ul,ol{margin:8px 0;padding-left:1.3em}li+li{margin-top:5px}[hidden]{display:none!important}code{font:12px Consolas,monospace;background:#efeee9;border-radius:4px;padding:2px 5px;overflow-wrap:anywhere}::selection{background:#f6d9c0}.muted{color:var(--muted)}.small{font-size:12px}.mono{font-family:Consolas,monospace}.eyebrow{font:600 10px/1.5 "Segoe UI",sans-serif;letter-spacing:.16em;color:var(--muted)}.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}.skip{position:fixed;top:-80px;left:12px;z-index:100;background:var(--ink);color:white;padding:10px}.skip:focus{top:12px}.icon{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}.button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid #dbd9d0;border-radius:8px;padding:8px 12px;background:white;color:var(--ink);font-size:12px;font-weight:600;line-height:1.6;white-space:nowrap;text-decoration:none}.button:hover:not(:disabled){background:#f5f4ee}.button.primary{background:var(--ink);border-color:var(--ink);color:white}.button.primary:hover:not(:disabled){background:#4a473f}.button.orange{background:var(--orange);border-color:var(--orange);color:white}.button.orange:hover:not(:disabled){background:#a54a17}.button.ghost{border-color:transparent;background:transparent;color:var(--muted)}.button.purple{background:var(--purple-bg);border-color:#e5daec;color:var(--purple)}.button.tiny{font-size:11px;padding:5px 8px}.icon-button{width:33px;height:33px;padding:0}.tag{display:inline-flex;align-items:center;gap:5px;font-size:10px;line-height:1.5;border-radius:5px;background:#efeee8;color:#6f6d63;padding:4px 7px;white-space:nowrap}.tag.orange{background:var(--orange-bg);color:var(--orange)}.tag.green{background:var(--green-bg);color:var(--green)}.tag.purple{background:var(--purple-bg);color:var(--purple)}.ref{display:inline-flex;align-items:center;gap:4px;border:1px solid #e3d6cb;border-radius:4px;padding:2px 5px;color:var(--orange);background:#fff8f1;font:10px/1.4 Consolas,monospace;cursor:pointer}.dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:currentColor}.review-strip{padding:9px 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;background:#eeebe4;border-bottom:1px solid #dedbd1;font-size:11px;color:#6a665c}.review-strip strong{color:#49463f;font-weight:650}.review-strip .links{display:flex;gap:17px;align-items:center}.review-strip a{white-space:nowrap}
+    .app-shell{display:grid;grid-template-columns:204px minmax(0,1fr);min-height:calc(100vh - 38px)}.sidebar{padding:27px 16px 20px;border-right:1px solid var(--line);background:#faf9f5;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;overflow-y:auto}.logo{display:flex;gap:9px;align-items:center;padding:0 11px;font-size:27px;font-weight:750;letter-spacing:-.06em}.logo-mark{display:grid;place-items:center;background:var(--orange);color:white;border-radius:10px;width:32px;height:32px;font-size:21px;letter-spacing:0}.workspace-label{margin:6px 0 0 12px;font-size:10px;color:var(--muted)}.nav-list{display:grid;gap:5px}.nav-button{display:flex;align-items:center;gap:11px;width:100%;padding:11px 12px;border:0;border-radius:8px;background:transparent;color:#77736a;text-align:left;font-size:12px}.nav-button[aria-current="page"],.nav-button:hover{background:#efece3;color:var(--ink)}.nav-button[aria-current="page"]{font-weight:650}.nav-button .count{margin-left:auto;font-size:10px;background:white;border-radius:5px;padding:0 5px}.sidebar-divider{border-top:1px solid var(--line)}.side-heading{display:flex;align-items:center;justify-content:space-between;padding:0 10px;margin-bottom:8px;color:var(--muted);font-size:10px;letter-spacing:.05em}.recent-list{display:grid;gap:4px}.recent-draft{border:0;width:100%;border-radius:7px;background:transparent;text-align:left;padding:9px 10px;color:#716f64;display:flex;align-items:center;gap:9px}.recent-draft:hover,.recent-draft.active{background:white;color:var(--ink)}.recent-draft .title{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:135px;font-size:11px}.recent-draft .tiny-dot{width:5px;height:5px;background:#cec9bc;border-radius:50%;flex-shrink:0}.recent-draft.active .tiny-dot{background:var(--orange)}.sidebar-footer{margin-top:auto;font-size:10px;color:var(--muted);padding:18px 10px 0}.sidebar-footer p{margin-top:9px;line-height:1.8}.sidebar-footer .button{width:100%}.main{min-width:0;padding:26px 34px 50px;max-width:1600px;width:100%;margin:0 auto}.pagebar{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:24px}.breadcrumb{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:8px}.breadcrumb strong{font-weight:500;color:var(--ink)}.top-actions{display:flex;align-items:center;gap:7px}.save-state{font-size:11px;color:var(--green);display:flex;align-items:center;gap:6px}.save-state.error{color:var(--red)}.titlebar{display:flex;align-items:flex-end;justify-content:space-between;gap:15px;margin-bottom:21px}.titlebar h1{font-size:28px;letter-spacing:-.04em;font-weight:650}.titlebar p{font-size:12px;color:var(--muted);margin-top:7px}.titlebar .eyebrow{margin-bottom:7px;color:var(--orange)}.flow-switch{display:flex;padding:4px;background:#eceae2;border-radius:9px;gap:3px;flex-wrap:wrap}.flow-switch button{border:0;border-radius:6px;color:#777367;background:transparent;padding:7px 12px;font-size:11px;white-space:nowrap}.flow-switch button[aria-pressed="true"]{background:white;color:var(--ink);box-shadow:0 1px 3px #0000000a;font-weight:600}.guide{display:flex;gap:14px;align-items:flex-start;padding:13px 17px;border:1px solid #e9d9c9;background:#fcf5ec;border-radius:10px;margin-bottom:20px}.guide-number{color:var(--orange);border:1px solid #e9c9ab;border-radius:6px;padding:4px 7px;font:11px/1.6 Consolas,monospace;white-space:nowrap}.guide-content{flex:1;min-width:0}.guide-content h2{font-size:12px;font-weight:600}.guide-content p{font-size:11px;color:#837360;margin-top:3px}.guide-content details{font-size:11px;color:#837360;margin-top:5px}.guide-content summary{cursor:pointer}.guide-select{border:1px solid #e1cdb9;background:#fffaf3;border-radius:6px;padding:6px;font-size:10px;color:#8d6945;max-width:150px}.persistent-alert{padding:11px 14px;margin-bottom:16px;background:var(--red-bg);color:var(--red);border:1px solid #edcfc9;border-radius:8px;font-size:12px}.persistent-alert .button{margin-left:8px}.work-grid{display:grid;grid-template-columns:minmax(0,1fr) 284px;gap:22px;align-items:start}.work-main{min-width:0}.panel{border:1px solid var(--line);background:white;border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}.source-panel{margin-bottom:16px}.source-panel summary{padding:16px 20px;cursor:pointer;display:flex;align-items:center;gap:11px;list-style:none}.source-panel summary::-webkit-details-marker{display:none}.source-icon{background:#f2f0e9;color:#938775;padding:8px;border-radius:8px;display:flex}.source-heading{font-size:12px;font-weight:600}.source-preview{font-size:11px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:390px}.source-info{min-width:0;flex:1}.source-arrow{color:#918b7f;font-size:13px;transition:transform .2s}.source-panel[open] .source-arrow{transform:rotate(180deg)}.source-expanded{padding:0 20px 18px}.source-expanded label{display:block;margin:1px 0 7px;font-size:11px;color:var(--muted)}.source-expanded textarea{width:100%;min-height:145px;resize:vertical;border:1px solid var(--line);border-radius:8px;padding:12px;font-size:12px;line-height:1.8}.source-footer{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:8px;font-size:10px;color:var(--muted)}.job-banner{padding:12px 15px;background:var(--purple-bg);border:1px solid #e2d9ec;color:var(--purple);border-radius:9px;display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:15px;font-size:12px}.spinner{width:13px;height:13px;border:2px solid #74618430;border-top-color:var(--purple);border-radius:50%;display:inline-block;vertical-align:middle;margin-right:8px;animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}.editor-heading{padding:16px 21px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center;gap:9px}.editor-heading h2{font-size:13px}.editor-heading .left{display:flex;gap:8px;align-items:center}.mode-switch{display:flex;gap:3px;background:#f1f0eb;padding:3px;border-radius:7px}.mode-switch button{border:0;border-radius:5px;background:transparent;color:var(--muted);font-size:10px;padding:5px 10px}.mode-switch button[aria-pressed="true"]{background:white;box-shadow:0 1px 3px #00000008;color:var(--ink)}.editor-toolbar{display:flex;gap:6px;align-items:center;justify-content:space-between;padding:11px 20px;border-bottom:1px solid #f1f0ea;background:#fdfdfa;flex-wrap:wrap}.editor-toolbar .group{display:flex;gap:5px;align-items:center;flex-wrap:wrap}.editor-toolbar .hint{font-size:10px;color:var(--muted)}.paper-content{padding:25px 30px 24px}.field-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}.field-heading label{font-size:10px;letter-spacing:.06em;color:#8a877c}.text-input{width:100%;border:1px solid var(--line);border-radius:7px;background:white;color:var(--ink);padding:9px 10px;font-size:12px}.title-input{font-size:23px;font-weight:650;letter-spacing:-.03em;border:1px solid transparent;border-radius:6px;padding:5px 7px;margin-left:-7px;width:calc(100% + 14px);background:transparent;color:var(--ink);line-height:1.5}.title-input:hover,.title-input:focus{border-color:var(--line);background:#fdfcf9}.body-heading{margin-top:22px}.body-editor{width:calc(100% + 16px);margin-left:-8px;min-height:402px;resize:vertical;border:1px solid transparent;border-radius:7px;padding:7px;line-height:2.1;font-size:14px;letter-spacing:.01em;background:transparent;color:#4c4a42;tab-size:2}.body-editor:hover,.body-editor:focus{border-color:var(--line);background:#fefdfa}.summary-editor{min-height:75px;resize:vertical}.tags-field{padding-top:14px;border-top:1px dashed var(--line);margin-top:12px}.tags-field input{color:var(--orange);background:#fffaf6;border-color:#efdfd0}.editor-foot{padding:13px 21px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:12px;font-size:10px;color:var(--muted);background:#fdfcf9}.editor-foot .left{display:flex;gap:10px;align-items:center}.work-note{font-size:10px;color:var(--muted);margin:12px 4px;line-height:1.8}.inspector{display:grid;gap:15px;min-width:0}.inspector .panel{padding:20px}.module-title{display:flex;gap:8px;align-items:center;justify-content:space-between;margin-bottom:5px}.module-title h2{font-size:12px;font-weight:650}.module-desc{font-size:10px;color:var(--muted);line-height:1.8}.field-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:17px}.field-grid label,.model-setting label{display:block;font-size:10px;color:var(--muted);margin-bottom:6px}.select{width:100%;border:1px solid #e1dfd6;border-radius:7px;padding:7px 8px;background:#fdfcf9;color:var(--ink);font-size:11px}.advanced{margin-top:13px;border-top:1px solid #f0eee6;padding-top:12px;font-size:10px;color:var(--muted)}.advanced summary{cursor:pointer}.model-setting{margin-top:12px}.origin{border-radius:7px;background:#f5f4ef;margin-top:15px;padding:11px;font-size:10px;color:var(--muted)}.origin strong{font-weight:550;color:#666257;display:block;margin-bottom:3px}.config-warning{font-size:10px;line-height:1.8;background:var(--orange-bg);color:var(--orange);padding:9px 10px;border-radius:6px;margin-top:10px}.offline-label{font-size:10px;color:var(--red);margin-top:8px}.generation-actions{display:grid;gap:7px;margin-top:14px}.generation-actions .button{width:100%}.quality-list{display:grid;gap:14px;margin-top:18px}.quality-row{display:flex;gap:9px;align-items:flex-start}.quality-icon{width:18px;height:18px;border-radius:50%;background:var(--green-bg);color:var(--green);display:grid;place-items:center;font-size:10px;flex-shrink:0;margin-top:1px}.quality-icon.warn{color:#98763b;background:#f6f0df}.quality-row strong{font-size:11px;font-weight:550;display:block}.quality-row p{font-size:10px;line-height:1.7;color:var(--muted);margin-top:2px}.quality-target{font-size:10px;background:#f6f5f0;padding:8px;border-radius:6px;margin-top:12px;color:#767162}.human-note{border-top:1px solid var(--line);padding-top:13px;font-size:10px;color:var(--muted);margin-top:17px}.human-note strong{display:block;color:#706957;font-weight:550;margin-bottom:4px}.design-hint{padding:16px 18px;border:1px dashed #dcd6e4;border-radius:12px;background:#f8f5fa;color:#81738a;font-size:10px}.design-hint strong{color:#756180;display:block;font-size:11px;margin-bottom:6px}.design-hint a{margin-top:8px;display:inline-block}.spotlight{outline:2px solid #d28b49;outline-offset:4px;box-shadow:0 0 0 8px #d28b4910}
+    .publish-preview{padding:25px 30px;background:#eeede7}.preview-caption{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:13px;color:var(--muted);font-size:10px}.preview-paper{max-width:445px;background:white;margin:auto;border:1px solid #e0ddd3;border-radius:14px;overflow:hidden;box-shadow:0 10px 35px #33302408}.cover-art{background:#efe9de;padding:28px 25px 22px;position:relative;min-height:280px;overflow:hidden;color:#37362e}.cover-art::after{content:"";position:absolute;width:190px;height:190px;border:1px solid #c2b7a0;border-radius:50%;right:-45px;bottom:-55px}.cover-art .cover-eyebrow{font-size:8px;letter-spacing:.21em;color:#847965;position:relative;z-index:1}.cover-art .cover-no{font-family:Georgia,serif;font-size:66px;line-height:1.2;color:#b95427;margin:10px 0 12px;position:relative;z-index:1}.cover-art h3{font-size:27px;line-height:1.5;max-width:310px;font-family:"Songti SC","SimSun",serif;letter-spacing:.015em;position:relative;z-index:1;overflow-wrap:anywhere}.cover-art .cover-footer{font-size:8px;letter-spacing:.15em;margin-top:20px;position:relative;z-index:1;color:#887c68}.preview-article{padding:23px}.preview-article h3{font-size:18px;overflow-wrap:anywhere}.preview-author{font-size:10px;color:var(--muted);margin:10px 0 17px}.preview-article p{white-space:pre-wrap;font-size:12px;line-height:2;color:#59564d;overflow-wrap:anywhere}.preview-tags{font-size:11px;color:var(--orange);margin-top:18px;overflow-wrap:anywhere}.preview-digest{background:#f4f4ef;padding:12px;font-size:11px;color:var(--muted);margin-bottom:17px}.preview-disclaimer{font-size:9px;color:var(--muted);text-align:center;margin:14px 0 0}.library-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}.draft-card{padding:20px;background:white;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;min-height:215px}.draft-card h2{font-size:16px;margin:13px 0 8px;overflow-wrap:anywhere}.draft-card p{font-size:11px;color:var(--muted);line-height:1.9;flex:1}.draft-card footer{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:15px;font-size:10px;color:var(--muted)}.spec-hero{background:#ede8dd;border-radius:17px;padding:31px;margin-bottom:22px;display:flex;justify-content:space-between;gap:25px;align-items:center}.spec-hero h2{font-size:24px;margin:9px 0}.spec-hero p{font-size:12px;color:#777062;max-width:640px}.spec-grid{display:grid;grid-template-columns:1fr 1fr;gap:19px}.spec-card{padding:25px;border:1px solid var(--line);border-radius:13px;background:white}.spec-card h2{font-size:16px;margin-bottom:13px}.spec-card p,.spec-card li{font-size:12px;color:#706c61}.spec-card.full{grid-column:1/-1}.sequence{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:19px}.sequence>div{padding:14px;background:#f8f6f1;border:1px solid var(--line);border-radius:9px}.sequence b{font-size:12px;display:block}.sequence span{font-size:10px;color:var(--muted);display:block;margin-top:6px}.table-wrap{overflow:auto}table{border-collapse:collapse;width:100%;min-width:650px;text-align:left;font-size:11px}th{color:#837a6c;font-size:10px;background:#f5f2eb}th,td{padding:12px;border-bottom:1px solid var(--line);vertical-align:top}td a{color:var(--orange)}.spec-foot{margin-top:18px;font-size:11px;color:var(--muted)}
+    dialog{border:1px solid var(--line);border-radius:17px;padding:0;max-width:calc(100% - 30px);width:520px;max-height:88vh;color:var(--ink);background:#fcfbf8;box-shadow:0 30px 100px #24201630}dialog::backdrop{background:#28261f55;backdrop-filter:blur(3px)}dialog.wide{width:900px}.dialog-header{padding:21px 25px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:flex-start;gap:12px;background:white;position:sticky;top:0;z-index:2}.dialog-header h2{font-size:19px;letter-spacing:-.02em}.dialog-header p{font-size:11px;color:var(--muted);margin-top:5px}.dialog-body{padding:23px 25px}.dialog-footer{padding:16px 25px;border-top:1px solid var(--line);display:flex;justify-content:flex-end;gap:8px;flex-wrap:wrap;background:white;position:sticky;bottom:0}.form-row{margin-bottom:17px}.form-row label{display:block;font-size:12px;margin-bottom:7px}.form-row p{font-size:10px;color:var(--muted);margin-top:7px}.dialog-note{font-size:11px;color:var(--muted);line-height:1.9}.comparison{display:grid;grid-template-columns:1fr 1fr;gap:18px}.comparison h3,.comparison label{font-size:11px;display:block;margin-bottom:9px;color:var(--muted)}.original-copy{font:12px/1.95 "Segoe UI","Microsoft YaHei",sans-serif;white-space:pre-wrap;overflow-wrap:anywhere;background:#f3f1ea;border:1px solid #e5e1d7;padding:15px;margin:0;border-radius:9px;min-height:270px;max-height:400px;overflow:auto}.candidate-text{width:100%;min-height:270px;resize:vertical;border:1px solid #cfdeca;border-radius:9px;padding:15px;line-height:1.95;font-size:12px;background:#fbfff8;color:var(--ink)}.candidate-meta{margin-bottom:16px;padding:11px 13px;border-radius:8px;background:var(--purple-bg);font-size:11px;color:var(--purple)}.stale-warning{margin-bottom:16px;padding:12px;background:var(--red-bg);border-radius:8px;color:var(--red);font-size:12px}.version-list{display:grid;gap:11px}.version{padding:16px;border:1px solid var(--line);border-radius:9px;background:white}.version-top{display:flex;justify-content:space-between;gap:12px;align-items:center}.version h3{font-size:12px}.version p{font-size:11px;color:var(--muted);margin-top:7px;overflow-wrap:anywhere}.version .meta{font-size:10px;margin-top:3px}.export-options{display:grid;gap:12px}.export-option{display:flex;gap:12px;align-items:center;justify-content:space-between;border:1px solid var(--line);border-radius:10px;padding:16px;background:white}.export-option strong{font-size:12px;display:block}.export-option p{font-size:10px;color:var(--muted);margin-top:5px}.lab-row{display:flex;align-items:flex-start;gap:12px;padding:17px 0;border-bottom:1px solid var(--line)}.lab-row:first-child{padding-top:0}.lab-row input{accent-color:var(--orange);width:16px;height:16px;margin-top:4px}.lab-row label{font-size:12px;font-weight:600;display:block}.lab-row p{font-size:11px;color:var(--muted);margin-top:4px}.lab-actions{display:flex;flex-wrap:wrap;gap:9px;margin-top:21px}.audit-list{display:grid;gap:14px}.audit-card{padding:19px;border:1px solid var(--line);background:white;border-radius:11px}.audit-card-head{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.audit-card h3{font-size:13px;margin:7px 0}.audit-card p,.audit-card li{font-size:11px;color:var(--muted)}.audit-form{display:grid;grid-template-columns:155px 1fr;gap:13px;border-top:1px dashed var(--line);margin-top:13px;padding-top:12px}.audit-form label{display:block;font-size:10px;color:var(--muted);margin-bottom:5px}.audit-form textarea{width:100%;min-height:58px;resize:vertical;border:1px solid var(--line);border-radius:7px;padding:8px;font-size:11px}.toast{position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#333029;color:#fff;padding:12px 20px;border-radius:10px;box-shadow:0 5px 25px #0002;z-index:50;max-width:min(640px,calc(100% - 35px));font-size:12px;pointer-events:none}.toast.error{background:#863e34}.noscript-warning{padding:20px;background:var(--red-bg);color:var(--red)}
+    @media(min-width:1600px){.main{padding-left:45px;padding-right:45px}.work-grid{grid-template-columns:minmax(0,1fr) 310px}.paper-content{padding:28px 42px}}
+    @media(max-width:1200px){.app-shell{grid-template-columns:175px minmax(0,1fr)}.sidebar{padding-left:11px;padding-right:11px}.main{padding:24px}.work-grid{gap:16px;grid-template-columns:minmax(0,1fr) 250px}.inspector .panel{padding:17px}.paper-content{padding:22px}.titlebar{align-items:flex-start;flex-direction:column;gap:15px}.recent-draft .title{max-width:114px}.editor-toolbar .hint{display:none}.library-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+    @media(max-width:980px){.app-shell{grid-template-columns:155px minmax(0,1fr)}.sidebar{padding-top:24px}.sidebar-footer{padding-left:4px;padding-right:4px}.nav-button{font-size:11px;gap:8px}.logo{font-size:23px;padding:0 5px}.main{padding:21px}.work-grid{grid-template-columns:minmax(0,1fr)}.inspector{grid-template-columns:1fr 1fr}.design-hint{grid-column:1/-1}.recent-draft .title{max-width:99px}.save-state{max-width:140px}.top-actions{flex-wrap:wrap;justify-content:flex-end}.spec-grid{grid-template-columns:1fr}.sequence{grid-template-columns:1fr 1fr}.spec-card.full{grid-column:auto}}
+    @media(max-width:720px){.app-shell{display:block}.sidebar{position:relative;top:auto;height:auto;padding:13px 18px;display:flex;flex-direction:row;justify-content:space-between;align-items:center;border-right:0;border-bottom:1px solid var(--line);gap:12px}.sidebar .workspace-label,.sidebar-divider,.sidebar-recents,.sidebar-footer,.new-side{display:none}.nav-list{display:flex;gap:3px}.nav-button{width:auto;padding:8px}.nav-button .icon,.nav-button .count{display:none}.logo{font-size:22px}.logo-mark{width:28px;height:28px;font-size:19px}.main{padding:19px 18px 40px}.review-strip{padding:8px 18px;font-size:10px}.review-strip .extra{display:none}.review-strip .links{gap:10px}.pagebar{margin-bottom:22px}.breadcrumb{display:none}.top-actions{width:100%;justify-content:space-between}.top-actions .save-state{margin-right:auto}.titlebar h1{font-size:26px}.guide{gap:10px;padding:12px}.guide-select{max-width:115px}.guide-number{display:none}.paper-content{padding:22px}.body-editor{min-height:350px}.title-input{font-size:21px}.source-preview{max-width:300px}.comparison{grid-template-columns:1fr}.original-copy{min-height:120px;max-height:180px}.candidate-text{min-height:220px}.dialog-header{padding:18px}.dialog-body{padding:18px}.dialog-footer{padding:14px 18px}.audit-form{grid-template-columns:1fr}.spec-hero{padding:24px}.spec-hero .tag{display:none}.preview-paper{max-width:405px}.guide-content p{font-size:10px}}
+    @media(max-width:450px){.sidebar{padding:12px 13px}.logo{font-size:21px;gap:6px}.nav-button{padding:7px 6px;font-size:10px}.main{padding-left:13px;padding-right:13px}.review-strip{padding-left:13px;padding-right:13px}.review-strip .prototype-date{display:none}.review-strip .links{gap:8px}.top-actions .button{padding:7px 8px;font-size:10px}.save-state{font-size:10px}.titlebar p{font-size:11px}.flow-switch{width:100%;justify-content:space-between}.flow-switch button{padding:7px 9px}.inspector{grid-template-columns:1fr}.design-hint{grid-column:auto}.editor-heading{padding:14px}.editor-heading .ref{display:none}.editor-toolbar{padding:10px 12px}.editor-toolbar .button{font-size:10px;padding:7px}.paper-content{padding:20px 18px}.title-input{font-size:19px}.source-panel summary{padding:14px}.source-preview{max-width:230px}.source-expanded{padding:0 14px 14px}.source-footer{align-items:flex-start;flex-direction:column}.editor-foot{padding:12px 14px;flex-wrap:wrap;font-size:9px}.library-grid{grid-template-columns:1fr}.publish-preview{padding:18px}.preview-article{padding:19px}.cover-art{padding:23px;min-height:255px}.cover-art h3{font-size:24px}.guide-select{max-width:98px;font-size:9px}.spec-card{padding:20px}.sequence{grid-template-columns:1fr}.audit-card{padding:15px}.audit-card-head{gap:7px}.audit-card-head .button{font-size:10px}.export-option{align-items:flex-start}.export-option .button{font-size:10px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*,*::before,*::after{animation:none!important;transition:none!important}}
+    @media print{.review-strip,.sidebar,.pagebar,.guide,.inspector,.editor-toolbar,.mode-switch,.ref,.work-note,.dialog-footer,.dialog-header .button,.toast,.top-actions,.button{display:none!important}.app-shell,.work-grid{display:block}.main{padding:0;max-width:none}.panel{box-shadow:none}.body-editor{min-height:600px}.paper-content{padding:20px}dialog[open]{position:static;max-height:none;width:100%;max-width:none;box-shadow:none;overflow:visible}.spec-grid{display:block}.spec-card{margin-bottom:15px;break-inside:avoid}.preview-paper{max-width:100%;box-shadow:none}.publish-preview{background:white}@page{size:A4;margin:15mm}}
+  </style>
+</head>
+<body>
+  <a class="skip" href="#main">跳到工作台</a>
+  <svg aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden"><defs>
+    <symbol id="i-work" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M3 9h18M9 9v11"/></symbol>
+    <symbol id="i-files" viewBox="0 0 24 24"><path d="M8 3h9l4 4v12a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2ZM3 7v10M15 3v5h6M10 12h7M10 16h5"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M5 4h14v16H5zM8 8h8M8 12h8M8 16h5"/></symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="m12 3 2.3 6.7L21 12l-6.7 2.3L12 21l-2.3-6.7L3 12l6.7-2.3ZM20 2v4M18 4h4"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5"/></symbol>
+    <symbol id="i-lab" viewBox="0 0 24 24"><path d="M9 3h6M10 3v7L4 19a1 1 0 0 0 1 2h14a1 1 0 0 0 1-2l-6-9V3M8 15h8"/></symbol>
+  </defs></svg>
+  <header class="review-strip"><div><strong>DESIGN PROTOTYPE</strong> <span class="extra">/ Opera 产品改善方案</span> <span class="prototype-date">· 2026.09.10</span></div><div class="links"><span>本地模拟 · 不连接模型</span><a href="../product-improvement-review-2026-09-10.html" target="_blank" rel="noopener">审核清单 ↗</a></div></header>
+  <noscript><p class="noscript-warning">此原型需要 JavaScript 才能操作。请在浏览器中打开 HTML 并启用 JavaScript；本页不会调用外部服务。</p></noscript>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="工作区导航">
+      <div><div class="logo"><span class="logo-mark">o</span>opera<span style="font-size:10px;letter-spacing:0;color:#a49b8b;margin-top:9px">/</span></div><p class="workspace-label">给好内容，一个新表达。</p></div>
+      <button class="button primary new-side" data-action="new"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>新建稿件</button>
+      <nav class="nav-list" aria-label="主导航"><button class="nav-button" data-view="workbench" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-work"/></svg>创作工作台</button><button class="nav-button" data-view="library"><svg class="icon" aria-hidden="true"><use href="#i-files"/></svg>我的稿件<span class="count" id="draft-count">3</span></button><button class="nav-button" data-view="spec"><svg class="icon" aria-hidden="true"><use href="#i-note"/></svg>设计说明</button></nav>
+      <div class="sidebar-divider"></div>
+      <div class="sidebar-recents"><div class="side-heading"><span>最近编辑</span><span>LOCAL</span></div><div class="recent-list" id="recent-list"></div></div>
+      <div class="sidebar-footer"><button class="button" data-action="lab"><svg class="icon" aria-hidden="true"><use href="#i-lab"/></svg>异常状态实验</button><p>仅保存本原型的演示稿件。<br>不会读取或改动产品草稿。</p></div>
+    </aside>
+    <main class="main" id="main">
+      <div class="pagebar"><div class="breadcrumb">个人工作区 <span>/</span> <strong id="breadcrumb-name">创作工作台</strong></div><div class="top-actions"><span class="save-state" id="save-state" role="status" aria-live="polite"><span class="dot"></span><span id="save-text">正在读取原型草稿</span></span><button class="button" data-action="audit">审核导览 <span class="mono" id="audit-progress">0/7</span></button><button class="button primary" data-action="export"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>导出</button></div></div>
+      <div class="persistent-alert" id="storage-warning" role="alert" hidden><span id="storage-warning-text"></span><button class="button tiny" data-action="export">导出备份</button></div>
+      <section id="view-workbench">
+        <div class="titlebar"><div><div class="eyebrow">CREATE WITH INTENTION</div><h1 id="workspace-title">内容改写工作台</h1><p id="workspace-subtitle">从一篇好素材，开始下一篇好内容。</p></div><div class="flow-switch" aria-label="选择创作流程"><button data-flow="adapter" aria-pressed="true">内容改写</button><button data-flow="composer" aria-pressed="false">小红书原创</button><button data-flow="wechat" aria-pressed="false">公众号创作</button></div></div>
+        <section class="guide" aria-labelledby="guide-title"><span class="guide-number" id="guide-number">IMP-01</span><div class="guide-content"><h2 id="guide-title">草稿恢复与防丢</h2><p id="guide-description"></p><details><summary>查看操作步骤与预期</summary><ol id="guide-steps"></ol><a id="guide-review-link" href="../product-improvement-review-2026-09-10.html#imp-01" target="_blank" rel="noopener">对照原审核项 ↗</a></details></div><label class="sr-only" for="guide-select">切换审核场景</label><select class="guide-select" id="guide-select"><option value="IMP-01">01 · 草稿防丢</option><option value="IMP-02">02 · 配置解耦</option><option value="IMP-03">03 · 人工编辑</option><option value="IMP-04">04 · 局部生成</option><option value="IMP-05">05 · 质量检查</option><option value="DIR-01">06 · 产品方向</option><option value="QA-01">07 · 异常验收</option></select></section>
+        <div class="job-banner" id="job-banner" role="status" aria-live="polite" hidden><div><span class="spinner" aria-hidden="true"></span><span id="job-text"></span></div><button class="button tiny" id="cancel-job">取消</button></div>
+        <div class="work-grid"><div class="work-main">
+          <details class="panel source-panel" id="source-panel"><summary><span class="source-icon"><svg class="icon" aria-hidden="true"><use href="#i-note"/></svg></span><div class="source-info"><div class="source-heading" id="source-heading">原始素材 <span class="tag">保留原文</span></div><div class="source-preview" id="source-preview"></div></div><span class="source-arrow" aria-hidden="true">⌄</span></summary><div class="source-expanded"><label id="source-label" for="source-input">原始文章 / 知识笔记</label><textarea id="source-input" placeholder="粘贴你的原文。原始素材与完成稿分开保存。"></textarea><div class="source-footer"><span id="source-count"></span><span>修改素材不会清空当前完成稿</span></div></div></details>
+          <article class="panel" id="editor-panel" aria-labelledby="editor-title"><header class="editor-heading"><div class="left"><h2 id="editor-title">当前稿件</h2><span class="tag green">可直接编辑</span><button class="ref" data-audit="IMP-03">IMP-03</button></div><div class="mode-switch" aria-label="切换编辑与预览"><button id="mode-edit" aria-pressed="true">编辑</button><button id="mode-preview" aria-pressed="false">发布预览</button></div></header><div class="editor-toolbar"><div class="group"><button class="button tiny" id="save-version"><svg class="icon" aria-hidden="true"><use href="#i-clock"/></svg>保存版本</button><button class="button tiny" data-action="history">版本记录 <span id="version-count">1</span></button></div><div class="group"><span class="hint">手动修改，不消耗模型</span><button class="button tiny purple" id="rewrite-body" data-generate="body"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg><span id="rewrite-label">AI 改写</span></button></div></div>
+            <div class="paper-content" id="edit-pane"><div class="field-heading"><label for="title-input">标题</label><button class="button tiny ghost" data-generate="title">生成标题候选 ↗</button></div><input class="title-input" id="title-input" autocomplete="off" placeholder="给这篇稿件一个标题">
+              <div id="summary-field" hidden><div class="field-heading body-heading"><label for="summary-input">公众号摘要</label><button class="button tiny ghost" data-generate="summary">生成摘要候选 ↗</button></div><textarea class="text-input summary-editor" id="summary-input" placeholder="摘要与正文分开保存"></textarea></div>
+              <div class="field-heading body-heading"><label for="body-input">正文 · 点击即可修改</label><span class="small muted" id="body-word-count">0 字</span></div><textarea class="body-editor" id="body-input" spellcheck="false" placeholder="直接写下你的内容，或展开素材并生成示例候选。空白稿件也会保留。"></textarea>
+              <div class="tags-field" id="tags-field"><div class="field-heading"><label for="tags-input">发布标签</label><button class="ref" data-audit="IMP-04">IMP-04</button></div><input class="text-input" id="tags-input" placeholder="#时间管理 #生活方式"></div>
+            </div>
+            <div class="publish-preview" id="preview-pane" hidden><div class="preview-caption"><span id="preview-platform">小红书 · 图文排版示意</span><span class="tag">非真实平台渲染</span></div><div class="preview-paper"><div class="cover-art" id="preview-cover"><div class="cover-eyebrow">OPERA / NOTES ON EVERYDAY LIFE</div><div class="cover-no">01.</div><h3 id="preview-cover-title"></h3><div class="cover-footer">KEEP THE IDEAS. FIND A NEW EXPRESSION.</div></div><div class="preview-article"><h3 id="preview-title"></h3><div class="preview-author">我的创作笔记 · 本地预览</div><div class="preview-digest" id="preview-summary" hidden></div><p id="preview-body"></p><div class="preview-tags" id="preview-tags"></div></div></div><p class="preview-disclaimer">仅示意当前标题与正文排版；不包含真实图片生成或自动发布。</p></div>
+            <footer class="editor-foot"><div class="left"><span class="dot" style="color:var(--green)"></span><span id="draft-identity"></span><button class="ref" data-audit="IMP-01">IMP-01</button></div><span id="edit-time"></span></footer>
+          </article><p class="work-note">文字会自动保存在本原型的独立存储中；重要版本可手动留档。预览与导出使用当前稿，AI 结果只有在你确认后才应用。</p>
+        </div><aside class="inspector" aria-label="稿件设置与检查">
+          <section class="panel" id="config-panel"><div class="module-title"><h2>下一次生成</h2><button class="ref" data-audit="IMP-02">IMP-02</button></div><p class="module-desc">调整参数，不改变眼前这篇稿件。</p><div class="field-grid"><div><label for="tone-select">表达语气</label><select class="select" id="tone-select"><option value="knowledge">清晰干货</option><option value="casual">自然口语</option><option value="story">叙事分享</option></select></div><div><label for="length-select">目标篇幅</label><select class="select" id="length-select"><option value="short">短篇</option><option value="medium">中篇</option><option value="long">长篇</option></select></div></div><details class="advanced" id="advanced-settings"><summary>高级设置 · 模型与来源</summary><div class="model-setting"><label for="model-select">模拟模型（不发起网络请求）</label><select class="select" id="model-select"><option value="model-a">演示模型 A</option><option value="model-b">演示模型 B</option></select></div></details><div class="origin"><strong>当前稿的生成来源</strong><span id="origin-text"></span></div><div class="config-warning" id="config-warning" hidden>新配置待应用。当前内容与来源保持不变，只有接受新的正文候选后才更新来源。</div><p class="offline-label" id="offline-label" hidden>模拟模型离线 · 仍可编辑、保存和导出</p><div class="generation-actions"><button class="button orange" data-generate="body"><svg class="icon" aria-hidden="true"><use href="#i-spark"/></svg>生成正文候选</button><button class="button" id="generate-tags" data-generate="tags">基于当前稿生成标签</button></div><p class="module-desc" style="margin-top:9px">所有生成均为本地固定规则演示，不代表模型能力。</p></section>
+          <section class="panel" id="quality-panel"><div class="module-title"><h2>基础内容检查</h2><button class="ref" data-audit="IMP-05">IMP-05</button></div><p class="module-desc">说明检查依据，不预测传播效果。</p><div class="quality-target" id="quality-target"></div><div class="quality-list" id="quality-list"></div><div class="human-note"><strong>留给你的最后一道检查</strong>事实、来源与图片使用权需人工确认。通过格式检查，不代表内容适合发布。</div></section>
+          <div class="design-hint"><strong>这次设计，把决定权留给作者。</strong>已有内容不会因切换模型而失效；生成是候选，确认才成为版本。<br><a href="../product-improvement-review-2026-09-10.html#imp-02" target="_blank" rel="noopener">查看对应设计约束 ↗</a></div>
+        </aside></div>
+      </section>
+      <section id="view-library" hidden><div class="titlebar"><div><div class="eyebrow">YOUR WORDS, KEPT SAFE</div><h1>我的稿件</h1><p>每篇稿件独立保存，切换流程不会覆盖旧内容。<button class="ref" data-audit="IMP-02">IMP-02</button></p></div><button class="button primary" data-action="new"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>新建稿件</button></div><div class="library-grid" id="library-grid"></div><p class="spec-foot">本地原型不提供账号、云同步或产品草稿迁移；真实迁移方案仍需在开发阶段验收。</p></section>
+      <section id="view-spec" hidden><div class="titlebar"><div><div class="eyebrow">DESIGN NOTES / V1.0</div><h1>一份可操作的设计提案</h1><p>原型验证交互是否合理，不代表五项问题已在产品中修复。</p></div><button class="button" data-action="audit">逐项记录审核意见</button></div><div class="spec-hero"><div><div class="eyebrow">DIRECTION · 待审核</div><h2>从长文素材，到可持续复用的内容。</h2><p>优先服务有文章、知识笔记的个人创作者。保留内容改写、小红书原创、公众号创作三条流程，共用稳定的稿件、编辑与版本能力。</p></div><button class="ref" data-audit="DIR-01">DIR-01</button></div><div class="spec-grid">
+        <article class="spec-card full"><h2>工作台的信息层级</h2><p>左侧找稿件，中间处理内容，右侧调整下一次生成与查看基础检查。审核导览是原型辅助，不是正式产品常驻模块。</p><div class="sequence"><div><b>01 · 保留素材</b><span>原文 / 选题独立保存<br>不会覆盖完成稿</span></div><div><b>02 · 自由编辑</b><span>标题 / 摘要 / 正文<br>无需模型也能改</span></div><div><b>03 · 确认候选</b><span>基于当前版本生成<br>应用 / 放弃 / 防覆盖</span></div><div><b>04 · 留档交付</b><span>版本恢复 / 排版预览<br>导出当前文本</span></div></div></article>
+        <article class="spec-card"><h2>三个对象，三种职责</h2><ul><li><strong>Draft：</strong>稳定稿件 ID、素材、当前文本；每次修改增加 revision。</li><li><strong>DraftVersion：</strong>手动留档与接受候选时的内容快照，恢复不会删除历史。</li><li><strong>Generation：</strong>发起时的稿件 ID、revision、当前内容、参数与目标块；过期结果不能应用。</li></ul><p style="margin-top:12px">下一次生成配置独立保存。手动编辑不改变当前稿的生成来源。</p></article>
+        <article class="spec-card"><h2>哪些是真的，哪些是模拟</h2><ul><li><strong>真实可操作：</strong>文字编辑、多稿、本地保存、版本恢复、内容预览、Markdown / JSON 下载、原型意见导出。</li><li><strong>本地模拟：</strong>延迟返回、候选文本、标签提取、模型离线、生成失败、存储失败。</li><li><strong>没有实施：</strong>真实模型、产品旧草稿迁移、图片生成 / 图片包下载、自动发布、云同步。</li></ul><p style="margin-top:12px">本页只访问自己的存储键 <code>opera-improvement-prototype-2026-09-10-v1</code>；不会读取真实产品数据。</p></article>
+        <article class="spec-card full"><h2>审核清单 → 原型操作点</h2><div class="table-wrap"><table><thead><tr><th>审核项</th><th>操作位置</th><th>要观察的改变</th><th>仍需真实产品验证</th></tr></thead><tbody id="spec-mapping"></tbody></table></div></article>
+        <article class="spec-card"><h2>基础规则与兼容边界</h2><p>本原型中，小红书两流程统一采用：短篇 180–240、中篇 320–450、长篇 600 字及以上；标题 25 字以内。公众号篇幅暂用短篇 600–1,000、中篇 1,000–1,600、长篇 1,600–2,400 的<strong>提议值</strong>，需单独确认。</p><p style="margin-top:10px">字数按 Unicode 字符计数（不含空白），不等同于 token 数。检查以当前正文生成时的篇幅为准，改变下一次参数不会重新定义旧稿的标准。</p></article>
+        <article class="spec-card"><h2>建议审核路径 · 约 7 个场景</h2><ol><li>先编辑正文，保存后刷新；切换稿件再回来。</li><li>改语气 / 模型，并模拟离线，观察原稿。</li><li>生成候选期间继续编辑，验证过期保护。</li><li>修改主题词后生成标签，查看实际上下文。</li><li>恢复一个版本、导出文本，再记录意见。</li></ol><p style="margin-top:10px">手机布局：导航横排，编辑区在前，设置与检查在后。建议实机检查 390 / 768 / 1024 / 1440 宽度与中文输入法。</p></article>
+      </div><p class="spec-foot">设计延续 <a href="frontend-optimization-preview.html" target="_blank" rel="noopener">前序优化预览</a> 的暖色、纸面与橙色强调，收敛到可编辑、可恢复的内容工作台。<a href="../product-improvement-review-2026-09-10.html" target="_blank" rel="noopener">打开完整改善审核清单 ↗</a></p></section>
+    </main>
+  </div>
+  <dialog id="new-dialog" aria-labelledby="new-dialog-title"><form id="new-form"><header class="dialog-header"><div><h2 id="new-dialog-title">新建一篇稿件</h2><p>创建独立草稿，保留你已有的全部内容。</p></div><button class="button icon-button" type="button" data-close="new-dialog" aria-label="关闭新建窗口">×</button></header><div class="dialog-body"><div class="form-row"><label for="new-title">稿件名称</label><input class="text-input" id="new-title" placeholder="例如：一周阅读笔记" maxlength="120"><p>可以留空，创建后随时修改标题。</p></div><div class="form-row"><label for="new-flow">创作流程</label><select class="select" id="new-flow"><option value="adapter">内容改写</option><option value="composer">小红书原创</option><option value="wechat">公众号创作</option></select></div><p class="dialog-note">空白稿不会被自动删除。此操作仅写入原型存储。</p></div><footer class="dialog-footer"><button type="button" class="button" data-close="new-dialog">取消</button><button type="submit" class="button primary">创建稿件</button></footer></form></dialog>
+  <dialog class="wide" id="candidate-dialog" aria-labelledby="candidate-title"><header class="dialog-header"><div><h2 id="candidate-title">先看候选，再决定是否应用</h2><p>模拟生成 · 固定规则仅演示交互，不代表真实模型效果。</p></div><button class="button icon-button" data-close="candidate-dialog" aria-label="关闭候选窗口">×</button></header><div class="dialog-body"><div class="candidate-meta" id="candidate-meta"></div><div class="stale-warning" id="candidate-stale" hidden>生成期间原稿已改变，此候选已过期，不能覆盖最新稿。请放弃或基于最新稿重试。</div><div class="comparison"><div><h3>发起时的原文 · 保持不变</h3><pre class="original-copy" id="candidate-original"></pre></div><div><label for="candidate-text">模拟候选 · 可在应用前调整</label><textarea class="candidate-text" id="candidate-text"></textarea></div></div><details class="advanced"><summary>查看本次输入上下文与调用边界</summary><pre class="original-copy" id="candidate-context" style="min-height:90px;margin-top:12px"></pre></details></div><footer class="dialog-footer"><button class="button" id="reject-candidate">放弃候选</button><button class="button" id="retry-candidate">基于最新稿重试</button><button class="button orange" id="apply-candidate">应用并保存新版本</button></footer></dialog>
+  <dialog id="history-dialog" aria-labelledby="history-title"><header class="dialog-header"><div><h2 id="history-title">稿件版本</h2><p>恢复会产生新版本，不会删除现有历史。</p></div><button class="button icon-button" data-close="history-dialog" aria-label="关闭版本窗口">×</button></header><div class="dialog-body"><div class="version-list" id="version-list"></div></div></dialog>
+  <dialog id="export-dialog" aria-labelledby="export-title"><header class="dialog-header"><div><h2 id="export-title">把内容带走</h2><p>使用当前内存中的文字；未保存或模型离线时也可导出。</p></div><button class="button icon-button" data-close="export-dialog" aria-label="关闭导出窗口">×</button></header><div class="dialog-body"><div class="export-options"><div class="export-option"><div><strong>当前稿件 · Markdown</strong><p>标题、摘要、正文与标签，可继续编辑。</p></div><button class="button" id="export-markdown">下载 .md</button></div><div class="export-option"><div><strong>全部原型稿件 · JSON</strong><p>含素材、版本和原型意见，作为本地备份。<br>本版原型不提供导入入口。</p></div><button class="button" id="export-json">下载 .json</button></div><div class="export-option"><div><strong>原型审核意见 · Markdown</strong><p>按 IMP / DIR / QA 编号汇总你的体验记录。</p></div><button class="button" id="export-feedback">下载意见</button></div></div><p class="dialog-note" style="margin-top:18px">此版本不包含图片包导出。内嵌预览若拦截下载，请用浏览器直接打开本 HTML。正式需求取舍仍以原审核清单为准。</p></div></dialog>
+  <dialog id="lab-dialog" aria-labelledby="lab-title"><header class="dialog-header"><div><h2 id="lab-title">异常状态实验</h2><p>所有开关仅影响本原型，不改变真实服务或浏览器权限。</p></div><button class="button icon-button" data-close="lab-dialog" aria-label="关闭实验窗口">×</button></header><div class="dialog-body"><div class="lab-row"><input type="checkbox" id="lab-offline"><div><label for="lab-offline">模拟模型离线</label><p>生成暂不可用，已有稿件仍能编辑、保存、预览和导出。运行中的模拟生成将失败。</p></div></div><div class="lab-row"><input type="checkbox" id="lab-fail"><div><label for="lab-fail">下一次生成失败</label><p>候选请求失败，不改变正文和版本。触发一次后自动关闭。</p></div></div><div class="lab-row"><input type="checkbox" id="lab-storage"><div><label for="lab-storage">模拟保存失败</label><p>新改动保留在内存并显示警告；已保存内容不被删除。关闭开关后补存当前状态。</p></div></div><div class="lab-actions"><button class="button" id="reload-draft">保存并模拟重新进入</button><button class="button" id="restore-lab">恢复正常状态</button></div><p class="dialog-note" style="margin-top:15px">乱序保护的试法：发起正文候选，在等待的约 3 秒里继续编辑正文；返回的旧候选应禁止应用。真实刷新请先确认“已保存”。</p></div></dialog>
+  <dialog class="wide" id="audit-dialog" aria-labelledby="audit-title"><header class="dialog-header"><div><h2 id="audit-title">对照清单，逐项体验</h2><p>这些记录是原型体验意见，不是产品验收通过证明。</p></div><button class="button icon-button" data-close="audit-dialog" aria-label="关闭审核导览">×</button></header><div class="dialog-body"><div class="audit-list" id="audit-list"></div></div><footer class="dialog-footer"><a class="button" href="../product-improvement-review-2026-09-10.html" target="_blank" rel="noopener">打开正式审核清单 ↗</a><button class="button primary" id="audit-export">导出原型意见</button></footer></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+  <script>
+    (() => {
+      'use strict';
+      const STORAGE_KEY = 'opera-improvement-prototype-2026-09-10-v1';
+      const REVIEW_FILE = '../product-improvement-review-2026-09-10.html';
+      const FLOW = {
+        adapter: { label:'内容改写',title:'内容改写工作台',subtitle:'从一篇好素材，开始下一篇好内容。',source:'原始文章 / 知识笔记' },
+        composer: { label:'小红书原创',title:'小红书创作工作台',subtitle:'从一个想法，写到一篇由你确认的稿件。',source:'选题 / 事实 / 创作要求' },
+        wechat: { label:'公众号创作',title:'公众号创作工作台',subtitle:'保留你的观点，慢慢把一篇文章写好。',source:'主题 / 提纲 / 参考事实' }
+      };
+      const TONE = {knowledge:'清晰干货',casual:'自然口语',story:'叙事分享'};
+      const LENGTH = {short:'短篇',medium:'中篇',long:'长篇'};
+      const MODEL = {'model-a':'演示模型 A','model-b':'演示模型 B'};
+      const VERDICT = {pending:'未评审',fits:'符合预期',revise:'需要调整'};
+      const AUDITS = [
+        {id:'IMP-01',title:'草稿恢复与防丢',target:'editor-panel',where:'当前稿 / 多稿列表',description:'改一个数字，保存后刷新；回来时，修改仍应在原处。',steps:['在正文写下“测试保留 123”，等待顶部显示已保存。','刷新浏览器，或在异常实验中选择“保存并模拟重新进入”。','切换另一篇稿再回来；空白新稿也不应删除旧稿。'],expected:'先读取，再允许保存；内容与稿件身份完整恢复。',real:'真实页面生命周期、StrictMode、存储配额与旧稿迁移。'},
+        {id:'IMP-02',title:'内容与生成参数解耦',target:'config-panel',where:'下一次生成 / 来源 / 稿件',description:'切换语气、篇幅或模型，观察当前正文和生成来源保持不变。',steps:['修改“下一次生成”中的语气与模型，观察“配置待应用”。','查看正文与当前来源：两者不应随配置改变。','模拟模型离线，继续手工编辑；新建另一篇稿，原稿仍在。'],expected:'模型只影响新任务，不决定静态稿件能否使用。',real:'产品数据模型迁移与真实 Provider 被移除的恢复路径。'},
+        {id:'IMP-03',title:'直接编辑与候选确认',target:'editor-panel',where:'正文 / 版本 / AI 候选',description:'直接改字，再试一次 AI 候选；放弃不覆盖，应用后能恢复。',steps:['点击正文，修改数字或段落；无需模型。','生成正文候选，选择放弃，再生成一次并应用。','打开版本记录，恢复应用前的人工稿。也可在生成等待时继续编辑，观察过期保护。'],expected:'原文由你掌控，候选不直接写入；版本可恢复。',real:'中文输入法、键盘撤销、真实并发请求与组件无障碍。'},
+        {id:'IMP-04',title:'局部生成使用当前内容',target:'config-panel',where:'标签 / 候选输入上下文',description:'把“咖啡”写进正文，再生成标签，检查输入包含最新文本。',steps:['切到小红书任一流程，在正文加入“咖啡”。','点“基于当前稿生成标签”，展开候选的输入上下文。','应用标签，确认正文没变；模拟操作只有标签目标，没有隐藏全文生成。'],expected:'目标块使用当前标题 / 正文快照，非目标块保持不变。',real:'真实后端 prompt、请求字段、调用量和旧客户端兼容。'},
+        {id:'IMP-05',title:'可解释的基础检查',target:'quality-panel',where:'基础内容检查',description:'编辑文字时检查即时更新；这里只显示规则，不展示效果百分比。',steps:['查看当前稿的篇幅目标和具体字符区间。','修改标题、正文长度或重复标签，观察对应提示。','改变下一次篇幅时，当前稿的来源目标仍保持原样；接受正文新候选后才更新。'],expected:'规则与当前稿匹配，数字或问号不自动等同于高质量。',real:'前后端统一规则、样本人工复核与公众号提议值确认。'},
+        {id:'DIR-01',title:'优先服务长文素材复用',target:'source-panel',where:'三流程入口 / 原始素材',description:'默认聚焦内容改写；原创与公众号仍保留，共用稿件能力。',steps:['展开原始素材，核对素材与当前完成稿各自独立。','切换三种流程，观察共有的编辑、版本和保存操作。','在设计说明中审核主次关系；是否采用此定位由你决定。'],expected:'优先级清晰，但不删除现有流程或迫使用户更换工作方式。',real:'目标用户访谈、真实素材内测与主入口转化反馈。'},
+        {id:'QA-01',title:'完整流程与异常验收',target:'editor-panel',where:'异常状态实验 / 保存 / 导出',description:'主动让生成和保存失败，确认已有内容不会因此丢失。',steps:['打开异常实验，模拟离线与下一次生成失败。','模拟保存失败后继续改文：应看到未保存提示，仍可导出。','恢复正常状态后补存。测试生成等待期间改文、切稿和取消；最后填写原型意见。'],expected:'异常可理解、可恢复；过期结果不会污染新稿。',real:'浏览器矩阵、实际 Provider、容器运行与代表性内容样本。'}
+      ];
+      const SAMPLE_BODY = '以前，我的待办清单总是很长。回复消息、整理资料、推进项目，每一件都写着“今天完成”。到了晚上，真正重要的事却常常没有开始。\n\n后来我试着做了三个小调整。\n\n01 / 每天只选一件最重要的事\n不是把其他事情删掉，而是先问自己：今天只能完成一件，哪件最值得？把它写在纸上，先留出一段完整时间。\n\n02 / 给专注留一个边界\n我会把手机放远一点，关掉不必要的通知。专注时段不一定很长，先从 25 分钟开始，结束后再统一处理消息。对我来说，减少切换比延长工作时间更有用。\n\n03 / 留一点空白给复盘\n下班前花几分钟，看一看今天真正推进了什么、哪里被打断。没完成的任务重新判断，不直接搬到明天。\n\n这些做法不保证每一天都高效，但让我更容易分清“忙碌”和“有进展”。时间管理，也可以从少安排一点开始。\n\n你会把明天的第一段时间留给什么？';
+      const SAMPLE_SOURCE = '【虚构演示素材 · 不作为真实个人经历】\n\n把时间留给真正重要的事\n\n作者在日常工作中发现，待办事项越来越多，但关键任务往往被消息打断。尝试的方法包括：每天先选一件最重要的事；从 25 分钟的专注时段开始，关闭不必要的通知；下班前用几分钟复盘，并重新判断未完成任务是否值得继续。\n\n这些是个人实践建议，不代表可量化的效率提升，也不能保证适合每个人。改写时保留这一边界，不增加“效率提升 200%”等无依据的说法。';
+      const $ = id => document.getElementById(id);
+      const all = selector => Array.from(document.querySelectorAll(selector));
+      const clone = value => JSON.parse(JSON.stringify(value));
+      const esc = value => String(value ?? '').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+      const charCount = text => Array.from(text.replace(/\s/gu,'')).length;
+      const tagList = text => text.split(/[\s,，、;；#]+/u).map(s=>s.trim()).filter(Boolean);
+      const stamp = () => new Date().toISOString();
+      let idSequence = 0;
+      const newId = () => {
+        let id;
+        do { id='draft-'+Date.now().toString(36)+'-'+(++idSequence).toString(36); }
+        while(state?.drafts.some(d=>d.id===id));
+        return id;
+      };
+      const shortTime = time => new Date(time).toLocaleString('zh-CN',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});
+      const defaultConfig = () => ({tone:'knowledge',length:'medium',model:'model-a'});
+      function contentSnapshot(d) { return {title:d.title,body:d.body,summary:d.summary,tags:d.tags,source:d.source,originConfig:clone(d.originConfig)}; }
+      function recordVersion(d,label) {
+        const content = contentSnapshot(d);
+        const last = d.versions[d.versions.length-1];
+        if (last && JSON.stringify(last.content)===JSON.stringify(content)) return false;
+        d.versions.push({number:(last?.number||0)+1,label,createdAt:stamp(),content});
+        return true;
+      }
+      function makeDraft(flow,title='',seeded=false) {
+        const d = {id:newId(),flow,title,source:'',body:'',summary:'',tags:'',revision:1,updatedAt:stamp(),nextConfig:defaultConfig(),originConfig:null,versions:[]};
+        if (seeded) {
+          d.source = flow==='adapter' ? SAMPLE_SOURCE : '【演示选题】'+title+'\n核心事实：每天先确定一件重点任务，从 25 分钟专注开始，用几分钟复盘。不编造量化效果。';
+          d.body = flow==='wechat' ? '写在前面\n\n'+SAMPLE_BODY+'\n\n给自己的一个提醒\n\n方法不需要一次做全。从明天最容易坚持的一步开始，观察它是否真的适合你的工作与生活。本文为虚构原型示例，不是经过验证的效果结论。' : SAMPLE_BODY;
+          d.summary = flow==='wechat' ? '从每天一件重要的事开始，减少切换，留出复盘的空间。这是一个关于注意力与日常选择的示例。' : '';
+          d.tags = flow==='wechat' ? '' : '#时间管理 #专注 #工作方法 #生活方式';
+          d.originConfig = defaultConfig();
+        }
+        recordVersion(d,seeded?'示例初始稿':'空白新稿'); return d;
+      }
+      function freshState() {
+        const drafts = [makeDraft('adapter','别把每一天，都排得太满',true),makeDraft('composer','把专注，留给最重要的事',true),makeDraft('wechat','给忙碌生活留一点空白',true)];
+        return {schemaVersion:1,activeId:drafts[0].id,drafts,feedback:{}};
+      }
+      const validConfig = c => c && Object.hasOwn(TONE,c.tone) && Object.hasOwn(LENGTH,c.length) && Object.hasOwn(MODEL,c.model);
+      function validContent(c) { return c && ['title','body','summary','tags','source'].every(k=>typeof c[k]==='string') && (c.originConfig===null||validConfig(c.originConfig)); }
+      function validateState(value) {
+        if (!value||value.schemaVersion!==1||!Array.isArray(value.drafts)||!value.drafts.length||typeof value.feedback!=='object'||value.feedback===null||Array.isArray(value.feedback)) return false;
+        const ids = new Set();
+        for (const d of value.drafts) {
+          if (!validContent(d)||typeof d.id!=='string'||ids.has(d.id)||!Object.hasOwn(FLOW,d.flow)||!validConfig(d.nextConfig)||!Number.isInteger(d.revision)||d.revision<1||!Number.isFinite(Date.parse(d.updatedAt))||!Array.isArray(d.versions)||!d.versions.length) return false;
+          ids.add(d.id); let previous=0;
+          for (const v of d.versions) {
+            if (!v||!Number.isInteger(v.number)||v.number<=previous||!validContent(v.content)||typeof v.label!=='string'||!Number.isFinite(Date.parse(v.createdAt))) return false;
+            previous=v.number;
+          }
+        }
+        return ids.has(value.activeId);
+      }
+      let state, hydrationDone=false, unsafeStoredData=false, initialMessage='', storageError=false;
+      let saveTimer=null, toastTimer=null, jobTimer=null, job=null, candidate=null;
+      let activeView='workbench', editorMode='edit', activeAudit='IMP-01', restored=false;
+      let labs={offline:false,failNext:false,storage:false};
+      const current = () => state.drafts.find(d=>d.id===state.activeId);
+      function hydrate() {
+        try {
+          const raw=window.localStorage.getItem(STORAGE_KEY);
+          if(raw!==null){ const parsed=JSON.parse(raw); if(!validateState(parsed))throw new Error('invalid-prototype-data'); state=parsed;restored=true; }
+        } catch {
+          unsafeStoredData=true;
+          initialMessage='无法安全读取原型记录。为保护旧数据，本页不会覆盖存储；当前可在内存编辑并导出备份。';
+        }
+        if(!state)state=freshState();
+        hydrationDone=true;
+      }
+      function setSaveStatus(text,error=false){ $('save-text').textContent=text;$('save-state').classList.toggle('error',error); }
+      function showStorageWarning(text){ storageError=true;$('storage-warning').hidden=false;$('storage-warning-text').textContent=text;setSaveStatus('未保存 · 可导出',true); }
+      function saveState() {
+        window.clearTimeout(saveTimer);saveTimer=null;
+        if(!hydrationDone)return false;
+        if(unsafeStoredData){showStorageWarning(initialMessage);return false;}
+        try {
+          if(labs.storage)throw new Error('simulated-storage-failure');
+          window.localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+          storageError=false;$('storage-warning').hidden=true;setSaveStatus('已保存到此浏览器');return true;
+        } catch {
+          showStorageWarning(labs.storage?'模拟保存失败：新改动仅在内存中，刷新会丢失未保存部分。请导出，或关闭实验开关后补存。':'浏览器暂时无法保存：新改动仅在内存中。不要刷新，请先导出备份。');
+          return false;
+        }
+      }
+      function queueSave(){window.clearTimeout(saveTimer);if(!storageError)setSaveStatus('正在保存…');saveTimer=window.setTimeout(saveState,450);}
+      function toast(message,error=false){window.clearTimeout(toastTimer);$('toast').textContent=message;$('toast').classList.toggle('error',error);$('toast').hidden=false;toastTimer=window.setTimeout(()=>{$('toast').hidden=true;},4500);}
+      function markEdited(d){d.revision++;d.updatedAt=stamp();}
+      function updateField(field,value){
+        const d=current();if(!['title','body','summary','tags','source'].includes(field)||d[field]===value)return;
+        d[field]=value;markEdited(d);queueSave();renderDerived();
+      }
+      function changeConfig(key,value){
+        if(!['tone','length','model'].includes(key))return;
+        current().nextConfig[key]=value;current().updatedAt=stamp();queueSave();renderConfig();
+      }
+      function openDialog(id){const el=$(id);if(!el.open)el.showModal();}
+      function closeDialog(id){$(id).close();if(id==='candidate-dialog')candidate=null;}
+      function feedbackFor(id){const raw=state.feedback[id];return {verdict:raw&&Object.hasOwn(VERDICT,raw.verdict)?raw.verdict:'pending',note:raw&&typeof raw.note==='string'?raw.note:''};}
+      function renderNavigation(){
+        const drafts=state.drafts.slice().sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt));
+        $('draft-count').textContent=state.drafts.length;
+        $('recent-list').innerHTML=drafts.slice(0,6).map(d=>'<button class="recent-draft'+(d.id===state.activeId?' active':'')+'" data-open-draft="'+esc(d.id)+'"'+(d.id===state.activeId?' aria-current="true"':'')+' title="'+esc(d.title||'未命名稿件')+'"><span class="tiny-dot" aria-hidden="true"></span><span class="title">'+esc(d.title||'未命名稿件')+'</span></button>').join('');
+        $('library-grid').innerHTML=drafts.map(d=>'<article class="draft-card"><div><span class="tag '+(d.flow==='adapter'?'orange':d.flow==='wechat'?'green':'purple')+'">'+FLOW[d.flow].label+'</span></div><h2>'+esc(d.title||'未命名稿件')+'</h2><p>'+esc(d.body?d.body.slice(0,85)+'…':'还没有正文。这篇空白稿件会独立保留。')+'</p><footer><span>'+charCount(d.body)+' 字 · '+d.versions.length+' 个版本</span><button class="button tiny" data-open-draft="'+esc(d.id)+'">继续编辑 →</button></footer></article>').join('');
+      }
+      function renderConfig(){
+        const d=current();
+        $('tone-select').value=d.nextConfig.tone;$('length-select').value=d.nextConfig.length;$('model-select').value=d.nextConfig.model;
+        const origin=d.originConfig;
+        $('origin-text').textContent=origin?MODEL[origin.model]+' · '+TONE[origin.tone]+' · '+LENGTH[origin.length]+'（模拟来源）':'人工稿 · 尚无生成来源';
+        $('config-warning').hidden=!origin||JSON.stringify(origin)===JSON.stringify(d.nextConfig);
+        $('offline-label').hidden=!labs.offline;
+        all('[data-generate]').forEach(b=>{b.disabled=labs.offline||Boolean(job);b.title=labs.offline?'模型离线；手工编辑仍可用':job?'请先等待或取消当前候选任务':'仅本地模拟，不调用模型';});
+        $('generate-tags').hidden=d.flow==='wechat';
+      }
+      function lengthRule(flow,length){
+        if(flow==='wechat')return {short:[600,1000],medium:[1000,1600],long:[1600,2400]}[length];
+        return {short:[180,240],medium:[320,450],long:[600,Infinity]}[length];
+      }
+      function qualityChecks(d){
+        const config=d.originConfig||d.nextConfig;
+        const [min,max]=lengthRule(d.flow,config.length);
+        const words=charCount(d.body),titleWords=charCount(d.title),titleMax=d.flow==='wechat'?64:25;
+        const range=Number.isFinite(max)?min+'–'+max+' 字':min+' 字及以上';
+        const tags=tagList(d.tags),unique=new Set(tags),paragraphs=d.body.split(/\n\s*\n/u).filter(s=>s.trim());
+        const result=[
+          {ok:titleWords>0&&titleWords<=titleMax,title:'标题完整度',detail:titleWords+' 字 / '+titleMax+' 字以内'+(d.flow==='wechat'?'（原型提议值）':'')+'；不以数字或问号加分。'},
+          {ok:words>=min&&words<=max,title:'正文长度',detail:words+' 字 / 目标 '+range+'；不含空白字符。'},
+          {ok:paragraphs.length>=2,title:'段落结构',detail:paragraphs.length+' 个段落；建议用空行分隔至少 2 段，仍需人工判断逻辑。'}
+        ];
+        result.push(d.flow==='wechat'?{ok:charCount(d.summary)>0&&charCount(d.summary)<=120,title:'摘要完整度',detail:charCount(d.summary)+' 字；建议 1–120 字（原型提议值）。'}:{ok:tags.length>=3&&tags.length<=6&&unique.size===tags.length,title:'标签数量与重复',detail:tags.length+' 个标签 / '+unique.size+' 个不重复；建议 3–6 个，相关性需人工确认。'});
+        return {result,config,range};
+      }
+      function renderQuality(){
+        const d=current(),checks=qualityChecks(d);
+        $('quality-target').textContent='当前稿目标：'+LENGTH[checks.config.length]+' · '+checks.range+(d.flow==='wechat'?'（提议值）':'');
+        $('quality-list').innerHTML=checks.result.map(c=>'<div class="quality-row"><span class="quality-icon'+(c.ok?'':' warn')+'" aria-hidden="true">'+(c.ok?'✓':'!')+'</span><div><strong>'+c.title+' <span class="sr-only">'+(c.ok?'符合规则':'需检查')+'</span></strong><p>'+esc(c.detail)+'</p></div></div>').join('');
+      }
+      function renderPreview(){
+        const d=current();
+        $('preview-platform').textContent=d.flow==='wechat'?'公众号 · 文章排版示意':'小红书 · 图文排版示意';
+        $('preview-cover').hidden=d.flow==='wechat';$('preview-cover-title').textContent=d.title||'你的下一篇好内容';
+        $('preview-title').textContent=d.title||'未命名稿件';$('preview-body').textContent=d.body||'还没有正文。切回编辑开始创作。';
+        $('preview-summary').hidden=d.flow!=='wechat';$('preview-summary').textContent=d.summary||'尚未填写摘要';
+        $('preview-tags').hidden=d.flow==='wechat';$('preview-tags').textContent=d.tags;
+      }
+      function renderDerived(){
+        const d=current();
+        $('source-preview').textContent=d.source?d.source.replace(/\n/g,' ').slice(0,85):'点击展开，添加'+(d.flow==='adapter'?'原文素材':'选题与要求');
+        $('source-count').textContent=charCount(d.source)+' 字 · 与完成稿独立保存';
+        $('body-word-count').textContent=charCount(d.body)+' 字';$('version-count').textContent=d.versions.length;
+        $('draft-identity').textContent=d.id.slice(-10)+' · r'+d.revision;$('edit-time').textContent='最近编辑 '+shortTime(d.updatedAt);
+        $('rewrite-label').textContent=d.body.trim()?'AI 改写':'生成示例';
+        renderQuality();renderPreview();renderNavigation();
+      }
+      function renderWorkspace(){
+        const d=current();
+        $('workspace-title').textContent=FLOW[d.flow].title;$('workspace-subtitle').textContent=FLOW[d.flow].subtitle;
+        $('source-label').textContent=FLOW[d.flow].source;$('source-heading').textContent=d.flow==='adapter'?'原始素材 · 保留原文':'选题与参考 · 独立保存';
+        $('source-input').value=d.source;$('title-input').value=d.title;$('body-input').value=d.body;$('summary-input').value=d.summary;$('tags-input').value=d.tags;
+        $('summary-field').hidden=d.flow!=='wechat';$('tags-field').hidden=d.flow==='wechat';
+        all('[data-flow]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.flow===d.flow)));
+        renderDerived();renderConfig();setMode(editorMode);
+      }
+      function setMode(mode){
+        editorMode=mode;$('edit-pane').hidden=mode!=='edit';$('preview-pane').hidden=mode!=='preview';
+        $('mode-edit').setAttribute('aria-pressed',String(mode==='edit'));$('mode-preview').setAttribute('aria-pressed',String(mode==='preview'));
+        if(mode==='preview')renderPreview();
+      }
+      function setView(view){
+        activeView=view;['workbench','library','spec'].forEach(name=>{$('view-'+name).hidden=name!==view;});
+        all('[data-view]').forEach(b=>{if(b.dataset.view===view)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
+        $('breadcrumb-name').textContent={workbench:'创作工作台',library:'我的稿件',spec:'设计说明'}[view];
+        if(view==='library')renderNavigation();
+      }
+      function cancelJob(notifyUser=true){
+        if(!job)return;
+        window.clearTimeout(jobTimer);jobTimer=null;job=null;$('job-banner').hidden=true;renderConfig();
+        if(notifyUser)toast('已取消模拟生成，当前稿件保持不变。');
+      }
+      function openDraft(id){
+        if(!state.drafts.some(d=>d.id===id))return;
+        cancelJob(false);candidate=null;state.activeId=id;setView('workbench');renderWorkspace();queueSave();
+      }
+      function switchFlow(flow){
+        const existing=state.drafts.filter(d=>d.flow===flow).sort((a,b)=>b.updatedAt.localeCompare(a.updatedAt))[0];
+        if(existing)openDraft(existing.id);else{$('new-flow').value=flow;$('new-title').value='';openDialog('new-dialog');}
+      }
+      function createDraft(flow,title){
+        const d=makeDraft(flow,title.trim());state.drafts.unshift(d);openDraft(d.id);setMode('edit');$('source-panel').open=true;
+        toast('已创建独立稿件，原有内容全部保留。');return d;
+      }
+      function showHistory(){
+        const d=current();
+        $('version-list').innerHTML='<p class="dialog-note">自动保存保存当前编辑；此处是明确留档的版本。恢复包括标题、素材、摘要、正文与标签，下一次生成参数保留。</p>'+d.versions.slice().reverse().map(v=>'<article class="version"><div class="version-top"><div><h3>V'+v.number+' · '+esc(v.label)+'</h3><p class="meta">'+shortTime(v.createdAt)+' · '+charCount(v.content.body)+' 字</p></div><button class="button tiny" data-restore-version="'+v.number+'">恢复此版</button></div><p>'+esc(v.content.title||'未命名稿件')+'</p><p>'+esc(v.content.body.slice(0,75)||'空白稿件')+'</p></article>').join('');
+        openDialog('history-dialog');
+      }
+      function restoreVersion(number){
+        const d=current(),version=d.versions.find(v=>v.number===number);if(!version)return;
+        const snapshot=clone(version.content);
+        recordVersion(d,'恢复前的人工稿');Object.assign(d,snapshot);markEdited(d);recordVersion(d,'恢复自 V'+number);
+        queueSave();renderWorkspace();closeDialog('history-dialog');
+        toast('已恢复 V'+number+'；恢复前的内容仍可在版本记录中找回。');
+      }
+      function simulatedTags(context){
+        const text=context.title+'\n'+context.body;
+        const lexicon=['咖啡','阅读','旅行','跑步','运动','摄影','写作','时间管理','专注','复盘','工作','生活','学习','笔记'];
+        const found=lexicon.filter(word=>text.includes(word)).slice(0,6);
+        if(!found.length){const phrase=(context.title||context.body).replace(/[\s，。！？、#]/g,'');if(phrase)found.push(Array.from(phrase).slice(0,6).join(''));}
+        return found.map(word=>'#'+word).join(' ');
+      }
+      function simulateCandidate(field,context,config){
+        const seed=context.body.trim()||(context.source.trim()?context.source.trim()+'\n\n以上为素材摘录，请人工编辑后再使用。':SAMPLE_BODY);
+        if(field==='tags')return simulatedTags(context);
+        if(field==='title')return '换个角度：'+(context.title.trim()||Array.from(seed.replace(/\s/g,'')).slice(0,13).join(''));
+        if(field==='summary')return Array.from(seed.replace(/\s+/g,' ')).slice(0,100).join('');
+        const opening={knowledge:'先看重点，再选择适合自己的做法。',casual:'这件事，也许可以从一个小改变开始。',story:'把这段经历写下来，是为了记住那些真正有用的改变。'}[config.tone];
+        return opening+'\n\n'+seed;
+      }
+      function startGeneration(field){
+        if(!['body','title','summary','tags'].includes(field)||job)return;
+        if(labs.offline){toast('模拟模型离线。你仍可以手动编辑和导出。',true);return;}
+        const d=current();
+        if(field==='tags'&&!d.body.trim()){toast('先写一点正文，再围绕当前内容生成标签。',true);return;}
+        const request={token:newId(),draftId:d.id,revision:d.revision,field,context:contentSnapshot(d),config:clone(d.nextConfig),fail:labs.failNext,createdAt:stamp()};
+        labs.failNext=false;$('lab-fail').checked=false;job=request;
+        $('job-banner').hidden=false;
+        $('job-text').textContent='正在模拟生成'+({body:'正文',title:'标题',summary:'摘要',tags:'标签'}[field])+'候选 · 当前 r'+d.revision+'；期间可继续编辑';
+        renderConfig();jobTimer=window.setTimeout(()=>completeGeneration(request),field==='body'?3000:1800);
+      }
+      function completeGeneration(request){
+        if(!job||job.token!==request.token)return;
+        job=null;jobTimer=null;$('job-banner').hidden=true;renderConfig();
+        if(request.fail||labs.offline){toast('模拟生成失败。当前稿件和版本未改变，可以恢复正常后重试。',true);return;}
+        if(request.draftId!==state.activeId)return;
+        candidate={...request,text:simulateCandidate(request.field,request.context,request.config)};showCandidate();
+      }
+      function candidateIsStale(){return !candidate||current().id!==candidate.draftId||current().revision!==candidate.revision;}
+      function showCandidate(){
+        const c=candidate,target={body:'正文',title:'标题',summary:'摘要',tags:'标签'}[c.field];
+        $('candidate-title').textContent=target+'候选 · 由你决定';
+        $('candidate-original').textContent=c.context[c.field]||'（原内容为空）';$('candidate-text').value=c.text;
+        $('candidate-meta').textContent='输入 r'+c.revision+' · '+MODEL[c.config.model]+' · '+TONE[c.config.tone]+' · '+LENGTH[c.config.length]+' · 仅模拟，篇幅不保证达标';
+        $('candidate-context').textContent='稿件 ID：'+c.draftId+'\n内容版本：r'+c.revision+'\n目标块：'+target+'\n模拟操作：仅此目标块（没有真实 API 调用）\n非目标块：不会重写\n\n当前标题：'+c.context.title+'\n\n当前正文：\n'+c.context.body+'\n\n原始素材 / 选题：\n'+c.context.source;
+        $('candidate-stale').hidden=!candidateIsStale();$('apply-candidate').disabled=candidateIsStale();
+        openDialog('candidate-dialog');
+      }
+      function applyCandidate(){
+        if(candidateIsStale()){toast('候选已过期，不能覆盖最新内容。',true);return false;}
+        const c=candidate,d=current(),text=$('candidate-text').value;
+        if(!text.trim()){toast('候选为空。请填写内容，或直接放弃候选。',true);return false;}
+        recordVersion(d,'应用前的人工稿');d[c.field]=text;
+        // Only an accepted body candidate changes the body's generation origin.
+        if(c.field==='body')d.originConfig=clone(c.config);
+        markEdited(d);recordVersion(d,'接受'+({body:'正文',title:'标题',summary:'摘要',tags:'标签'}[c.field])+'候选');
+        closeDialog('candidate-dialog');renderWorkspace();queueSave();
+        toast('已应用并留存新版本。其他内容保持不变，可在版本记录中恢复。');return true;
+      }
+      function selectAudit(id,locate=false){
+        const a=AUDITS.find(item=>item.id===id);if(!a)return;
+        activeAudit=id;$('guide-number').textContent=id;$('guide-title').textContent=a.title;$('guide-description').textContent=a.description;
+        $('guide-steps').innerHTML=a.steps.map(step=>'<li>'+esc(step)+'</li>').join('')+'<li><strong>预期：</strong>'+esc(a.expected)+'</li>';
+        $('guide-select').value=id;$('guide-review-link').href=REVIEW_FILE+'#'+id.toLowerCase();
+        all('.spotlight').forEach(el=>el.classList.remove('spotlight'));
+        if(locate){
+          if(id==='IMP-04'&&current().flow==='wechat')switchFlow('composer');
+          setView('workbench');
+          if(id==='DIR-01')$('source-panel').open=true;
+          $(a.target).classList.add('spotlight');
+          if(id==='QA-01')openDialog('lab-dialog');
+          else $(a.target).scrollIntoView({block:'center',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth'});
+        }
+      }
+      function renderAuditProgress(){const n=AUDITS.filter(a=>feedbackFor(a.id).verdict!=='pending').length;$('audit-progress').textContent=n+'/7';}
+      function renderAudit(){
+        $('audit-list').innerHTML=AUDITS.map(a=>{
+          const f=feedbackFor(a.id),slug=a.id.toLowerCase();
+          return '<article class="audit-card"><div class="audit-card-head"><div><span class="tag '+(a.id.startsWith('IMP')?'orange':'purple')+'">'+a.id+'</span><h3>'+esc(a.title)+'</h3><p>'+esc(a.description)+'</p></div><button class="button tiny" data-audit="'+a.id+'">定位体验 →</button></div><ol>'+a.steps.map(step=>'<li>'+esc(step)+'</li>').join('')+'</ol><p><strong>预期：</strong>'+esc(a.expected)+'</p><p><a href="'+REVIEW_FILE+'#'+slug+'" target="_blank" rel="noopener">查看原审核项 ↗</a> · 仍需验证：'+esc(a.real)+'</p><div class="audit-form"><div><label for="verdict-'+slug+'">原型体验结论</label><select class="select" id="verdict-'+slug+'" data-verdict="'+a.id+'">'+Object.entries(VERDICT).map(([value,label])=>'<option value="'+value+'"'+(f.verdict===value?' selected':'')+'>'+label+'</option>').join('')+'</select></div><div><label for="feedback-'+slug+'">要调整的地方 / 体验备注</label><textarea id="feedback-'+slug+'" data-feedback="'+a.id+'" placeholder="例如：候选对比清楚，但希望保留段落级入口。">'+esc(f.note)+'</textarea></div></div></article>';
+        }).join('');
+        renderAuditProgress();
+      }
+      function renderSpec(){
+        $('spec-mapping').innerHTML=AUDITS.map(a=>'<tr><td><button class="ref" data-audit="'+a.id+'">'+a.id+'</button></td><td>'+esc(a.where)+'</td><td>'+esc(a.expected)+'</td><td>'+esc(a.real)+'</td></tr>').join('');
+      }
+      function exportText(){
+        const d=current(),lines=['# '+(d.title||'未命名稿件'),'','> Opera 可操作原型中的稿件。初始素材与生成候选为模拟内容，发布前请人工复核。',''];
+        if(d.flow==='wechat'&&d.summary)lines.push('## 摘要','',d.summary,'','## 正文','');
+        lines.push(d.body,'');if(d.flow!=='wechat'&&d.tags)lines.push(d.tags,'');
+        return lines.join('\n');
+      }
+      function exportFeedbackText(){
+        const lines=['# Opera 交互原型 · 审核意见','','- 原型版本：2026-09-10 / v1.0','- 导出时间：'+stamp(),'','> 仅记录原型体验，不代表产品修复完成或正式验收通过。需求取舍以改善审核清单为准。',''];
+        AUDITS.forEach(a=>{const f=feedbackFor(a.id);lines.push('## '+a.id+' · '+a.title,'','- 体验结论：'+VERDICT[f.verdict],'- 对应操作：'+a.where,'','备注：',f.note.trim()||'（未填写）','');});
+        lines.push('审核清单：docs/product-improvement-review-2026-09-10.html','原型：docs/preview/product-improvement-prototype-2026-09-10.html','');
+        return lines.join('\n');
+      }
+      function download(name,text,mime){
+        let url;
+        try{
+          url=URL.createObjectURL(new Blob([(mime==='application/json'?'':'\uFEFF')+text],{type:mime+';charset=utf-8'}));
+          const a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();
+          window.setTimeout(()=>URL.revokeObjectURL(url),10000);
+          toast('已发起下载；若预览拦截，请在浏览器中打开本 HTML 后重试。');
+        }catch{if(url)URL.revokeObjectURL(url);toast('下载不可用。请在浏览器中打开本 HTML；当前内容仍保留。',true);}
+      }
+      function downloadFeedback(){download('opera-prototype-feedback-'+new Date().toISOString().slice(0,10)+'.md',exportFeedbackText(),'text/markdown');}
+      function reloadDraft(){
+        if(!saveState()){toast('仍有未保存内容，已阻止模拟离开。请先导出或恢复保存能力。',true);return;}
+        try{
+          const parsed=JSON.parse(window.localStorage.getItem(STORAGE_KEY));
+          if(!validateState(parsed))throw new Error('invalid');
+          cancelJob(false);state=parsed;renderWorkspace();renderAuditProgress();closeDialog('lab-dialog');
+          toast('已从原型存储重读全部稿件。这是恢复演示，不替代真实页面生命周期验收。');
+        }catch{showStorageWarning('无法重读原型存储。当前内存稿件仍保留，请先导出。');}
+      }
+      function handleAction(action){
+        if(action==='new'){$('new-title').value='';$('new-flow').value=current().flow;openDialog('new-dialog');}
+        else if(action==='history')showHistory();
+        else if(action==='export')openDialog('export-dialog');
+        else if(action==='audit'){renderAudit();openDialog('audit-dialog');}
+        else if(action==='lab')openDialog('lab-dialog');
+      }
+      document.addEventListener('click',event=>{
+        const button=event.target.closest('button');if(!button||button.disabled)return;
+        if(button.dataset.close){closeDialog(button.dataset.close);return;}
+        if(button.dataset.view){setView(button.dataset.view);return;}
+        if(button.dataset.flow){switchFlow(button.dataset.flow);return;}
+        if(button.dataset.openDraft){openDraft(button.dataset.openDraft);return;}
+        if(button.dataset.restoreVersion){restoreVersion(Number(button.dataset.restoreVersion));return;}
+        if(button.dataset.audit){if($('audit-dialog').open)closeDialog('audit-dialog');selectAudit(button.dataset.audit,true);return;}
+        if(button.dataset.generate){startGeneration(button.dataset.generate);return;}
+        if(button.dataset.action)handleAction(button.dataset.action);
+      });
+      const fieldBindings={title:'title-input',body:'body-input',summary:'summary-input',tags:'tags-input',source:'source-input'};
+      Object.entries(fieldBindings).forEach(([field,id])=>$(id).addEventListener('input',()=>updateField(field,$(id).value)));
+      ['tone','length','model'].forEach(key=>$(key+'-select').addEventListener('change',()=>{changeConfig(key,$(key+'-select').value);renderQuality();}));
+      $('mode-edit').addEventListener('click',()=>setMode('edit'));
+      $('mode-preview').addEventListener('click',()=>setMode('preview'));
+      $('guide-select').addEventListener('change',()=>selectAudit($('guide-select').value,true));
+      $('new-form').addEventListener('submit',event=>{event.preventDefault();createDraft($('new-flow').value,$('new-title').value);closeDialog('new-dialog');$('title-input').focus();});
+      $('save-version').addEventListener('click',()=>{
+        const added=recordVersion(current(),'手动保存');
+        if(added)queueSave();renderDerived();
+        toast(added?'已留存当前内容版本。':'内容与最近版本相同，无需重复留档。');
+      });
+      $('cancel-job').addEventListener('click',()=>cancelJob());
+      $('apply-candidate').addEventListener('click',applyCandidate);
+      $('reject-candidate').addEventListener('click',()=>{closeDialog('candidate-dialog');toast('已放弃候选，原文和版本保持不变。');});
+      $('retry-candidate').addEventListener('click',()=>{const field=candidate?.field;closeDialog('candidate-dialog');if(field)startGeneration(field);});
+      $('candidate-dialog').addEventListener('cancel',()=>{candidate=null;});
+      $('export-markdown').addEventListener('click',()=>{
+        const name=(current().title||'opera-draft').replace(/[<>:"/\\|?*\u0000-\u001f]/g,'-').slice(0,65).replace(/[. ]+$/g,'')||'opera-draft';
+        download(name+'.md',exportText(),'text/markdown');
+      });
+      $('export-json').addEventListener('click',()=>download('opera-prototype-backup-'+new Date().toISOString().slice(0,10)+'.json',JSON.stringify(state,null,2),'application/json'));
+      $('export-feedback').addEventListener('click',downloadFeedback);$('audit-export').addEventListener('click',downloadFeedback);
+      $('lab-offline').addEventListener('change',()=>{labs.offline=$('lab-offline').checked;renderConfig();toast(labs.offline?'已模拟模型离线；手工编辑仍可用。':'模拟模型已恢复可用。');});
+      $('lab-fail').addEventListener('change',()=>{labs.failNext=$('lab-fail').checked;});
+      $('lab-storage').addEventListener('change',()=>{labs.storage=$('lab-storage').checked;saveState();});
+      $('reload-draft').addEventListener('click',reloadDraft);
+      $('restore-lab').addEventListener('click',()=>{
+        labs={offline:false,failNext:false,storage:false};['lab-offline','lab-fail','lab-storage'].forEach(id=>{$(id).checked=false;});
+        renderConfig();const saved=saveState();toast(saved?'实验开关已关闭，当前改动已补存。':'实验开关已关闭，浏览器存储问题仍需处理；请导出备份。',!saved);
+      });
+      $('audit-list').addEventListener('change',event=>{
+        const id=event.target.dataset.verdict;if(!id||!AUDITS.some(a=>a.id===id))return;
+        const f=feedbackFor(id);f.verdict=Object.hasOwn(VERDICT,event.target.value)?event.target.value:'pending';state.feedback[id]=f;queueSave();renderAuditProgress();
+      });
+      $('audit-list').addEventListener('input',event=>{
+        const id=event.target.dataset.feedback;if(!id||!AUDITS.some(a=>a.id===id))return;
+        const f=feedbackFor(id);f.note=event.target.value;state.feedback[id]=f;queueSave();
+      });
+      document.addEventListener('keydown',event=>{
+        if((event.ctrlKey||event.metaKey)&&event.key.toLowerCase()==='s'){
+          event.preventDefault();saveState();toast(storageError?'保存失败，请先导出备份。':'当前原型稿件与审核意见已保存。',storageError);
+        }
+      });
+      document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden'&&saveTimer!==null)saveState();});
+      window.addEventListener('pagehide',()=>{if(saveTimer!==null)saveState();});
+      window.addEventListener('beforeunload',event=>{
+        if(saveTimer!==null)saveState();
+        if(storageError){event.preventDefault();event.returnValue='';}
+      });
+      hydrate();renderWorkspace();renderSpec();renderAuditProgress();selectAudit(activeAudit);
+      if(unsafeStoredData)showStorageWarning(initialMessage);
+      else if(restored){setSaveStatus('已恢复上次原型稿件');toast('已恢复你上次编辑的原型稿件和审核意见。');}
+      else saveState();
+    })();
+  </script>
+</body>
+</html>

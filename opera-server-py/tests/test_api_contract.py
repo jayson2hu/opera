@@ -27,7 +27,7 @@ os.environ.setdefault("CUSTOM_MODEL", "gpt-4o")
 from app.config import VALID_PROVIDER_VALUES, Settings, get_settings
 from app.main import create_app
 from app.providers.anthropic_provider import AnthropicProvider
-from app.providers.factory import create_provider, get_available_providers
+from app.providers.factory import create_provider, get_available_providers, is_model_allowed
 from app.providers.openai_compat_provider import OpenAICompatProvider
 from app.routes import compose as compose_route
 from app.routes import generate as generate_route
@@ -44,10 +44,29 @@ class FakeGenerateProvider:
         if "发布正文" in user or "正文文案内容" in user:
             return '{"caption": "正文文案"}'
         if "图文卡片" in user:
-            return '{"cards": ["卡片1", "卡片2", "卡片3", "卡片4", "卡片5"]}'
+            return (
+                '{"cards": ['
+                '{"type": "hook", "content": "卡片1"},'
+                '{"type": "insight", "content": "卡片2"},'
+                '{"type": "insight", "content": "卡片3"},'
+                '{"type": "method", "content": "卡片4"},'
+                '{"type": "summary", "content": "卡片5"}'
+                ']}'
+            )
         if "标签" in user:
             return '{"tagGroups": [{"type": "broad", "label": "泛流量标签", "tags": ["自我提升", "学习方法"]}]}'
         return '{"points": ["观点1", "观点2", "观点3"]}'
+
+
+class FakeLegacyGenerateProvider(FakeGenerateProvider):
+    async def call(self, system: str, user: str) -> str:
+        if "生成 7 张小红书图文卡片" in user:
+            self.__class__.prompt_history.append(user)
+            return (
+                '{"cards": ["卡片1", "卡片2", "卡片3", "卡片4", '
+                '"卡片5", "卡片6", "卡片7"]}'
+            )
+        return await super().call(system, user)
 
 
 
@@ -174,6 +193,10 @@ def test_provider_model_lists_and_names() -> None:
     assert providers["openai"]["models"] == ["gpt-a", "gpt-b", "gpt-5.2", "gpt-5.2-chat-latest"]
     assert providers["openai_compat"]["name"] == "ChatGPT / OpenAI third-party"
     assert providers["custom"]["name"] == "Custom (Legacy)"
+
+    assert is_model_allowed(settings, "openai", "gpt-a")
+    assert is_model_allowed(settings, "openai", settings.openai_model)
+    assert not is_model_allowed(settings, "openai", "unapproved-premium-model")
 
 
 def test_provider_factory_supports_official_and_third_party_protocols() -> None:
@@ -306,6 +329,7 @@ def test_generate_continue_sse_contract(client: TestClient) -> None:
         "titles",
         "step",
         "cards",
+        "cards_v2",
         "step",
         "caption",
         "step",
@@ -321,8 +345,75 @@ def test_generate_continue_sse_contract(client: TestClient) -> None:
     ]
     assert events[1][1]["coverTitles"] == ["标题1", "标题2", "标题3", "标题4"]
     assert events[3][1]["cards"] == ["卡片1", "卡片2", "卡片3", "卡片4", "卡片5"]
-    assert events[5][1]["caption"] == "正文文案"
-    assert events[7][1]["tagGroups"][0]["type"] == "broad"
+    assert events[4][0] == "cards_v2"
+    assert events[4][1]["cards"][0] == {"type": "hook", "content": "卡片1"}
+    assert [card["content"] for card in events[4][1]["cards"]] == events[3][1]["cards"]
+    assert events[6][1]["caption"] == "正文文案"
+    assert events[8][1]["tagGroups"][0]["type"] == "broad"
+
+
+def test_generate_continue_preserves_legacy_cards_and_derives_cards_v2(
+    client: TestClient,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr(
+        generate_route,
+        "create_provider",
+        lambda *_args, **_kwargs: FakeLegacyGenerateProvider(),
+    )
+
+    events: list[tuple[str, dict[str, object]]] = []
+    with client.stream(
+        "POST",
+        "/api/generate/continue",
+        json={
+            "text": "高效阅读的三个方法",
+            "tone": "knowledge",
+            "points": ["观点1", "观点2", "观点3"],
+        },
+    ) as response:
+        assert response.status_code == 200
+        event_name = ""
+        for line in response.iter_lines():
+            if line.startswith("event: "):
+                event_name = line[7:].strip()
+            elif line.startswith("data: ") and event_name:
+                events.append((event_name, json.loads(line[6:])))
+                event_name = ""
+
+    assert [name for name, _ in events] == [
+        "step",
+        "titles",
+        "step",
+        "cards",
+        "cards_v2",
+        "step",
+        "caption",
+        "step",
+        "tags",
+        "step",
+    ]
+    legacy_cards = events[3][1]["cards"]
+    typed_cards = events[4][1]["cards"]
+    assert legacy_cards == [
+        "卡片1",
+        "卡片2",
+        "卡片3",
+        "卡片4",
+        "卡片5",
+        "卡片6",
+        "卡片7",
+    ]
+    assert [card["content"] for card in typed_cards] == legacy_cards
+    assert [card["type"] for card in typed_cards] == [
+        "hook",
+        "insight",
+        "insight",
+        "method",
+        "method",
+        "scenario",
+        "summary",
+    ]
 
 
 def test_generate_continue_requires_valid_points(client: TestClient) -> None:

@@ -15,38 +15,56 @@ import {
   buildApiUrl,
   countChars,
   countParagraphs,
+  WECHAT_ARTICLE_TYPE_OPTIONS,
   WECHAT_DRAFT_STORAGE_KEY,
   WECHAT_STEPS,
 } from '../constants';
+import { rewriteParagraph } from '../lib/rewriteParagraph';
+import {
+  getRestorableWeChatResult,
+  isWeChatComposeResult,
+} from '../lib/draftIntegrity';
+import { createWeChatDraftParameterKey, isProviderId } from '../lib/generationDraftConsistency';
 import { streamSSE } from '../lib/sse';
-import ProviderSelector from '../components/ProviderSelector';
+import { toast } from '../lib/toast';
+import { parseStoredWeChatDrafts, persistWeChatDrafts } from '../lib/weChatDraftStorage';
 import ProgressIndicator from '../components/ProgressIndicator';
+import ProviderSelector from '../components/ProviderSelector';
+import SplitFlow from '../components/SplitFlow';
 import ToneSelector from '../components/ToneSelector';
-import EditableBody from '../components/composer/EditableBody';
+import TopicField from '../components/TopicField';
+import BodyEditor from '../components/shared/BodyEditor';
+import { useDraftWorkspace } from '../hooks/useDraftWorkspace';
+import { readDraftSession, resultTargetLength, draftText, draftTone, draftLength, storedResultKey } from '../lib/draftWorkspace';
+import DraftWorkspaceBar from '../components/shared/DraftWorkspaceBar';
+import PublishChecklist from '../components/composer/PublishChecklist';
+import GenerationReview from '../components/shared/GenerationReview';
+import { canApplyCandidate, contentFingerprint, contentRevision, resolveWeChatCandidate, type GenerationCandidate } from '../lib/generationCandidate';
 import EditableTitle from '../components/composer/EditableTitle';
 import LengthSelector from '../components/composer/LengthSelector';
-import TopicInput from '../components/composer/TopicInput';
 import ArticleTypeSelector from '../components/wechat/ArticleTypeSelector';
 import DraftBoxPanel from '../components/wechat/DraftBoxPanel';
 import EditableDigest from '../components/wechat/EditableDigest';
+import Paper from '../components/wechat/Paper';
+import WeChatCover from '../components/wechat/WeChatCover';
+import WeChatInlineImg from '../components/wechat/WeChatInlineImg';
+import BigBtn from '../components/shared/BigBtn';
+import CfgGroup from '../components/shared/CfgGroup';
+import OutputBar, { type OutputStatus } from '../components/shared/OutputBar';
 
 interface WeChatPageProps extends ProviderSelectionProps {
   onConvertToAdapter?: (text: string) => void;
 }
 
 const MIN_TOPIC_CHARS = 12;
-const MAX_DRAFT_COUNT = 6;
-const EMPTY_RESULT: WeChatComposeResult = {
-  title: '',
-  digest: '',
-  body: '',
-};
+const EMPTY_RESULT: WeChatComposeResult = { title: '', digest: '', body: '' };
+
+const INLINE_IMG_CAPTIONS = ['清晨的一杯热茶', '飘落的银杏叶'];
 
 function getComposeRequestError(status: number, errorMessage?: string) {
   if (status === 404) {
     return '未找到 /api/wechat/compose。请确认正在运行 FastAPI 后端 opera-server-py。';
   }
-
   return errorMessage || `HTTP ${status}`;
 }
 
@@ -56,21 +74,8 @@ function createDraftId() {
 
 function readStoredDrafts(): WeChatDraftItem[] {
   if (typeof window === 'undefined') return [];
-
   try {
-    const raw = window.localStorage.getItem(WECHAT_DRAFT_STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (item): item is WeChatDraftItem =>
-        typeof item?.id === 'string' &&
-        typeof item?.topic === 'string' &&
-        typeof item?.title === 'string' &&
-        typeof item?.digest === 'string' &&
-        typeof item?.body === 'string' &&
-        typeof item?.savedAt === 'string',
-    );
+    return parseStoredWeChatDrafts(window.localStorage.getItem(WECHAT_DRAFT_STORAGE_KEY));
   } catch (error) {
     console.error('Failed to read local WeChat drafts', error);
     return [];
@@ -85,42 +90,70 @@ export default function WeChatPage({
   onModelChange,
   loading = false,
   error: providerError = null,
+  draftSelection,
+  onNewDraft,
+  onRestoreDraft,
   onConvertToAdapter,
 }: WeChatPageProps) {
-  const [topic, setTopic] = useState('');
-  const [articleType, setArticleType] = useState<WeChatArticleType | null>(null);
-  const [selectedTone, setSelectedTone] = useState<ToneType | null>(null);
-  const [targetLength, setTargetLength] = useState<TargetLength>('long');
+  const [draftSession] = useState(() => readDraftSession('wechat', draftSelection));
+  const initial = draftSession.initialValue;
+  const initialResult = isWeChatComposeResult(initial.result) ? initial.result : null;
+  const [topic, setTopic] = useState(() => draftText(initial.topic));
+  const [articleType, setArticleType] = useState<WeChatArticleType | null>(() => ["insight","guide","story","briefing"].includes(String(initial.articleType)) ? initial.articleType as WeChatArticleType : null);
+  const [selectedTone, setSelectedTone] = useState<ToneType | null>(() => draftTone(initial.tone));
+  const [targetLength, setTargetLength] = useState<TargetLength>(() => draftLength(initial.targetLength, 'long'));
+  const [coverEnabled, setCoverEnabled] = useState(initial.coverEnabled !== false);
+  const [inlineImagesEnabled, setInlineImagesEnabled] = useState(initial.inlineImagesEnabled !== false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [currentStep, setCurrentStep] = useState<WeChatStep>('extracting');
-  const [result, setResult] = useState<WeChatComposeResult | null>(null);
+  const [currentStep, setCurrentStep] = useState<WeChatStep>(initialResult ? 'done' : 'extracting');
+  const [result, setResult] = useState<WeChatComposeResult | null>(initialResult);
+  const [pendingCandidate, setPendingCandidate] = useState<GenerationCandidate<WeChatComposeResult> | null>(null);
+  const [lastCompleteParameterKey, setLastCompleteParameterKey] = useState<string | null>(() => initialResult
+    ? storedResultKey(initial, createWeChatDraftParameterKey({ topic, articleType, tone: selectedTone, targetLength,
+      provider: isProviderId(initial.provider) ? initial.provider : null, model: draftText(initial.model) })) : null);
   const [error, setError] = useState<string | null>(null);
   const [drafts, setDrafts] = useState<WeChatDraftItem[]>(readStoredDrafts);
   const [draftStatus, setDraftStatus] = useState<WeChatDraftStatus>('not_saved');
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [activeDraftId, setActiveDraftId] = useState<string | null>(null);
-
+  const draftParameterKey = useMemo(
+    () => createWeChatDraftParameterKey({
+      topic,
+      articleType,
+      tone: selectedTone,
+      targetLength,
+      provider: selectedProvider,
+      model: selectedModel,
+    }),
+    [articleType, selectedModel, selectedProvider, selectedTone, targetLength, topic],
+  );
+  const currentCompleteResult = currentStep === 'done'
+    ? getRestorableWeChatResult({ result, resultStatus: 'complete' })
+    : null;
+  // Persist user text independently of the next generation settings.
+  const draftResult = result;
+  const isCurrentResultComplete = currentCompleteResult !== null;
+  const workspace = useDraftWorkspace(draftSession, {
+    topic, articleType, tone: selectedTone, targetLength,
+    provider: selectedProvider, model: selectedModel, result: draftResult,
+    resultStatus: getRestorableWeChatResult({ result: draftResult, resultStatus: 'complete' }) ? 'complete' : 'incomplete',
+    resultParameterKey: lastCompleteParameterKey,
+    coverEnabled, inlineImagesEnabled,
+  });
   const outputRef = useRef<HTMLDivElement>(null);
   const abortRef = useRef<AbortController | null>(null);
   const topicCharCount = countChars(topic);
-  const topicCharsRemaining = Math.max(0, MIN_TOPIC_CHARS - topicCharCount);
   const isTopicReady = topicCharCount >= MIN_TOPIC_CHARS;
   const missingRequirements = [
-    !isTopicReady
-      ? topicCharCount > 0
-        ? `选题还差 ${topicCharsRemaining} 个字`
-        : `请输入至少 ${MIN_TOPIC_CHARS} 个字的选题`
-      : null,
-    articleType === null ? '请选择文章类型' : null,
-    selectedTone === null ? '请选择语气' : null,
+    !isTopicReady ? '选题字数不足' : null,
+    articleType === null ? '文章类型未选' : null,
+    selectedTone === null ? '语气未选' : null,
   ].filter((item): item is string => item !== null);
   const canSubmitBase = missingRequirements.length === 0;
-  const canGenerate = canSubmitBase && !isGenerating;
-  const submitHint = isGenerating
-    ? 'AI 正在撰写公众号文章，请稍候...'
-    : canSubmitBase
-      ? '准备就绪，可以开始生成。'
-      : `还需要：${missingRequirements.join('、')}`;
+  const canGenerate = canSubmitBase && !isGenerating && !loading && !pendingCandidate;
+  const canRegenerate = Boolean(result?.body.trim()) && canSubmitBase && !isGenerating && !loading && !pendingCandidate;
+  const savableResult = isCurrentResultComplete ? currentCompleteResult : null;
+  const canSaveDraft = savableResult !== null && !isGenerating;
   const hasAnyOutput =
     result !== null &&
     (result.title.trim().length > 0 || result.digest.trim().length > 0 || result.body.trim().length > 0);
@@ -130,6 +163,29 @@ export default function WeChatPage({
   );
   const bodyCharCount = countChars(result?.body ?? '');
   const paragraphCount = countParagraphs(result?.body ?? '');
+  const articleTypeLabel = useMemo(
+    () => WECHAT_ARTICLE_TYPE_OPTIONS.find((opt) => opt.id === articleType)?.label,
+    [articleType],
+  );
+  const handleParagraphRewrite = useCallback(
+    (instruction: string, text: string, signal?: AbortSignal) =>
+      rewriteParagraph({
+        text,
+        instruction,
+        signal,
+        ...(selectedProvider ? { provider: selectedProvider } : {}),
+        ...(selectedModel ? { model: selectedModel } : {}),
+      }),
+    [selectedModel, selectedProvider],
+  );
+
+  const outputStatus: OutputStatus = error
+    ? 'error'
+    : isGenerating
+      ? 'generating'
+      : hasAnyOutput
+        ? 'done'
+        : 'idle';
 
   useEffect(() => {
     return () => {
@@ -137,31 +193,52 @@ export default function WeChatPage({
     };
   }, []);
 
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-    window.localStorage.setItem(WECHAT_DRAFT_STORAGE_KEY, JSON.stringify(drafts));
-  }, [drafts]);
-
   const markDraftDirty = useCallback(() => {
     setDraftStatus('not_saved');
   }, []);
 
-  const updateResult = useCallback((updater: (current: WeChatComposeResult) => WeChatComposeResult) => {
-    setResult((current) => updater(current ?? EMPTY_RESULT));
+  const updateResult = useCallback(
+    (updater: (current: WeChatComposeResult) => WeChatComposeResult) => {
+      setResult((current) => updater(current ?? EMPTY_RESULT));
+      markDraftDirty();
+    },
+    [markDraftDirty],
+  );
+
+  const applyCandidate = () => {
+    if (!pendingCandidate || !canApplyCandidate(pendingCandidate, result, draftSession.id)) return;
+    if (!workspace.checkpoint('应用候选前原稿')) return;
+    setResult(pendingCandidate.value);
+    setLastCompleteParameterKey(pendingCandidate.parameterKey);
+    setPendingCandidate(null);
+    setCurrentStep('done');
+    setError(null);
     markDraftDirty();
-  }, [markDraftDirty]);
+  };
+  const cancelGeneration = () => {
+    abortRef.current?.abort();
+    abortRef.current = null;
+    setIsGenerating(false);
+    setCurrentStep(result ? 'done' : 'extracting');
+    setError(null);
+  };
 
   const runCompose = useCallback(
     async (regenerate?: WeChatRegenerateTarget) => {
-      if ((!regenerate && !canGenerate) || (regenerate && (!canSubmitBase || !result))) {
+      if ((!regenerate && !canGenerate) || (regenerate && (!canRegenerate || !result))) {
         return;
       }
 
       abortRef.current?.abort();
       const controller = new AbortController();
       abortRef.current = controller;
+      const generationParameterKey = draftParameterKey;
 
-      const partial: WeChatComposeResult = regenerate ? { ...(result ?? EMPTY_RESULT) } : { ...EMPTY_RESULT };
+      if (!workspace.checkpoint('生成前原稿')) return;
+      const original = result;
+      const baseFingerprint = contentFingerprint(original);
+
+      const partial: WeChatComposeResult = regenerate ? { ...result! } : { ...EMPTY_RESULT };
       if (regenerate === 'title') partial.title = '';
       if (regenerate === 'digest') partial.digest = '';
       if (regenerate === 'body') partial.body = '';
@@ -169,7 +246,7 @@ export default function WeChatPage({
       setIsGenerating(true);
       setCurrentStep('extracting');
       setError(null);
-      setResult(partial);
+      // Accumulate streaming output separately; only explicit approval changes the draft.
       setDraftStatus('not_saved');
       setLastSavedAt(null);
       if (!regenerate) setActiveDraftId(null);
@@ -181,7 +258,8 @@ export default function WeChatPage({
         targetLength,
         ...(selectedProvider ? { provider: selectedProvider } : {}),
         ...(selectedModel ? { model: selectedModel } : {}),
-        ...(regenerate ? { regenerate } : {}),
+        ...(regenerate ? { regenerate, currentContent: { title: original?.title ?? '', body: original?.body ?? '',
+          digest: original?.digest ?? '', draftId: draftSession.id, revision: contentRevision(original) } } : {}),
       };
 
       try {
@@ -189,28 +267,39 @@ export default function WeChatPage({
         await streamSSE(buildApiUrl('/api/wechat/compose'), payload, {
           signal: controller.signal,
           mapHttpError: (status, body) => getComposeRequestError(status, body.error),
+          requireTerminal: true,
+          isTerminalEvent: (event, data) => event === 'step' && data?.step === 'done',
           onEvent: (event, data) => {
+            if (controller.signal.aborted || abortRef.current !== controller) return;
             switch (event) {
-              case 'step':
-                setCurrentStep(data.step as WeChatStep);
-                if (data.step === 'done') setIsGenerating(false);
+              case 'step': {
+                if (data.step === 'done') {
+                  const completedResult = resolveWeChatCandidate({ ...partial }, regenerate);
+                  if (!completedResult) throw new Error('生成结果不完整，请重试');
+                  setPendingCandidate({ value: completedResult, original, baseFingerprint, draftId: draftSession.id,
+                    parameterKey: regenerate && regenerate !== 'body' ? lastCompleteParameterKey ?? generationParameterKey : generationParameterKey });
+                  setCurrentStep('done');
+                  setIsGenerating(false);
+                } else {
+                  setCurrentStep(data.step as WeChatStep);
+                }
                 break;
+              }
               case 'title':
                 partial.title = data.title;
-                setResult({ ...partial });
+                // Candidate is held off-draft until the terminal event.
                 break;
               case 'digest':
                 partial.digest = data.digest;
-                setResult({ ...partial });
+                // Candidate is held off-draft until the terminal event.
                 break;
               case 'body':
                 partial.body = data.body;
-                setResult({ ...partial });
+                // Candidate is held off-draft until the terminal event.
                 break;
               case 'error':
                 throw new Error(data.error || 'Compose failed');
             }
-
             if (!didScroll && (event === 'title' || event === 'digest' || event === 'body')) {
               outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
               didScroll = true;
@@ -226,8 +315,12 @@ export default function WeChatPage({
     [
       articleType,
       canGenerate,
-      canSubmitBase,
+      canRegenerate,
+      draftParameterKey,
       result,
+      workspace,
+      draftSession.id,
+      lastCompleteParameterKey,
       selectedModel,
       selectedProvider,
       selectedTone,
@@ -236,101 +329,119 @@ export default function WeChatPage({
     ],
   );
 
-  const handleReset = useCallback(() => {
-    abortRef.current?.abort();
-    setIsGenerating(false);
-    setCurrentStep('extracting');
-    setResult(null);
-    setError(null);
-    setDraftStatus('not_saved');
-    setLastSavedAt(null);
-    setActiveDraftId(null);
-  }, []);
-
   const handleSaveDraft = useCallback(() => {
-    if (!result || !hasAnyOutput) return;
-
+    if (!savableResult) return;
     const savedAt = new Date().toISOString();
     const nextId = activeDraftId ?? createDraftId();
     const nextDraft: WeChatDraftItem = {
       id: nextId,
       topic,
-      title: result.title.trim(),
-      digest: result.digest.trim(),
-      body: result.body.trim(),
+      title: savableResult.title.trim(),
+      digest: savableResult.digest.trim(),
+      body: savableResult.body.trim(),
       articleType: articleType ?? 'guide',
       tone: selectedTone ?? 'knowledge',
       targetLength,
       status: 'queued',
       savedAt,
     };
+    const nextDrafts = [nextDraft, ...drafts.filter((draft) => draft.id !== nextId)];
+    const persistResult: ReturnType<typeof persistWeChatDrafts> = (() => {
+      try {
+        return persistWeChatDrafts(window.localStorage, nextDrafts, () => savedAt);
+      } catch {
+        return 'failed';
+      }
+    })();
+    if (persistResult !== 'saved') {
+      setDraftStatus('not_saved');
+      toast('草稿保存失败：浏览器存储不可用或空间不足');
+      return;
+    }
 
-    setDrafts((current) => [nextDraft, ...current.filter((draft) => draft.id !== nextId)].slice(0, MAX_DRAFT_COUNT));
+    setDrafts(nextDrafts);
     setDraftStatus('queued');
     setLastSavedAt(savedAt);
     setActiveDraftId(nextId);
-  }, [activeDraftId, articleType, hasAnyOutput, result, selectedTone, targetLength, topic]);
+    toast('已保存到本地草稿箱');
+  }, [activeDraftId, articleType, drafts, savableResult, selectedTone, targetLength, topic]);
 
   const handleLoadDraft = useCallback((draft: WeChatDraftItem) => {
-    abortRef.current?.abort();
-    setTopic(draft.topic);
-    setArticleType(draft.articleType);
-    setSelectedTone(draft.tone);
-    setTargetLength(draft.targetLength);
-    setResult({ title: draft.title, digest: draft.digest, body: draft.body });
-    setCurrentStep('done');
-    setDraftStatus(draft.status);
-    setLastSavedAt(draft.savedAt);
-    setActiveDraftId(draft.id);
-    setError(null);
-    setIsGenerating(false);
-    outputRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, []);
+    const restoredResult = getRestorableWeChatResult({
+      result: { title: draft.title, digest: draft.digest, body: draft.body },
+      resultStatus: 'complete',
+    });
+    if (!restoredResult) {
+      toast('该历史草稿内容不完整，无法作为完成稿恢复');
+      return;
+    }
 
-  return (
-    <main className="flex-1 w-full max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-10 space-y-6">
-      <section className="overflow-hidden rounded-[32px] border border-emerald-100 bg-[radial-gradient(circle_at_top_right,_rgba(16,185,129,0.22),_transparent_34%),linear-gradient(135deg,_rgba(236,253,245,0.98),_rgba(255,255,255,0.98))] p-8 sm:p-10 shadow-card">
-        <div className="grid gap-6 lg:grid-cols-[1.5fr_0.9fr] lg:items-end">
-          <div className="space-y-4">
-            <span className="inline-flex items-center rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-700">
-              WeChat Draft Workspace
-            </span>
-            <div className="space-y-3">
-              <h1 className="text-4xl sm:text-5xl font-bold tracking-tight text-neutral-900">
-                生成公众号标题、摘要和正文
-              </h1>
-              <p className="max-w-3xl text-sm sm:text-base leading-7 text-neutral-600">
-                输入选题后，系统会按文章类型和语气生成完整公众号草稿。当前版本先保存到本地待同步草稿箱，不会直接发布到真实公众号。
-              </p>
-            </div>
-          </div>
+    onRestoreDraft?.({ newDraft: true, payload: {
+      topic: draft.topic, articleType: draft.articleType, tone: draft.tone, targetLength: draft.targetLength,
+      result: restoredResult, resultStatus: "complete", provider: null, model: "",
+    } });
+  }, [onRestoreDraft]);
+  const handleCopyAll = useCallback(async () => {
+    if (!fullText) return;
+    try {
+      await navigator.clipboard.writeText(fullText);
+    } catch {
+      const ta = document.createElement('textarea');
+      ta.value = fullText;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    toast('已复制公众号草稿到剪贴板');
+  }, [fullText]);
 
-          <div className="grid grid-cols-3 gap-3">
-            {[
-              { label: '生成结构', value: '标题 + 摘要 + 正文' },
-              { label: '正文输出', value: '流式生成' },
-              { label: '草稿状态', value: draftStatus === 'queued' ? '待同步' : '未保存' },
-            ].map((item) => (
-              <div key={item.label} className="rounded-2xl border border-white/70 bg-white/80 p-4 shadow-sm backdrop-blur">
-                <p className="text-xs text-neutral-400">{item.label}</p>
-                <p className="mt-2 text-base font-semibold text-neutral-800">{item.value}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+  const submitHint = isGenerating
+    ? 'AI 正在撰写公众号文章…'
+    : loading
+      ? '模型配置加载中…'
+    : canSubmitBase
+      ? '准备就绪'
+      : `还需要：${missingRequirements.join('、')}`;
 
-      {providerError && (
-        <section className="rounded-2xl border border-warning-500/20 bg-warning-50 p-4 text-sm text-warning-500">
-          模型服务加载失败：{providerError}
-        </section>
-      )}
+  // ─── 左栏：配置 ─────────────────────────────
+  const left = (
+    <div className="space-y-6">
+      <CfgGroup step={1} title="选题" tone="emerald" hint={`≥ ${MIN_TOPIC_CHARS} 字`}>
+        <TopicField
+          value={topic}
+          onChange={setTopic}
+          disabled={isGenerating}
+          multiline
+          rows={3}
+          minLen={MIN_TOPIC_CHARS}
+          tone="emerald"
+          placeholder="例如：3 个让深度工作变成习惯的小切口"
+        />
+      </CfgGroup>
 
-      <section className="rounded-[28px] border border-neutral-200 bg-white p-6 shadow-card space-y-6">
-        <TopicInput value={topic} onChange={setTopic} disabled={isGenerating} minChars={MIN_TOPIC_CHARS} />
+      <CfgGroup step={2} title="文章类型" tone="emerald">
         <ArticleTypeSelector selected={articleType} onSelect={setArticleType} disabled={isGenerating} />
-        <ToneSelector selected={selectedTone} onSelect={setSelectedTone} disabled={isGenerating} />
-        <LengthSelector selected={targetLength} onSelect={setTargetLength} disabled={isGenerating} />
+      </CfgGroup>
+
+      <CfgGroup step={3} title="语气" tone="emerald">
+        <ToneSelector selected={selectedTone} onSelect={setSelectedTone} disabled={isGenerating} tone="emerald" />
+      </CfgGroup>
+
+      <CfgGroup step={4} title="篇幅" tone="emerald">
+        <LengthSelector flow="wechat" selected={targetLength} onSelect={setTargetLength} disabled={isGenerating} />
+      </CfgGroup>
+
+      <CfgGroup step={5} title="配图" tone="emerald" hint="封面 + 正文">
+        <div className="space-y-2">
+          <ImageToggle label="封面头图" checked={coverEnabled} onChange={setCoverEnabled} disabled={isGenerating} />
+          <ImageToggle label="正文配图" checked={inlineImagesEnabled} onChange={setInlineImagesEnabled} disabled={isGenerating} />
+        </div>
+      </CfgGroup>
+
+      <div className="border-t border-neutral-200 pt-5 space-y-3">
         <ProviderSelector
           providers={providers}
           selectedProvider={selectedProvider}
@@ -340,42 +451,68 @@ export default function WeChatPage({
           disabled={isGenerating}
           loading={loading}
         />
+        <BigBtn onClick={() => void runCompose()} disabled={!canGenerate} loading={isGenerating} tone="emerald">
+          {isGenerating ? '生成中…' : '生成公众号草稿'}
+        </BigBtn>
+        <p className={`text-xs text-center ${isGenerating ? 'text-neutral-500' : canSubmitBase && !loading ? 'text-emerald-600' : 'text-warning-600'}`}>
+          {submitHint}
+        </p>
+      </div>
+    </div>
+  );
 
-        <div className="flex flex-col items-center gap-3 pt-2">
-          <div className="flex flex-wrap items-center justify-center gap-3">
-            <button
-              type="button"
-              onClick={() => void runCompose()}
-              disabled={!canGenerate}
-              className={canGenerate
-                ? 'px-10 py-3 rounded-2xl text-sm font-semibold bg-gradient-to-r from-emerald-500 to-green-500 text-white shadow-md shadow-emerald-500/20 hover:shadow-xl hover:-translate-y-0.5 transition-all cursor-pointer'
-                : 'px-10 py-3 rounded-2xl text-sm font-semibold bg-neutral-200 text-neutral-400 cursor-not-allowed'}
-            >
-              {isGenerating ? '生成中...' : '生成公众号草稿'}
-            </button>
+  // ─── 右栏：输出 ─────────────────────────────
+  const right = (
+    <div className="mx-auto max-w-3xl space-y-5">
+      {pendingCandidate && <GenerationReview original={pendingCandidate.original} candidate={pendingCandidate.value}
+        stale={!canApplyCandidate(pendingCandidate, result, draftSession.id)} onApply={applyCandidate}
+        onDiscard={() => setPendingCandidate(null)} />}
+      {providerError && (
+        <section className="rounded-2xl border border-warning-500/20 bg-warning-50 p-4 text-sm text-warning-500">
+          模型服务加载失败：{providerError}
+        </section>
+      )}
 
-            {hasAnyOutput && (
+      <OutputBar
+        status={outputStatus}
+        hint={
+          pendingCandidate ? '候选待确认，当前稿件未变' : outputStatus === 'done'
+            ? `${bodyCharCount} 字 · ${paragraphCount || 1} 段`
+            : outputStatus === 'generating'
+              ? '正在流式生成…'
+              : outputStatus === 'idle'
+                ? '左侧填好后开始生成'
+                : undefined
+        }
+        actions={
+          hasAnyOutput && !isGenerating ? (
+            <>
               <button
                 type="button"
-                onClick={handleReset}
-                className="inline-flex items-center gap-1.5 px-5 py-3 rounded-2xl text-sm font-medium text-neutral-500 bg-white border border-neutral-200 hover:bg-neutral-50 hover:border-neutral-300 transition-all duration-200 cursor-pointer"
+                onClick={() => void handleCopyAll()}
+                className="inline-flex items-center gap-1 rounded-lg border border-neutral-200 bg-white px-3 py-1.5 text-xs font-medium text-neutral-600 transition-colors hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 cursor-pointer"
               >
-                清空结果
+                复制
               </button>
-            )}
-          </div>
-
-          <p className={`text-sm ${isGenerating ? 'text-neutral-500' : canSubmitBase ? 'text-emerald-600' : 'text-amber-600'}`}>
-            {submitHint}
-          </p>
-        </div>
-      </section>
-
-      {(isGenerating || hasAnyOutput || error) && <div className="border-t border-neutral-200" />}
+              {onConvertToAdapter && <button type="button" onClick={() => onConvertToAdapter(fullText)} className="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600">转为小红书新稿</button>}
+              {canSaveDraft && (
+                <button
+                  type="button"
+                  onClick={handleSaveDraft}
+                  className="inline-flex items-center gap-1 rounded-lg bg-emerald-500 px-3 py-1.5 text-xs font-semibold text-white shadow-card transition-colors hover:bg-emerald-600 cursor-pointer"
+                >
+                  保存草稿
+                </button>
+              )}
+            </>
+          ) : null
+        }
+      />
 
       {isGenerating && (
-        <section>
+        <section className="rounded-2xl border border-neutral-200 bg-white p-4">
           <ProgressIndicator currentStep={currentStep} isGenerating={isGenerating} steps={WECHAT_STEPS} tone="primary" />
+          <button type="button" onClick={cancelGeneration} className="mt-3 text-xs text-neutral-600 underline">取消生成（保留原稿）</button>
         </section>
       )}
 
@@ -385,66 +522,115 @@ export default function WeChatPage({
         </section>
       )}
 
-      {hasAnyOutput && result && (
-        <section ref={outputRef} className="grid gap-6 xl:grid-cols-[1.45fr_0.85fr] items-start">
-          <div className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-3">
-              {[
-                { label: '正文字数', value: `${bodyCharCount} 字` },
-                { label: '正文段落', value: `${paragraphCount || 1} 段` },
-                { label: '保存状态', value: draftStatus === 'queued' ? '已入草稿箱' : '未保存' },
-              ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-neutral-200 bg-white p-4 shadow-card">
-                  <p className="text-xs text-neutral-400">{item.label}</p>
-                  <p className="mt-2 text-lg font-semibold text-neutral-800">{item.value}</p>
-                </div>
-              ))}
-            </div>
+      <div ref={outputRef}>
+        {result && <PublishChecklist flow="wechat" targetLength={resultTargetLength(lastCompleteParameterKey, targetLength)} title={result.title} body={result.body} digest={result.digest} />}
+      {result ? (
+          <Paper
+            articleTypeLabel={articleTypeLabel}
+            charCount={bodyCharCount}
+            titleNode={
+              <EditableTitle
+                value={result.title}
+                onBeforeChange={() => { workspace.checkpoint("标题编辑前"); }}
+                onChange={(value) => updateResult((current) => ({ ...current, title: value }))}
+                onRegenerate={() => void runCompose('title')}
+                canRegenerate={canRegenerate}
+                disabled={isGenerating}
+                label="标题"
+                maxLength={32}
+                tone="emerald"
+              />
+            }
+          >
+            {coverEnabled && <WeChatCover title={result.title} />}
 
-            <EditableTitle
-              value={result.title}
-              onChange={(value) => updateResult((current) => ({ ...current, title: value }))}
-              onRegenerate={() => void runCompose('title')}
-              canRegenerate={canSubmitBase}
-              disabled={isGenerating}
-              label="标题"
-              maxLength={36}
-              tone="primary"
-            />
             <EditableDigest
               value={result.digest}
+              onBeforeChange={() => { workspace.checkpoint("摘要编辑前"); }}
               onChange={(value) => updateResult((current) => ({ ...current, digest: value }))}
               onRegenerate={() => void runCompose('digest')}
-              canRegenerate={canSubmitBase}
+              canRegenerate={canRegenerate}
               disabled={isGenerating}
             />
-            <EditableBody
-              value={result.body}
-              onChange={(value) => updateResult((current) => ({ ...current, body: value }))}
-              onRegenerate={() => void runCompose('body')}
-              canRegenerate={canSubmitBase}
-              disabled={isGenerating}
-              tone="primary"
-            />
-          </div>
 
-          <DraftBoxPanel
-            drafts={drafts}
-            activeDraftId={activeDraftId}
-            currentStatus={draftStatus}
-            lastSavedAt={lastSavedAt}
-            canSave={hasAnyOutput && !isGenerating}
-            fullText={fullText}
-            onSave={handleSaveDraft}
-            onLoadDraft={handleLoadDraft}
-            onConvertToAdapter={
-              onConvertToAdapter && fullText.trim().length > 0
-                ? () => onConvertToAdapter(fullText)
-                : undefined
-            }
-          />
-        </section>
+            <BodyEditor value={result.body} tone="emerald"
+              onChange={(body) => updateResult((current) => ({ ...current, body }))}
+              onBeforeChange={() => { workspace.checkpoint('正文编辑前'); }}
+              onRewrite={handleParagraphRewrite} onRegenerate={() => void runCompose("body")}
+              canRegenerate={canRegenerate} disabled={false} />
+            {inlineImagesEnabled && <div className="mt-5 space-y-4">
+              <WeChatInlineImg caption={INLINE_IMG_CAPTIONS[0]} variant="gradient-a" />
+              <WeChatInlineImg caption={INLINE_IMG_CAPTIONS[1]} variant="gradient-b" />
+            </div>}
+          </Paper>
+        ) : !isGenerating ? (
+          <section className="rounded-paper border border-dashed border-neutral-300 bg-white px-8 py-16 text-center shadow-card">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-50">
+              <svg className="h-8 w-8 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+              </svg>
+            </div>
+            <p className="mt-4 text-sm text-neutral-500">左侧填写选题、类型、语气和篇幅后开始生成</p>
+            <p className="mt-1 text-xs text-neutral-400">完成后将在这里以公众号草稿样式呈现</p>
+            <button type="button" onClick={() => { setResult({ ...EMPTY_RESULT }); setCurrentStep("done"); }}
+              className="mt-4 rounded-lg border border-emerald-200 px-4 py-2 text-sm text-emerald-700">不调用模型，直接写作</button>
+          </section>
+        ) : null}
+      </div>
+
+      {drafts.length > 0 && (
+        <DraftBoxPanel
+          drafts={drafts}
+          activeDraftId={activeDraftId}
+          currentStatus={draftStatus}
+          lastSavedAt={lastSavedAt}
+          canSave={canSaveDraft}
+          fullText={fullText}
+          onSave={handleSaveDraft}
+          onLoadDraft={handleLoadDraft}
+          onConvertToAdapter={
+            onConvertToAdapter && fullText.trim().length > 0 ? () => onConvertToAdapter(fullText) : undefined
+          }
+        />
       )}
-    </main>
+    </div>
+  );
+
+  return <><div className="mx-auto w-full max-w-[1600px] px-4 pt-4 sm:px-6">
+    <DraftWorkspaceBar draft={workspace} onNew={onNewDraft} onRestore={onRestoreDraft}
+      configurationChanged={Boolean(lastCompleteParameterKey && lastCompleteParameterKey !== draftParameterKey)} />
+  </div><SplitFlow left={left} right={right} /></>;
+}
+
+interface ImageToggleProps {
+  label: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+}
+
+function ImageToggle({ label, checked, onChange, disabled }: ImageToggleProps) {
+  return (
+    <button
+      type="button"
+      onClick={() => onChange(!checked)}
+      disabled={disabled}
+      aria-pressed={checked}
+      className={`
+        flex w-full items-center justify-between rounded-xl border bg-white px-3 py-2 text-sm transition-all cursor-pointer
+        ${checked ? 'border-emerald-300 bg-emerald-50/40 text-emerald-700' : 'border-neutral-200 text-neutral-600 hover:border-neutral-300'}
+        ${disabled ? 'opacity-60 cursor-not-allowed' : ''}
+      `}
+    >
+      <span className="font-medium">{label}</span>
+      <span
+        aria-hidden="true"
+        className={`relative h-5 w-9 rounded-full transition-colors ${checked ? 'bg-emerald-500' : 'bg-neutral-300'}`}
+      >
+        <span
+          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow-card transition-transform ${checked ? 'translate-x-4' : 'translate-x-0.5'}`}
+        />
+      </span>
+    </button>
   );
 }

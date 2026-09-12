@@ -89,6 +89,11 @@ export default function ProgressIndicator({
             );
           })}
         </div>
+
+        <div aria-hidden="true" className="mt-4 space-y-2">
+          <div className="skeleton h-2.5 w-full" />
+          <div className="skeleton h-2.5 w-2/3" />
+        </div>
       </div>
     </div>
   );

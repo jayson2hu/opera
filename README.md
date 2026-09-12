@@ -17,6 +17,7 @@ Opera is an AI-assisted content creation workspace for adapting source articles 
 - [Project overview](docs/PROJECT.md)
 - [Deployment guide](docs/DEPLOYMENT.md)
 - [Review notes](docs/REVIEW.md)
+- [Release readiness](docs/RELEASE-READINESS.md)
 - [Follow-up plan](docs/PLAN.md)
 - [Documentation index](docs/INDEX.md)
 
@@ -49,7 +50,7 @@ Historical handoff and feature PRD documents have been moved under `docs/archive
 
    ```powershell
    Set-Location opera-app
-   npm install
+   npm ci
    npm run dev
    ```
 
@@ -78,6 +79,8 @@ cd opera-server-py
 python -m pytest -q
 
 cd ../opera-app
+npm ci
+npm run test
 npm run lint
 npm run build
 
@@ -85,4 +88,5 @@ cd ..
 docker compose config
 ```
 
-See [Review notes](docs/REVIEW.md) for the latest validation result and known risks.
+See [Release readiness](docs/RELEASE-READINESS.md) for the current go/no-go status and
+[Review notes](docs/REVIEW.md) for historical validation details.

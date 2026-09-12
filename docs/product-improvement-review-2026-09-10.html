@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <meta name="description" content="Opera 产品复审与改善方案：五项问题、产品方向、验收标准及逐项审核意见。">
+  <title>Opera · 产品改善方案与审核清单</title>
+  <style>
+    :root{--paper:#f7f6f2;--card:#fff;--ink:#272724;--muted:#73736c;--line:#e6e4dd;--orange:#c85f20;--orange-soft:#fbefe5;--red:#a43d34;--red-soft:#fbefed;--green:#326653;--green-soft:#edf4f0;--purple:#715c8f;--purple-soft:#f3eff7;--radius:18px;--shadow:0 8px 28px #29291e05}
+    *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:32px}body{margin:0;background:var(--paper);color:var(--ink);font-family:Inter,"Segoe UI","PingFang SC","Microsoft YaHei",sans-serif;font-size:15px;line-height:1.8}button,input,select,textarea{font:inherit}a{color:inherit;text-underline-offset:4px}button,a,select,input,textarea,summary{-webkit-tap-highlight-color:transparent}button:focus-visible,a:focus-visible,select:focus-visible,input:focus-visible,textarea:focus-visible,summary:focus-visible{outline:3px solid #c85f2080;outline-offset:4px}button{cursor:pointer}button:disabled{opacity:.45;cursor:default}h1,h2,h3,h4,p{margin:0}h1,h2,h3,h4{line-height:1.4}p+p{margin-top:10px}ul,ol{padding-left:1.3em;margin:10px 0 0}li+li{margin-top:7px}strong{font-weight:650}code{font-family:Consolas,"SFMono-Regular",monospace;font-size:.88em;background:#f1f0eb;border-radius:4px;padding:2px 5px;overflow-wrap:anywhere}small{font-size:12px}.muted{color:var(--muted)}.eyebrow{font-size:11px;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--orange)}.skip-link{position:fixed;left:15px;top:-100px;background:var(--ink);color:white;padding:9px 16px;z-index:50}.skip-link:focus{top:12px}
+    .layout{display:grid;grid-template-columns:238px minmax(0,1fr);min-height:100vh}.sidebar{position:sticky;top:0;height:100vh;border-right:1px solid var(--line);padding:32px 24px;display:flex;flex-direction:column;background:#faf9f6;overflow-y:auto}.brand{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:750;letter-spacing:-.06em}.brand-mark{width:29px;height:29px;border-radius:9px;background:var(--orange);color:white;display:grid;place-items:center;font-size:19px;letter-spacing:0}.sidebar-caption{font-size:12px;color:var(--muted);margin-top:8px}.nav-label{font-size:10px;letter-spacing:.15em;color:#93938a;margin:35px 0 10px;font-weight:650}.nav{display:grid;gap:4px}.nav a{display:flex;gap:10px;align-items:center;text-decoration:none;font-size:13px;padding:8px 10px;border-radius:8px;color:#62625c}.nav a:hover,.nav a[aria-current="location"]{background:var(--orange-soft);color:var(--orange)}.nav .num{font-family:Consolas,monospace;font-size:11px;color:#929289}.sidebar-footer{margin-top:auto;padding-top:30px;font-size:11px;color:var(--muted)}.sidebar-footer strong{display:block;color:var(--ink);font-size:12px}
+    main{width:100%;max-width:1158px;padding:44px 54px 80px;margin:0 auto;min-width:0}.topline{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-bottom:24px;border-bottom:1px solid var(--line);font-size:12px;color:var(--muted)}.topline b{font-weight:550;color:var(--ink)}.pill{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);border-radius:100px;padding:3px 10px;font-size:11px;white-space:nowrap}.pill::before{content:"";width:5px;height:5px;border-radius:50%;background:var(--orange)}.hero{padding:38px 0 26px}.hero h1{font-size:clamp(29px,3.2vw,44px);font-weight:700;letter-spacing:-.04em;margin:12px 0 16px}.hero h1 span{color:var(--orange)}.hero .lead{max-width:780px;font-size:16px;color:#5e5e57}.hero-meta{display:flex;flex-wrap:wrap;gap:8px 20px;margin-top:20px;font-size:12px;color:var(--muted)}.hero-meta span::before{content:"·";margin-right:9px;color:var(--orange)}.notice{border-left:3px solid var(--orange);padding:16px 20px;background:var(--orange-soft);border-radius:0 10px 10px 0;font-size:13px}.notice strong{display:block;margin-bottom:3px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:22px 0 34px}.metric{background:var(--card);border:1px solid var(--line);padding:18px 20px;border-radius:12px}.metric .value{font-size:29px;line-height:1.3;font-weight:650;letter-spacing:-.04em}.metric .value.red{color:var(--red)}.metric .value.orange{color:var(--orange)}.metric .value.green{color:var(--green)}.metric .caption{font-size:12px;margin-top:7px;color:var(--muted)}
+    .section{margin-top:40px}.section-heading{display:flex;align-items:baseline;justify-content:space-between;gap:15px;margin-bottom:17px}.section-heading h2{font-size:22px;letter-spacing:-.025em}.section-heading .index{font-family:Consolas,monospace;color:var(--orange);margin-right:10px;font-size:13px}.section-heading .aside{font-size:11px;color:var(--muted);text-align:right}.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:12px;background:var(--card)}table{width:100%;border-collapse:collapse;min-width:610px;font-size:13px;text-align:left}th{padding:13px 17px;background:#f0efe9;color:#66665d;font-size:11px;font-weight:650}td{padding:14px 17px;border-top:1px solid var(--line);vertical-align:top}td:first-child{white-space:nowrap}td a{text-decoration:none}td a:hover{text-decoration:underline}.badge{display:inline-block;font-size:10px;line-height:1.7;letter-spacing:.03em;font-weight:700;padding:3px 8px;border-radius:5px}.badge.p1{background:var(--red-soft);color:var(--red)}.badge.p2{background:var(--orange-soft);color:var(--orange)}.badge.proposal{background:var(--purple-soft);color:var(--purple)}.evidence-key{display:flex;flex-wrap:wrap;gap:10px 22px;font-size:12px;color:var(--muted);margin-top:16px}.evidence-key b{color:var(--ink);font-weight:600}.card{border:1px solid var(--line);border-radius:var(--radius);background:var(--card);box-shadow:var(--shadow);margin-top:20px;overflow:hidden}.card-head{padding:26px 28px 21px;border-bottom:1px solid var(--line)}.card-kicker{display:flex;gap:9px;align-items:center;font-size:11px;color:var(--muted);margin-bottom:10px;flex-wrap:wrap}.card-id{font-family:Consolas,monospace;font-weight:600;letter-spacing:.08em;color:#62625c}.card h3{font-size:22px;letter-spacing:-.025em}.card-deck{font-size:13px;color:var(--muted);margin-top:8px}.card-body{padding:24px 28px}.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}.two-col>div{min-width:0}.small-heading{font-size:11px;letter-spacing:.06em;color:var(--muted);font-weight:700;margin-bottom:9px}.copy{font-size:13px;color:#52524c}.risk{padding:12px 15px;border-radius:9px;background:var(--red-soft);color:#82443e;font-size:12px;margin-top:18px}.positive{background:var(--green-soft);color:#3f6557}.acceptance{margin-top:23px;padding-top:20px;border-top:1px dashed var(--line)}.acceptance h4{font-size:13px;margin-bottom:10px}.acceptance ul{list-style:none;padding:0;margin:0;display:grid;gap:8px}.acceptance li{position:relative;padding-left:19px;font-size:13px;margin:0;color:#52524c}.acceptance li::before{content:"";position:absolute;left:0;top:8px;width:8px;height:8px;border:1px solid #bdbdb2;border-radius:2px}.acceptance-note{font-size:11px;color:var(--muted);margin-top:8px}details{margin-top:20px;border:1px solid var(--line);border-radius:9px;font-size:12px}summary{padding:10px 14px;color:#62625c;cursor:pointer;font-weight:600}details[open] summary{border-bottom:1px solid var(--line)}.detail-content{padding:14px 16px;color:#62625c}.source-list{padding-left:16px;margin:9px 0}.source-list a{color:var(--orange);overflow-wrap:anywhere}.trace{font-family:Consolas,"Microsoft YaHei",monospace;background:#f5f4ef;color:#5f5f56;padding:11px 13px;border-radius:6px;font-size:11px;line-height:1.9;margin-top:10px;overflow-wrap:anywhere}
+    .decision-box{padding:17px 28px 21px;background:#fcfbf8;border-top:1px solid var(--line)}.decision-top{display:flex;gap:14px;align-items:center;justify-content:space-between}.decision-top label{font-size:12px;font-weight:600}.decision-select{max-width:100%;min-width:185px;border:1px solid #d9d7ce;border-radius:7px;background:white;padding:7px 30px 7px 10px;font-size:12px;color:var(--ink)}.decision-select[data-value="approve"]{border-color:#abc8b8;background:var(--green-soft)}.decision-select[data-value="revise"]{border-color:#d4bfa6;background:var(--orange-soft)}.decision-select[data-value="defer"],.decision-select[data-value="reject"]{background:#f0efeb}.note-label{display:block;font-size:11px;color:var(--muted);margin:11px 0 5px}.review-note{width:100%;resize:vertical;min-height:64px;background:white;border:1px solid var(--line);border-radius:7px;padding:9px 11px;font-size:12px;line-height:1.7;color:var(--ink)}.review-note::placeholder{color:#aaa99f}.design-strip{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:19px}.design-node{border:1px solid var(--line);padding:13px;border-radius:9px;background:#fafaf7;min-width:0}.design-node b{font-size:12px;display:block}.design-node span{display:block;color:var(--muted);font-size:11px;line-height:1.7;margin-top:5px}.design-node.highlight{border-color:#d5bba6;background:var(--orange-soft)}.proposal-note{font-size:11px;color:var(--muted);margin-top:8px}.phase-list{display:grid;gap:12px}.phase{display:grid;grid-template-columns:72px minmax(0,1fr);border:1px solid var(--line);background:var(--card);border-radius:12px;overflow:hidden}.phase-no{display:flex;flex-direction:column;align-items:center;justify-content:center;background:#efeee8;font-size:10px;letter-spacing:.07em;color:var(--muted);border-right:1px solid var(--line)}.phase-no b{font-size:23px;font-weight:600;color:var(--ink);letter-spacing:0}.phase-content{padding:18px 22px}.phase-content h3{font-size:15px}.phase-content p{font-size:12px;color:var(--muted);margin-top:5px}.phase-tags{font-size:11px;color:var(--orange);margin-top:6px}.review-panel{padding:27px 28px;border-radius:18px;border:1px solid #d3d3c8;background:#f0f0e9}.review-title{display:flex;justify-content:space-between;gap:12px;align-items:center}.review-title h3{font-size:19px}.progress-text{font-size:12px;color:var(--muted)}.progress-track{height:6px;background:#dcddd2;border-radius:10px;overflow:hidden;margin:17px 0}.progress-fill{height:100%;width:0;background:var(--green);transition:width .2s}.review-stats{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:#62635a}.review-stats strong{color:var(--ink)}.review-fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:19px}.review-fields label{font-size:12px;display:block;margin-bottom:6px}.review-fields input{width:100%;border:1px solid #d4d5c9;border-radius:7px;padding:9px 11px;background:#fffffff0;font-size:13px}.button-row{display:flex;gap:9px;flex-wrap:wrap;margin-top:19px}.btn{border-radius:8px;border:1px solid #cecec2;background:white;color:var(--ink);padding:9px 15px;font-size:12px;font-weight:600;line-height:1.7;display:inline-flex;align-items:center;gap:8px}.btn.primary{background:var(--ink);color:white;border-color:var(--ink)}.btn:hover{filter:brightness(.97)}.btn.subtle{background:transparent;color:var(--muted)}.save-status{min-height:22px;font-size:11px;color:var(--muted);margin-top:12px}.save-status.error{color:var(--red)}.readonly-tip{font-size:11px;color:var(--muted);margin-top:9px}.audit-foot{display:flex;justify-content:space-between;gap:15px;font-size:11px;color:var(--muted);border-top:1px solid var(--line);padding-top:20px;margin-top:42px}.print-note{display:none}dialog{border:1px solid var(--line);border-radius:15px;padding:25px;max-width:430px;width:calc(100% - 36px);color:var(--ink)}dialog::backdrop{background:#27272466}dialog h3{font-size:19px}dialog p{font-size:13px;color:var(--muted);margin-top:12px}noscript .notice{margin:20px}
+    @media(min-width:1500px){main{padding-left:64px;padding-right:64px}}
+    @media(max-width:1100px){.layout{grid-template-columns:200px minmax(0,1fr)}.sidebar{padding:25px 17px}main{padding:32px 28px 60px}.metrics{gap:8px}.metric{padding:15px}.card-head,.card-body{padding-left:22px;padding-right:22px}.two-col{gap:18px}}
+    @media(max-width:820px){.layout{display:block}.sidebar{position:relative;height:auto;padding:17px 22px;border-right:0;border-bottom:1px solid var(--line);display:block}.brand{font-size:21px}.sidebar-caption{margin-top:3px}.nav-label,.sidebar-footer{display:none}.nav{display:flex;gap:5px;overflow-x:auto;margin-top:13px;scrollbar-width:thin;padding-bottom:3px}.nav a{flex:0 0 auto;padding:5px 8px;font-size:12px}.nav .num{display:none}main{padding:24px 22px 50px}.hero{padding-top:26px}.hero .lead{font-size:14px}.topline{padding-bottom:18px}.two-col{grid-template-columns:1fr;gap:20px}.hero h1{font-size:33px}.section{margin-top:30px}.card h3{font-size:20px}}
+    @media(max-width:500px){main{padding-left:16px;padding-right:16px}.sidebar{padding-left:16px;padding-right:16px}.topline{font-size:10px}.topline .version-extra{display:none}.hero h1{font-size:29px}.metrics{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:25px}.metric .value{font-size:26px}.notice{padding:13px 15px}.section-heading .aside{display:none}.section-heading h2{font-size:20px}.card-head,.card-body{padding:20px 18px}.decision-box{padding:16px 18px}.decision-top{align-items:flex-start;flex-direction:column;gap:8px}.decision-select{width:100%}.design-strip{grid-template-columns:1fr}.phase{grid-template-columns:55px minmax(0,1fr)}.phase-content{padding:16px}.review-panel{padding:22px 18px}.review-fields{grid-template-columns:1fr}.review-title{align-items:flex-start;flex-direction:column;gap:5px}.audit-foot{flex-direction:column;gap:5px}.btn{padding:9px 12px}}
+    @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}*{transition:none!important}}
+    @media print{body{background:white;font-size:11px}.layout{display:block}.sidebar,.skip-link,.button-row,.save-status,.readonly-tip,.review-fields,.nav,dialog{display:none!important}main{max-width:none;padding:0}.topline{padding-top:0}.hero{padding:20px 0}.hero h1{font-size:29px}.hero .lead{font-size:12px}.section{margin-top:23px}.metrics{margin:15px 0;grid-template-columns:repeat(4,minmax(0,1fr))}.metric{padding:12px}.metric .value{font-size:23px}.card{break-inside:auto;box-shadow:none;margin-top:16px}.card-head{break-after:avoid;padding:15px 18px}.card h3{font-size:18px}.card-body{padding:15px 18px}.decision-box{break-inside:avoid;padding:12px 18px}.two-col{grid-template-columns:repeat(2,minmax(0,1fr))}.acceptance{break-inside:avoid}.table-wrap{overflow:visible}table{min-width:0;font-size:11px}th,td{padding:9px}.phase,.review-panel,.notice{break-inside:avoid}.review-panel{padding:18px}.review-note{min-height:45px;height:auto;resize:none}.print-note{display:block;font-size:12px;margin-top:12px;white-space:pre-wrap}.audit-foot{margin-top:22px}a{text-decoration:none;color:inherit}.detail-content{font-size:10px}.copy,.acceptance li{font-size:11px}@page{size:A4;margin:15mm}}
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到文档正文</a>
+  <div class="layout">
+    <aside class="sidebar" aria-label="文档目录">
+      <div class="brand"><span class="brand-mark" aria-hidden="true">o</span> Opera<span style="font-size:10px;letter-spacing:.08em;margin-left:3px;color:var(--muted)">REVIEW</span></div>
+      <p class="sidebar-caption">产品改善方案 · 待审核稿</p>
+      <div class="nav-label">REVIEW CONTENTS</div>
+      <nav class="nav">
+        <a href="#overview" aria-current="location"><span class="num">00</span> 本轮结论</a>
+        <a href="#imp-01"><span class="num">01</span> 草稿恢复与防丢</a>
+        <a href="#imp-02"><span class="num">02</span> 内容与参数解耦</a>
+        <a href="#imp-03"><span class="num">03</span> 人工编辑能力</a>
+        <a href="#imp-04"><span class="num">04</span> 局部生成上下文</a>
+        <a href="#imp-05"><span class="num">05</span> 质量检查可信度</a>
+        <a href="#direction"><span class="num">06</span> 产品与验收决策</a>
+        <a href="#delivery"><span class="num">07</span> 实施顺序</a>
+        <a href="#review"><span class="num">08</span> 汇总审核意见</a>
+      </nav>
+      <div class="sidebar-footer"><strong>2026.09.10 · v1.0</strong>依据当前工作区源码复审<br>本文件不执行项目修改</div>
+    </aside>
+    <main id="main">
+      <div class="topline"><span><b>OPERA / 产品复审</b><span class="version-extra"> &nbsp; · &nbsp; 改善提案 01</span></span><span class="pill">等待产品负责人审核</span></div>
+      <section id="overview" aria-labelledby="document-title">
+        <header class="hero">
+          <p class="eyebrow">PRODUCT IMPROVEMENT PROPOSAL</p>
+          <h1 id="document-title">Opera 产品改善方案<br><span>把保存、编辑与交付做可靠。</span></h1>
+          <p class="lead">当前产品已具备三条生成流程和主要界面。下一轮建议优先保障真实稿件的保存与修改，再校准局部生成和质量提示。本稿列出五项问题与两项决策，供你逐项确定范围。</p>
+          <div class="hero-meta"><span>审查日期：2026-09-10</span><span>范围：React 前端 / FastAPI 接口 / 本地草稿</span><span>状态：方案待批，未实施</span></div>
+        </header>
+        <div class="notice"><strong>复审结论：暂缓正式验收签字，先关闭 P1。</strong>本轮发现可复现的草稿删除与正文丢失路径，因此前序报告中“无 P1、可冻结”的判断需要修订。本稿是新的改善提案；它不代表修复已经完成，也不自动更新其他发布文档。</div>
+        <div class="metrics" aria-label="审查摘要">
+          <div class="metric"><div class="value red">3 <small>P1</small></div><div class="caption">阻塞实际创作的问题</div></div>
+          <div class="metric"><div class="value orange">2 <small>P2</small></div><div class="caption">一致性与产品信任问题</div></div>
+          <div class="metric"><div class="value green">89 / 89</div><div class="caption">本轮前端测试通过</div></div>
+          <div class="metric"><div class="value">7 <small>项</small></div><div class="caption">五项修复 + 两项决策</div></div>
+        </div>
+        <div class="section-heading"><h2><span class="index">00</span>先看范围，再逐项审核</h2><span class="aside">P1：发布前关闭 · P2：紧随核心修复</span></div>
+        <div class="table-wrap"><table><caption style="position:absolute;clip-path:inset(50%);width:1px;height:1px;overflow:hidden">改善事项总览</caption><thead><tr><th>编号 / 级别</th><th>问题</th><th>目标结果</th><th>主要范围</th></tr></thead><tbody>
+          <tr><td><a href="#imp-01">IMP-01</a> <span class="badge p1">P1</span></td><td>刷新 / 进入流程可能删稿</td><td>未编辑、未明确删除时，已有稿件保持可恢复</td><td>草稿生命周期</td></tr>
+          <tr><td><a href="#imp-02">IMP-02</a> <span class="badge p1">P1</span></td><td>改参数或模型失效导致内容不保留</td><td>用户内容独立保存，模型仅影响新的生成任务</td><td>数据模型 / 状态</td></tr>
+          <tr><td><a href="#imp-03">IMP-03</a> <span class="badge p1">P1</span></td><td>完成稿正文缺少直接手动编辑</td><td>能够精确修改、撤销，并决定是否接受 AI 改写</td><td>三个流程正文</td></tr>
+          <tr><td><a href="#imp-04">IMP-04</a> <span class="badge p2">P2</span></td><td>局部生成没有使用当前稿件上下文</td><td>生成标签、标题时与当前正文保持一致</td><td>前后端请求契约</td></tr>
+          <tr><td><a href="#imp-05">IMP-05</a> <span class="badge p2">P2</span></td><td>质量规则冲突，效果预估依据不足</td><td>规则匹配篇幅，提示解释清楚且可验证</td><td>质量面板 / 文案</td></tr>
+        </tbody></table></div>
+        <div class="evidence-key"><span><b>内存诊断：</b>已执行隔离状态验证</span><span><b>源码确认：</b>明确的实现与调用依据</span><span><b>建议方案：</b>等待你的审核决定</span></div>
+        <p class="proposal-note">证据边界：本轮前端测试为 13 个文件、89 项全部通过；它们未识别这里的页面生命周期问题。以下诊断不接触用户浏览器数据，尚未作为完整真实浏览器验收。后端 123 项是前序验收记录，本轮未重新运行。</p>
+      </section>
+
+      <section class="section" aria-labelledby="issues-title">
+        <div class="section-heading"><h2 id="issues-title"><span class="index">01—05</span>需要改善的具体问题</h2><span class="aside">每项均可单独决定范围</span></div>
+
+        <article class="card review-item" id="imp-01" data-review-id="IMP-01" data-title="草稿恢复与防丢" data-priority="P1">
+          <header class="card-head"><div class="card-kicker"><span class="card-id">IMP-01</span><span class="badge p1">P1 · 阻塞</span><span>内存诊断已复现 / 源码确认</span></div><h3>先恢复草稿，再允许自动保存</h3><p class="card-deck">影响三个流程的当前草稿。进入页面不应被当作“清空内容”的操作。</p></header>
+          <div class="card-body">
+            <div class="two-col"><div><h4 class="small-heading">当前行为与用户影响</h4><div class="copy"><p>页面从空状态初始化，只在存在一次性的 <code>sessionStorage</code> 恢复指令时加载内容。自动保存约 1.5 秒后执行，空内容触发已有草稿键的删除。</p><p>原有稿件 → 刷新或通过普通入口重新进入同一流程 → 未做任何编辑 → 当前草稿可能消失。开发模式的 StrictMode 重放还可能在恢复前消费掉一次性指令。</p></div></div><div><h4 class="small-heading">建议方案 · 待审核</h4><div class="copy"><ul><li>增加“读取中 / 已恢复 / 用户已修改”状态，恢复完成之前不执行保存或删除。</li><li>正常进入流程默认恢复当前稿；“新建草稿”作为独立操作，不复用旧稿覆盖槽。</li><li>恢复逻辑支持重复执行；在应用恢复数据成功后再消费指令。</li><li>区分用户明确清空、未初始化、空白新稿；保存失败提供可见提示。</li></ul></div></div></div>
+            <div class="risk">风险等级依据：影响实际文本留存。前端存储函数单测通过，并不能保证页面进入与恢复顺序正确。</div>
+            <div class="acceptance"><h4>验收标准</h4><ul><li>三个流程已有稿件时，刷新、普通入口进入、返回再进入，原文和完成稿均可恢复。</li><li>等待超过保存防抖时间、快速切页、触发页面离开事件，都不会用空初始状态删除旧稿。</li><li>在 StrictMode 开发环境与生产构建中，从首页 / 草稿抽屉恢复均成功，包括同流程恢复。</li><li>浏览器存储禁用或配额不足时，页面给出未保存提示，并允许复制 / 导出当前内容。</li></ul><p class="acceptance-note">此处是待执行的验收项，方框不表示已通过。</p></div>
+            <details><summary>查看代码依据与诊断范围</summary><div class="detail-content"><p>内存诊断调用真实自动保存 hook，替换 React 调度与 Storage 为隔离对象；三个流程的空初始值均在 1500ms 删除预先写入的当前草稿。另按 setup → cleanup → setup 重放 Adapter 的实际恢复 effect，确认恢复指令被消费但没有状态恢复。后者针对开发模式，不据此断言生产模式同样触发。</p><ul class="source-list"><li><a href="../opera-app/src/hooks/useAutoSaveDraft.ts">useAutoSaveDraft.ts</a> · 48、78 行：持久化与定时保存。</li><li><a href="../opera-app/src/lib/draftPersistence.ts">draftPersistence.ts</a> · 25—26 行：空值删除。</li><li><a href="../opera-app/src/pages/AdapterPage.tsx">AdapterPage.tsx</a> · 105—143 行：先移除指令、再安排定时恢复。</li><li><a href="../opera-app/src/pages/ComposerPage.tsx">ComposerPage.tsx</a> · 98、125、298 行：空初始值、恢复、自动保存接入。</li></ul><div class="trace">前置：Storage 中存在 current 草稿<br>空白 mount → 注册 1500ms 保存 → isEmpty = true → removeItem(current)<br>期望：未完成恢复且无用户操作时，保留 current。</div></div></details>
+          </div>
+          <div class="decision-box"><div class="decision-top"><label for="decision-imp-01">审核决定 · IMP-01</label><select class="decision-select" id="decision-imp-01" data-decision><option value="pending">待审核</option><option value="approve">同意纳入本轮</option><option value="revise">调整方案后纳入</option><option value="defer">暂缓</option><option value="reject">不采纳</option></select></div><label class="note-label" for="note-imp-01">审核备注</label><textarea class="review-note" id="note-imp-01" data-note placeholder="例如：默认恢复最近稿；另设明确的新建入口。"></textarea></div>
+        </article>
+
+        <article class="card review-item" id="imp-02" data-review-id="IMP-02" data-title="内容与生成参数解耦" data-priority="P1">
+          <header class="card-head"><div class="card-kicker"><span class="card-id">IMP-02</span><span class="badge p1">P1 · 阻塞</span><span>语气变化内存复现 / 模型恢复限制源码确认</span></div><h3>保存用户内容，不让配置变化废弃完成稿</h3><p class="card-deck">生成配置记录内容来源，不能决定已有稿件是否还允许被阅读、编辑与导出。</p></header>
+          <div class="card-body"><div class="two-col"><div><h4 class="small-heading">当前行为与用户影响</h4><div class="copy"><p>完成结果与 topic、type、tone、length、provider、model 的身份完全绑定。仅改语气或模型，下一次自动保存可能将已有完成稿覆盖成 <code>result: null</code>。</p><p>原模型不在当前可用列表时，Composer / WeChat 会只恢复参数或清除已恢复结果。已经生成的静态正文因此依赖模型在线和配置可用。</p></div></div><div><h4 class="small-heading">建议方案 · 待审核</h4><div class="copy"><ul><li>稿件使用独立 ID，内容、版本、时间和来源信息作为持久资产保存。</li><li>“下一次生成的配置”与“当前稿的来源快照”分开；改配置只标记待应用。</li><li>模型失效时仍可本地查看、编辑、复制、导出；发起新生成前再选可用模型。</li><li>新生成成功后产生新版本；失败或取消时保留用户已确认的版本。</li></ul></div></div></div>
+            <div class="design-strip" aria-label="建议的数据职责拆分"><div class="design-node highlight"><b>稿件 Draft</b><span>稳定 ID · 用户正文<br>不依赖模型存活</span></div><div class="design-node"><b>版本 DraftVersion</b><span>内容快照 · 修改时间<br>生成来源 · 可恢复</span></div><div class="design-node"><b>生成任务 Generation</b><span>参数 · 执行状态<br>候选结果 · 错误信息</span></div></div><p class="proposal-note">以上为建议的数据职责，尚未实施；第一阶段可继续使用本地存储，暂不要求数据库或账号系统。</p>
+            <div class="acceptance"><h4>验收标准</h4><ul><li>完成后修改选题、类型、语气、篇幅、provider 或 model，再保存 / 刷新，原稿仍完整可取回。</li><li>模型被移除或 Provider 接口不可用时，已有正文仍支持本地阅读、编辑和导出。</li><li>失败、取消、乱序返回不会覆盖用户确认稿；新版本接受前保留前一版。</li><li>旧 localStorage 键与草稿格式可迁移并重复读取，不先删旧数据；迁移失败保持原始数据。</li><li>用户可创建多篇独立稿件，不再仅靠每个流程的 <code>*-current</code> 槽覆盖历史内容。</li></ul></div>
+            <details><summary>查看代码依据与兼容边界</summary><div class="detail-content"><p>已用真实参数身份选择函数与持久化函数验证：内存有完整编辑稿时，仅将语气从 knowledge 切为 casual，序列化结果变为 null。本提案保留“结果来源需要准确”的要求，改变的是保存策略。</p><ul class="source-list"><li><a href="../opera-app/src/lib/generationDraftConsistency.ts">generationDraftConsistency.ts</a> · 不同参数 key 返回 null。</li><li><a href="../opera-app/src/pages/ComposerPage.tsx">ComposerPage.tsx</a> · 283—312 行：身份筛选后写入当前草稿。</li><li><a href="../opera-app/src/pages/WeChatPage.tsx">WeChatPage.tsx</a> · 404—410 行：模型不可用时清除恢复结果。</li></ul><p>迁移原则：新增版本化存储和兼容读取，保持现有 SSE 与旧请求字段兼容；不把“保护来源身份”作为删除文本的依据。</p></div></details>
+          </div>
+          <div class="decision-box"><div class="decision-top"><label for="decision-imp-02">审核决定 · IMP-02</label><select class="decision-select" id="decision-imp-02" data-decision><option value="pending">待审核</option><option value="approve">同意纳入本轮</option><option value="revise">调整方案后纳入</option><option value="defer">暂缓</option><option value="reject">不采纳</option></select></div><label class="note-label" for="note-imp-02">审核备注</label><textarea class="review-note" id="note-imp-02" data-note placeholder="例如：先做本地多稿和最近版本恢复，跨设备同步后置。"></textarea></div>
+        </article>
+
+        <article class="card review-item" id="imp-03" data-review-id="IMP-03" data-title="正文人工编辑与改写控制" data-priority="P1">
+          <header class="card-head"><div class="card-kicker"><span class="card-id">IMP-03</span><span class="badge p1">P1 · 阻塞</span><span>源码确认 / 完整交互待验收</span></div><h3>让用户能够准确改好一段文字</h3><p class="card-deck">修改数字、名字、事实与表达，不应必须再调用模型。</p></header>
+          <div class="card-body"><div class="two-col"><div><h4 class="small-heading">当前行为与用户影响</h4><div class="copy"><p>完成后的正文使用 <code>EditableBlock</code>，呈现为普通文本；输入框用于填写 AI 指令，没有直接修改原段落文本的入口。Composer 的普通正文编辑器主要用于生成中或空正文状态。</p><p>“更简洁 / 更口语”通过替换标点、词语和空格实现，不能保证语义上的简洁或准确。一个精确小修改也可能引入额外等待与不确定性。</p></div></div><div><h4 class="small-heading">建议方案 · 待审核</h4><div class="copy"><ul><li>增加明确的“编辑正文”模式，优先使用已有 textarea 能力，支持段落与全文编辑。</li><li>保留预览模式、复制和导出；手动编辑不依赖模型可用性。</li><li>AI 改写先展示候选文本，用户选择应用或放弃；提供撤销 / 恢复前一版。</li><li>移除伪语义快捷替换，或将其准确命名为格式处理；AI 快捷操作使用真实指令。</li><li>异步改写携带版本标识，陈旧结果不覆盖后续手工修改；生成中的编辑策略保持一致。</li></ul></div></div></div>
+            <div class="risk positive">范围边界：先交付可靠的纯文本编辑和版本保护。富文本、复杂排版编辑器、多人协作不作为本轮前置。</div>
+            <div class="acceptance"><h4>验收标准</h4><ul><li>三个流程完成稿的正文均可直接修改；模型离线也能精确改一个数字、名字或段落。</li><li>中文输入法、换行、空段落、长文输入、撤销及键盘操作正常。</li><li>AI 候选被拒绝时原文不变；被接受后可恢复原版本，并正确保存。</li><li>先发起改写、再手动编辑或切换稿件，旧请求返回不污染当前稿。</li><li>微信正文支持明确的全文编辑 / 重生成入口，而不只保留标题与摘要重生成。</li></ul></div>
+            <details><summary>查看代码依据与补测项</summary><div class="detail-content"><ul class="source-list"><li><a href="../opera-app/src/components/EditableBlock.tsx">EditableBlock.tsx</a> · 127—160、259 行：AI 指令提交与只读正文呈现。</li><li><a href="../opera-app/src/pages/ComposerPage.tsx">ComposerPage.tsx</a> · 871—910 行：完成稿切换到段落组件；快捷操作为字符串替换。</li><li><a href="../opera-app/src/pages/WeChatPage.tsx">WeChatPage.tsx</a> · 830—858 行：微信正文段落呈现，无全文编辑器。</li><li><a href="../opera-app/src/components/Caption.tsx">Caption.tsx</a> · Adapter 正文复用相同段落组件。</li></ul><p>已确认的是编辑入口与替换实现；异步乱序、移动端输入法与撤销行为列为修复后的验收要求，不声称已完成浏览器复现。</p></div></details>
+          </div>
+          <div class="decision-box"><div class="decision-top"><label for="decision-imp-03">审核决定 · IMP-03</label><select class="decision-select" id="decision-imp-03" data-decision><option value="pending">待审核</option><option value="approve">同意纳入本轮</option><option value="revise">调整方案后纳入</option><option value="defer">暂缓</option><option value="reject">不采纳</option></select></div><label class="note-label" for="note-imp-03">审核备注</label><textarea class="review-note" id="note-imp-03" data-note placeholder="例如：必须支持全文编辑、撤销和 AI 改写确认。"></textarea></div>
+        </article>
+
+        <article class="card review-item" id="imp-04" data-review-id="IMP-04" data-title="局部生成使用当前稿件上下文" data-priority="P2">
+          <header class="card-head"><div class="card-kicker"><span class="card-id">IMP-04</span><span class="badge p2">P2 · 紧随修复</span><span>前后端调用链源码确认</span></div><h3>改标签时，围绕用户眼前这篇稿件生成</h3><p class="card-deck">减少内容错配、隐藏生成步骤与不必要的模型调用。</p></header>
+          <div class="card-body"><div class="two-col"><div><h4 class="small-heading">当前行为与用户影响</h4><div class="copy"><p>Composer 请求仅传选题和生成配置。重生成标签时，后端会重新提炼结构、另生成标题和正文，再据此生成标签，而前端仍显示用户原来的正文。</p><p>用户修改过的事实、观点和措辞没有进入这次标签生成。其他块级生成也需要明确当前标题 / 摘要 / 正文之间的上下文关系。</p></div></div><div><h4 class="small-heading">建议方案 · 待审核</h4><div class="copy"><ul><li>请求增加可选当前内容上下文：标题、正文、摘要与稿件版本。</li><li>生成标签以当前标题 / 正文为依据；不为该操作额外生成一篇隐藏全文。</li><li>标题、摘要、正文重生成明确输入上下文，输出只修改目标块。</li><li>旧客户端未传上下文时保留兼容路径；新路径增加字段长度验证和调用量测试。</li></ul></div></div></div>
+            <div class="acceptance"><h4>验收标准</h4><ul><li>用户编辑正文后重新生成标签，发送给 Provider 的上下文包含最新正文。</li><li>新客户端的标签操作不触发隐藏标题 / 正文生成，非目标块内容与版本保持不变。</li><li>测试验证调用次数与 prompt 上下文；旧请求和 SSE 事件仍能被现有客户端使用。</li><li>通过真实样本文本抽查标签与正文相关性，记录耗时与调用成本变化。</li></ul></div>
+            <details><summary>查看代码依据</summary><div class="detail-content"><ul class="source-list"><li><a href="../opera-app/src/pages/ComposerPage.tsx">ComposerPage.tsx</a> · 461—469 行：请求没有当前标题 / 正文。</li><li><a href="../opera-server-py/app/routes/compose.py">compose.py</a> · 187—197、249—270 行：标签重生成重新提炼结构并另生成标题 / 正文。</li><li><a href="../opera-server-py/app/routes/wechat_compose.py">wechat_compose.py</a> · 块级重生成上下文需一并定义。</li></ul><p>当前链路确认存在额外调用；具体金额与延迟没有实测，不在本稿给出未经验证的成本节省比例。</p></div></details>
+          </div>
+          <div class="decision-box"><div class="decision-top"><label for="decision-imp-04">审核决定 · IMP-04</label><select class="decision-select" id="decision-imp-04" data-decision><option value="pending">待审核</option><option value="approve">同意纳入本轮</option><option value="revise">调整方案后纳入</option><option value="defer">暂缓</option><option value="reject">不采纳</option></select></div><label class="note-label" for="note-imp-04">审核备注</label><textarea class="review-note" id="note-imp-04" data-note placeholder="例如：先覆盖标签，再统一标题、摘要和正文的上下文契约。"></textarea></div>
+        </article>
+
+        <article class="card review-item" id="imp-05" data-review-id="IMP-05" data-title="质量检查与产品提示校准" data-priority="P2">
+          <header class="card-head"><div class="card-kicker"><span class="card-id">IMP-05</span><span class="badge p2">P2 · 紧随修复</span><span>规则内存诊断 / 源码确认</span></div><h3>把质量提示改成可解释的检查</h3><p class="card-deck">让用户知道哪里需要调整，并理解建议来自什么规则。</p></header>
+          <div class="card-body"><div class="two-col"><div><h4 class="small-heading">当前行为与用户影响</h4><div class="copy"><p>后端短篇目标为 180–240 字，中篇为 320–450 字；前端检查却统一推荐 500–800 字。按配置生成的内容会收到矛盾提示。</p><p>“完读率”按字数公式计算，200 字可得到 100%；互动与覆盖也仅来自词形、问号和标签数量。虽然页面标注“预估仅供参考”，当前数值仍缺少实际效果验证。</p></div></div><div><h4 class="small-heading">建议方案 · 待审核</h4><div class="copy"><ul><li>检查读取平台和目标篇幅，前后端共用清晰的长度规则。</li><li>移除无验证依据的完读率 / 互动百分比，改为“长度符合度、结构建议、标签数量”等说明。</li><li>将“适合发布”收敛为“基础检查已通过”，避免等同于事实与内容质量审核。</li><li>需要人工确认的事实、来源、图片与表达风险单独提示。</li></ul></div></div></div>
+            <div class="acceptance"><h4>验收标准</h4><ul><li>短篇、中篇、长篇在各自有效区间内不会被要求改成统一长度。</li><li>每条建议展示可解释的触发条件；没有真实验证时不展示发布效果百分比。</li><li>标题含数字、问号或 emoji 不再自动等同于内容质量高。</li><li>空输入、边界字数、重复标签与图片缺失均有一致提示，修改正文后及时更新。</li></ul></div>
+            <details><summary>查看代码依据与数值示例</summary><div class="detail-content"><ul class="source-list"><li><a href="../opera-app/src/lib/qualityChecks.ts">qualityChecks.ts</a> · 11 行起：固定字数区间与公式预估。</li><li><a href="../opera-app/src/components/composer/PublishChecklist.tsx">PublishChecklist.tsx</a> · “完读率预估 / 发布表现预估 / 适合发布”等展示。</li><li><a href="../opera-server-py/app/prompts_composer.py">prompts_composer.py</a> · 16—18 行：实际生成篇幅要求。</li></ul><div class="trace">诊断输入：200 字正文，数字标题，4 个标签，2 张图片<br>当前输出：正文长度检查未通过；完读率预估 100%<br>判断：格式规则和效果表达需要重新定义。</div></div></details>
+          </div>
+          <div class="decision-box"><div class="decision-top"><label for="decision-imp-05">审核决定 · IMP-05</label><select class="decision-select" id="decision-imp-05" data-decision><option value="pending">待审核</option><option value="approve">同意纳入本轮</option><option value="revise">调整方案后纳入</option><option value="defer">暂缓</option><option value="reject">不采纳</option></select></div><label class="note-label" for="note-imp-05">审核备注</label><textarea class="review-note" id="note-imp-05" data-note placeholder="例如：去掉效果百分比，保留具体规则与人工复核清单。"></textarea></div>
+        </article>
+      </section>
+
+      <section class="section" id="direction" aria-labelledby="direction-title">
+        <div class="section-heading"><h2 id="direction-title"><span class="index">06</span>需要你确定的两项决策</h2><span class="aside">以下属于建议，不是已确认需求</span></div>
+        <article class="card review-item" id="dir-01" data-review-id="DIR-01" data-title="聚焦长文素材的多平台再创作" data-priority="方向决策">
+          <header class="card-head"><div class="card-kicker"><span class="card-id">DIR-01</span><span class="badge proposal">产品方向 · 待定</span></div><h3>优先服务已有长文素材的创作者</h3><p class="card-deck">建议主价值：把可信素材转成可编辑、可导出、可追溯的小红书内容包。</p></header>
+          <div class="card-body"><div class="two-col"><div><h4 class="small-heading">建议聚焦的用户与任务</h4><div class="copy"><p>有公众号文章、知识笔记或长文素材，需要持续复用为小红书内容的个人创作者。</p><p><strong>主要流程：</strong>原文 → 提炼确认 → 生成内容包 → 人工编辑 → 保存版本 → 导出图文。</p><p>这条流程能把可控改写、卡片导出和内容留存组合为持续使用的价值。</p></div></div><div><h4 class="small-heading">本轮范围取舍</h4><div class="copy"><ul><li>保留公众号与原创创作入口，优先保障三条流程共有的保存 / 编辑能力。</li><li>先完善素材复用与图文交付；账号、云同步、自动发布、多人协作后置。</li><li>模型选择逐步收纳为高级配置，普通用户优先看到任务与内容结果。</li><li>是否调整首页主入口和宣传文案，由本项审核意见决定。</li></ul></div></div></div><div class="risk positive">本项不意味着删除已有流程。建议批准的是投入顺序与核心定位；如需继续三条流程同等投入，可在备注中明确。</div></div>
+          <div class="decision-box"><div class="decision-top"><label for="decision-dir-01">审核决定 · DIR-01</label><select class="decision-select" id="decision-dir-01" data-decision><option value="pending">待审核</option><option value="approve">同意纳入本轮</option><option value="revise">调整方案后纳入</option><option value="defer">暂缓</option><option value="reject">不采纳</option></select></div><label class="note-label" for="note-dir-01">审核备注</label><textarea class="review-note" id="note-dir-01" data-note placeholder="例如：同意优先改写；或继续将公众号、原创、改写作为同等优先入口。"></textarea></div>
+        </article>
+        <article class="card review-item" id="qa-01" data-review-id="QA-01" data-title="补齐真实创作流程与样本验收" data-priority="验收决策">
+          <header class="card-head"><div class="card-kicker"><span class="card-id">QA-01</span><span class="badge proposal">验收要求 · 待定</span></div><h3>验收一篇稿件的完整使用过程</h3><p class="card-deck">函数测试之外，验证内容能否从生成一直走到重新打开与发布交付。</p></header>
+          <div class="card-body"><div class="two-col"><div><h4 class="small-heading">建议补充的测试</h4><div class="copy"><ul><li>真实 React 页面测试：进入、恢复、修改、切配置、返回、刷新、再次编辑。</li><li>失败路径：生成中断、模型移除、存储配额不足、改写结果乱序、旧草稿迁移。</li><li>浏览器检查：Chrome / Edge / Safari / iOS Safari，含 390、768、920、1024、1280、1440 宽度与键盘导航。</li><li>服务检查：实际 Provider 完整调用和容器构建 / 启动；单独记录环境阻塞与未验收项。</li></ul></div></div><div><h4 class="small-heading">建议的产品效果验证</h4><div class="copy"><p>准备约 20 篇有代表性的素材作为首轮样本集，覆盖观点、知识、案例、教程与长短边界；样本数量是建议，待审核确定。</p><ul><li>记录核心事实保留情况和新增无依据内容。</li><li>记录人工修改量、编辑耗时、单篇模型成本与失败率。</li><li>由使用者判断是否愿意发布，记录实际发布 / 复用反馈。</li><li>先建立基线，再确定可发布率与成本目标，不预设未经测量的改善比例。</li></ul></div></div></div><div class="acceptance"><h4>签字条件建议</h4><ul><li>已批准 P1 的验收项全部通过，未发现稿件删除、覆盖或无法恢复的路径。</li><li>产物可准确编辑和导出；样本内容经人工检查，遗留问题有明确记录。</li><li>测试结果绑定实际代码版本，并更新发布文档；浏览器 / Provider / 容器未验证时不得写为通过。</li></ul></div></div>
+          <div class="decision-box"><div class="decision-top"><label for="decision-qa-01">审核决定 · QA-01</label><select class="decision-select" id="decision-qa-01" data-decision><option value="pending">待审核</option><option value="approve">同意纳入本轮</option><option value="revise">调整方案后纳入</option><option value="defer">暂缓</option><option value="reject">不采纳</option></select></div><label class="note-label" for="note-qa-01">审核备注</label><textarea class="review-note" id="note-qa-01" data-note placeholder="例如：先以 10 篇真实文章内测，必测刷新恢复与导出。"></textarea></div>
+        </article>
+      </section>
+
+      <section class="section" id="delivery" aria-labelledby="delivery-title">
+        <div class="section-heading"><h2 id="delivery-title"><span class="index">07</span>建议实施顺序</h2><span class="aside">以审核通过的范围为准</span></div>
+        <div class="phase-list">
+          <div class="phase"><div class="phase-no">PHASE<b>01</b></div><div class="phase-content"><h3>保护内容，先解决数据留存</h3><p>定义稿件与版本，修复读取 / 保存顺序，保留旧格式迁移与失败回退。交付物：可稳定恢复的多稿保存能力及回归证据。</p><div class="phase-tags">IMP-01 + IMP-02 · 后续编辑能力的基础</div></div></div>
+          <div class="phase"><div class="phase-no">PHASE<b>02</b></div><div class="phase-content"><h3>完成编辑，再统一生成上下文</h3><p>支持直接修改、撤销和 AI 候选确认；局部生成使用当前稿件版本。交付物：可精确修稿的编辑流程与兼容接口。</p><div class="phase-tags">IMP-03 → IMP-04 · 依赖第一阶段的稿件与版本定义</div></div></div>
+          <div class="phase"><div class="phase-no">PHASE<b>03</b></div><div class="phase-content"><h3>校准提示，用完整流程重新验收</h3><p>统一长度规则，移除无依据的效果预估；执行真实素材和浏览器矩阵，更新发布结论。产品方向若获批，同步调整主入口与表达。</p><div class="phase-tags">IMP-05 + QA-01 · DIR-01 按你的审核决定实施</div></div></div>
+        </div>
+        <p class="proposal-note">本稿明确先后依赖，不承诺尚未拆解的工期。审核后再形成具体开发任务与排期。保留现有后端协议、旧草稿读取与已完成的设计改造；本轮不要求换框架或重建整个项目。</p>
+      </section>
+
+      <section class="section" id="review" aria-labelledby="review-title">
+        <div class="section-heading"><h2 id="review-title"><span class="index">08</span>汇总审核意见</h2><span class="aside">默认全部待审核</span></div>
+        <div class="review-panel">
+          <div class="review-title"><h3>确定下一轮开发范围</h3><span class="progress-text" id="review-progress">0 / 7 项已审核</span></div>
+          <div class="progress-track" role="progressbar" aria-label="审核进度" aria-valuemin="0" aria-valuemax="7" aria-valuenow="0" id="review-progressbar"><div class="progress-fill" id="review-fill"></div></div>
+          <div class="review-stats" id="review-stats"><span>纳入 <strong>0</strong></span><span>调整 <strong>0</strong></span><span>暂缓 <strong>0</strong></span><span>不采纳 <strong>0</strong></span><span>待审核 <strong>7</strong></span></div>
+          <div class="review-fields"><div><label for="reviewer">审核人（可选）</label><input id="reviewer" autocomplete="off" placeholder="你的姓名或角色"></div><div><label for="review-date">审核日期</label><input id="review-date" type="date"></div></div>
+          <label class="note-label" for="overall-note">整体意见 / 范围调整</label><textarea class="review-note" id="overall-note" placeholder="例如：先完成三项 P1，其他项等内测反馈后安排。"></textarea>
+          <p class="print-note" id="print-reviewer"></p>
+          <div class="button-row"><button type="button" class="btn primary" id="export-review">导出审核意见 .md <span aria-hidden="true">↗</span></button><button type="button" class="btn" id="print-doc">打印 / 另存 PDF</button><button type="button" class="btn subtle" id="reset-review">清空本页审核意见</button></div>
+          <p class="save-status" id="save-status" role="status" aria-live="polite">审核意见仅尝试保存在当前浏览器；建议完成后导出。</p>
+          <p class="readonly-tip">各项选择用于记录审核意见，不会修改源码或自动提交开发任务。移动本文件、换浏览器或使用预览沙箱时，本地保存可能不可用。导出的 Markdown 可直接交回继续讨论。</p>
+          <noscript><p class="notice">JavaScript 未启用。正文仍可完整阅读；审核保存与导出按钮不可用。可使用浏览器打印功能，并按编号提供意见。</p></noscript>
+        </div>
+      </section>
+      <footer class="audit-foot"><span>Opera · 产品改善方案 v1.0 · 2026-09-10</span><span>源码行号以本次复审版本为准 · 单文件 / 无外部依赖</span></footer>
+    </main>
+  </div>
+  <dialog id="reset-dialog" aria-labelledby="reset-title"><h3 id="reset-title">清空这份文档的审核意见？</h3><p>将清空本页的逐项决定、备注、审核人和整体意见。项目源码、产品草稿和下载的文件不受影响。</p><form method="dialog" class="button-row"><button class="btn" value="cancel" autofocus>保留意见</button><button class="btn primary" value="confirm">确认清空</button></form></dialog>
+  <script>
+    (() => {
+      'use strict';
+      const DOCUMENT_ID = 'opera-product-improvement-review-2026-09-10-v1';
+      const STORAGE_KEY = DOCUMENT_ID + ':feedback';
+      const LABELS = { pending: '待审核', approve: '同意纳入本轮', revise: '调整方案后纳入', defer: '暂缓', reject: '不采纳' };
+      const items = Array.from(document.querySelectorAll('.review-item')).map(article => ({
+        id: article.dataset.reviewId,
+        title: article.dataset.title,
+        priority: article.dataset.priority,
+        select: article.querySelector('[data-decision]'),
+        note: article.querySelector('[data-note]')
+      }));
+      const reviewer = document.getElementById('reviewer');
+      const reviewDate = document.getElementById('review-date');
+      const overallNote = document.getElementById('overall-note');
+      const status = document.getElementById('save-status');
+      const resetDialog = document.getElementById('reset-dialog');
+      let saveTimer;
+      let storageAvailable = true;
+      function localDate() {
+        const now = new Date();
+        return [now.getFullYear(), String(now.getMonth() + 1).padStart(2, '0'), String(now.getDate()).padStart(2, '0')].join('-');
+      }
+      function validText(value, max = 20000) { return typeof value === 'string' ? value.slice(0, max) : ''; }
+      function snapshot() {
+        return {
+          documentId: DOCUMENT_ID,
+          savedAt: new Date().toISOString(),
+          reviewer: reviewer.value,
+          reviewDate: reviewDate.value,
+          overallNote: overallNote.value,
+          items: items.map(item => ({ id: item.id, title: item.title, priority: item.priority, decision: item.select.value, note: item.note.value }))
+        };
+      }
+      function showStatus(message, isError = false) { status.textContent = message; status.classList.toggle('error', isError); }
+      function counts() {
+        return items.reduce((result, item) => { result[item.select.value]++; return result; }, { pending: 0, approve: 0, revise: 0, defer: 0, reject: 0 });
+      }
+      function refreshSummary() {
+        const values = counts();
+        const reviewed = items.length - values.pending;
+        items.forEach(item => { item.select.dataset.value = item.select.value; });
+        document.getElementById('review-progress').textContent = reviewed + ' / ' + items.length + ' 项已审核';
+        document.getElementById('review-fill').style.width = (reviewed / items.length * 100) + '%';
+        document.getElementById('review-progressbar').setAttribute('aria-valuenow', String(reviewed));
+        document.getElementById('review-stats').replaceChildren(...[['纳入', values.approve], ['调整', values.revise], ['暂缓', values.defer], ['不采纳', values.reject], ['待审核', values.pending]].map(([label, value]) => {
+          const span = document.createElement('span');
+          const strong = document.createElement('strong');
+          span.append(label + ' ');
+          strong.textContent = String(value);
+          span.append(strong);
+          return span;
+        }));
+        document.getElementById('print-reviewer').textContent = '审核人：' + (reviewer.value || '未填写') + '　审核日期：' + (reviewDate.value || '未填写');
+      }
+      function save() {
+        window.clearTimeout(saveTimer);
+        try {
+          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(snapshot()));
+          storageAvailable = true;
+          showStatus('审核意见已保存在当前浏览器 · ' + new Date().toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' · 建议同时导出备份');
+        } catch {
+          storageAvailable = false;
+          showStatus('当前浏览器无法保存审核意见，请使用“导出审核意见”保留本次选择。', true);
+        }
+      }
+      function queueSave() {
+        refreshSummary();
+        window.clearTimeout(saveTimer);
+        if (storageAvailable) showStatus('审核意见已更新，正在保存…');
+        saveTimer = window.setTimeout(save, 300);
+      }
+      function restore() {
+        reviewDate.value = localDate();
+        try {
+          const raw = window.localStorage.getItem(STORAGE_KEY);
+          if (!raw) return;
+          const saved = JSON.parse(raw);
+          if (!saved || saved.documentId !== DOCUMENT_ID || !Array.isArray(saved.items)) return;
+          reviewer.value = validText(saved.reviewer, 300);
+          if (/^\d{4}-\d{2}-\d{2}$/.test(saved.reviewDate || '')) reviewDate.value = saved.reviewDate;
+          overallNote.value = validText(saved.overallNote);
+          items.forEach(item => {
+            const old = saved.items.find(candidate => candidate && candidate.id === item.id);
+            if (!old) return;
+            if (Object.prototype.hasOwnProperty.call(LABELS, old.decision)) item.select.value = old.decision;
+            item.note.value = validText(old.note);
+          });
+          showStatus('已恢复此浏览器保存的审核意见。请核对后继续，或导出备份。');
+        } catch {
+          storageAvailable = false;
+          showStatus('未能读取本地审核记录。仍可填写本页并导出；请勿依赖本地保存。', true);
+        }
+      }
+      function exportReview() {
+        save();
+        const data = snapshot();
+        const tally = counts();
+        const lines = ['# Opera 产品改善方案 · 审核意见', '', '- 文档版本：v1.0 / 2026-09-10', '- 审核人：' + (data.reviewer || '未填写'), '- 审核日期：' + (data.reviewDate || '未填写'), '- 导出时间：' + data.savedAt, '', '> 本文件仅记录审核决定，不表示修复已完成或验收已通过。', '', '## 审核汇总', '', '同意纳入 ' + tally.approve + ' 项；调整后纳入 ' + tally.revise + ' 项；暂缓 ' + tally.defer + ' 项；不采纳 ' + tally.reject + ' 项；待审核 ' + tally.pending + ' 项。', ''];
+        data.items.forEach(item => {
+          lines.push('## ' + item.id + ' · ' + item.title, '', '- 级别：' + item.priority, '- 决定：' + LABELS[item.decision], '', '审核备注：', '', item.note.trim() || '（未填写）', '');
+        });
+        lines.push('## 整体意见', '', data.overallNote.trim() || '（未填写）', '', '原审核文档：docs/product-improvement-review-2026-09-10.html', '');
+        let url;
+        try {
+          url = URL.createObjectURL(new Blob(['\uFEFF' + lines.join('\n')], { type: 'text/markdown;charset=utf-8' }));
+          const link = document.createElement('a');
+          link.href = url;
+          link.download = 'opera-review-feedback-' + (data.reviewDate || localDate()) + '.md';
+          document.body.append(link);
+          link.click();
+          link.remove();
+          window.setTimeout(() => URL.revokeObjectURL(url), 10000);
+          showStatus('已发起审核意见下载。若预览窗口拦截下载，请在浏览器中打开本 HTML 后再试。', !storageAvailable);
+        } catch {
+          if (url) URL.revokeObjectURL(url);
+          showStatus('当前环境无法下载。请使用浏览器打开本 HTML，或复制填写的意见。', true);
+        }
+      }
+      function clearReview() {
+        window.clearTimeout(saveTimer);
+        items.forEach(item => { item.select.value = 'pending'; item.note.value = ''; });
+        reviewer.value = '';
+        overallNote.value = '';
+        reviewDate.value = localDate();
+        refreshSummary();
+        save();
+      }
+      items.forEach(item => { item.select.addEventListener('change', queueSave); item.note.addEventListener('input', queueSave); });
+      [reviewer, reviewDate, overallNote].forEach(input => input.addEventListener('input', queueSave));
+      document.getElementById('export-review').addEventListener('click', exportReview);
+      document.getElementById('reset-review').addEventListener('click', () => {
+        if (typeof resetDialog.showModal === 'function') { resetDialog.returnValue = ''; resetDialog.showModal(); }
+        else if (window.confirm('清空本页审核意见？项目源码和产品草稿不受影响。')) clearReview();
+      });
+      resetDialog.addEventListener('close', () => { if (resetDialog.returnValue === 'confirm') clearReview(); });
+      let printState = null;
+      function preparePrint() {
+        if (printState) return;
+        refreshSummary();
+        printState = { details: Array.from(document.querySelectorAll('details')).map(el => [el, el.open]), notes: [] };
+        printState.details.forEach(([el]) => { el.open = true; });
+        document.querySelectorAll('textarea').forEach(el => {
+          const note = document.createElement('p');
+          note.className = 'print-note';
+          note.textContent = el.value.trim() || '（未填写）';
+          note.style.overflowWrap = 'anywhere';
+          el.insertAdjacentElement('afterend', note);
+          const previousDisplay = el.style.display;
+          el.style.display = 'none';
+          printState.notes.push([el, note, previousDisplay]);
+        });
+      }
+      function finishPrint() {
+        if (!printState) return;
+        printState.details.forEach(([el, open]) => { el.open = open; });
+        printState.notes.forEach(([el, note, display]) => { el.style.display = display; note.remove(); });
+        printState = null;
+      }
+      document.getElementById('print-doc').addEventListener('click', () => { save(); window.print(); });
+      window.addEventListener('beforeprint', preparePrint);
+      window.addEventListener('afterprint', finishPrint);
+      window.addEventListener('pagehide', () => { if (saveTimer) save(); });
+      restore();
+      refreshSummary();
+    })();
+  </script>
+</body>
+</html>

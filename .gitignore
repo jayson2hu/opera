@@ -32,11 +32,19 @@ tmp-*.log
 *.err.log
 temp-*.txt
 
-# Lock files (each dev regenerates)
+# Lock files
+# Keep the application lockfile tracked: the Dockerfile uses npm ci, which
+# requires a reproducible lockfile in a clean checkout.
 package-lock.json
+!opera-app/package-lock.json
 
 # Claude Code local settings
 .claude/settings.local.json
 
 # Local agent/tool state
 .codebuddy/
+
+# Local migration/review artifacts (kept on disk, excluded from release commits)
+.tmp-new-api/
+opera.zip
+/scripts/
