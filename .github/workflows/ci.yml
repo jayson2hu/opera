@@ -29,7 +29,7 @@ jobs:
         run: python -m pytest -q
 
   frontend:
-    name: Frontend lint and build
+    name: Frontend test, lint, and build
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -44,7 +44,10 @@ jobs:
           node-version: "22"
 
       - name: Install frontend dependencies
-        run: npm install
+        run: npm ci
+
+      - name: Test frontend
+        run: npm run test
 
       - name: Lint frontend
         run: npm run lint
@@ -53,14 +56,22 @@ jobs:
         run: npm run build
 
   docker-config:
-    name: Docker Compose config
+    name: Docker Compose contracts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
       - name: Create CI backend env file
         run: cp opera-server-py/.env.example opera-server-py/.env
 
       - name: Validate compose file
         run: docker compose config --quiet
+
+      - name: Validate frontend API base interpolation
+        run: python opera-server-py/scripts/check_compose_api_base.py

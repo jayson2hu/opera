@@ -96,7 +96,7 @@ Start the frontend:
 
 ```bash
 cd opera-app
-npm install
+npm ci
 npm run dev
 ```
 
@@ -134,11 +134,51 @@ By default, the frontend uses:
 - `http://localhost:3001` in Vite dev mode
 - same-origin `/api` in production builds
 
-To target a custom API origin:
+To target a custom API origin in a local frontend build:
 
 ```bash
 VITE_API_BASE_URL=https://api.example.com npm run build
 ```
+
+For Docker Compose, pass the same build-time variable when rebuilding the frontend.
+
+Bash:
+
+```bash
+VITE_API_BASE_URL=https://api.example.com docker compose up --build
+```
+
+PowerShell:
+
+```powershell
+$env:VITE_API_BASE_URL = 'https://api.example.com'
+docker compose up --build
+Remove-Item Env:VITE_API_BASE_URL
+```
+
+`VITE_API_BASE_URL` is compiled into the frontend bundle. Changing it only on a running
+container has no effect; rebuild the frontend image whenever this value changes.
+
+When the frontend and API use different origins, also allow the frontend origin in the
+backend environment file:
+
+```env
+CORS_ORIGINS=https://app.example.com,https://admin.example.com
+```
+
+`CORS_ORIGINS` is a comma-separated allowlist of exact browser origins. Each entry must
+contain only `http://` or `https://`, a hostname, and an optional port. Do not use `*`,
+paths, query strings, or fragments. Setting the variable replaces the local-development
+defaults; when it is unset, the backend allows:
+
+- `http://localhost:5173`
+- `http://localhost:5174`
+- `http://127.0.0.1:5173`
+- `http://127.0.0.1:5174`
+
+The backend fails during startup if the allowlist is empty or contains an invalid origin.
+The API origin itself belongs in `VITE_API_BASE_URL`; `CORS_ORIGINS` must contain the
+frontend origin shown in the browser address bar.
 
 ## Pre-Release Checks
 
@@ -149,14 +189,19 @@ cd opera-server-py
 python -m pytest -q
 
 cd ../opera-app
+npm ci
+npm run test
 npm run lint
 npm run build
 
 cd ..
-docker compose config
+docker compose config --quiet
+python opera-server-py/scripts/check_compose_api_base.py
 ```
 
-`docker compose config` expands values from `env_file`, including provider keys. Use it locally for validation, but do not publish raw output.
+Raw `docker compose config` output expands values from `env_file`, including provider
+keys. Use `--quiet` for validation and do not publish the expanded configuration. The
+API-base contract script captures that output internally and prints only pass/fail state.
 
 When provider credentials are available, also run the live backend self-test:
 

@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Opera · 左栏配置重设计预览</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: { 50:'#FEF7EE',100:'#FDEDD3',200:'#FAD7A5',300:'#F6BB6D',400:'#F19A3A',500:'#EE8019',600:'#DF6610',700:'#B94D0F',900:'#773414' },
+        accent: { 50:'#F5F3FF',100:'#EDE8FF',200:'#DDD5FF',400:'#A78BFA',500:'#8B5CF6',600:'#7C3AED' },
+        neutral: { 50:'#FAF6F1',100:'#F4EDE4',200:'#EBE1D3',300:'#D8C9B6',400:'#A8998A',500:'#7C6E60',600:'#5A4E42',700:'#423831',800:'#2B2521',900:'#1C1815' },
+        emerald: { 50:'#ECFDF5',100:'#D1FAE5',200:'#A7F3D0',400:'#34D399',500:'#10B981',600:'#059669',700:'#047857' }
+      },
+      boxShadow: {
+        card: '0 1px 2px rgb(120 90 50 / .04), 0 1px 3px -1px rgb(120 90 50 / .05)',
+        'card-hover': '0 6px 16px -6px rgb(120 90 50 / .12), 0 2px 6px -2px rgb(120 90 50 / .06)'
+      },
+      borderRadius: { card: '18px' }
+    }
+  }
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet" />
+<style>
+body { font-family: 'Noto Sans SC', system-ui, sans-serif; }
+.panel-tab { transition: all 200ms; }
+.panel-tab[aria-selected="true"] { background: #10B981; color: white; box-shadow: 0 2px 6px rgb(16 185 129 / .25); }
+.panel-tab[aria-selected="false"] { background: white; color: #57534e; border: 1px solid #EBE1D3; }
+.panel-tab[aria-selected="false"]:hover { background: #ECFDF5; color: #047857; }
+.scheme { display: none; }
+.scheme.active { display: block; }
+</style>
+</head>
+<body class="bg-neutral-50 min-h-screen">
+
+<header class="bg-white border-b border-neutral-200 sticky top-0 z-10">
+  <div class="max-w-7xl mx-auto px-6 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center text-white font-bold text-xs">O</div>
+      <span class="text-base font-bold text-neutral-900">左栏配置重设计</span>
+      <span class="text-xs text-neutral-400">· 模拟 SplitFlow 左栏 440px 宽度</span>
+    </div>
+    <div class="text-xs text-neutral-400">写公众号 · 左栏配置</div>
+  </div>
+</header>
+
+<main class="max-w-7xl mx-auto px-6 py-8">
+  <!-- 方案切换 -->
+  <div class="flex flex-wrap items-center gap-2 mb-6">
+    <span class="text-sm text-neutral-500 mr-2">方案：</span>
+    <button class="panel-tab px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer" data-scheme="A" aria-selected="true">A · 列表卡片</button>
+    <button class="panel-tab px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer" data-scheme="B" aria-selected="false">B · 2×2 网格 + 列表</button>
+    <button class="panel-tab px-4 py-2 rounded-xl text-sm font-semibold cursor-pointer" data-scheme="C" aria-selected="false">C · 芯片 + 详情卡</button>
+  </div>
+
+  <div class="grid lg:grid-cols-[440px_1fr] gap-8 items-start">
+    <!-- 左：模拟 SplitFlow 左栏 -->
+    <section class="bg-white rounded-3xl shadow-card p-6 border border-neutral-200" style="width: 440px;">
+      <div class="text-[11px] text-neutral-400 mb-5 pb-3 border-b border-neutral-100">
+        🎯 实际 SplitFlow 左栏（440px）模拟
+      </div>
+
+      <!-- ============ 方案 A：列表卡片纵向堆叠 ============ -->
+      <div class="scheme active space-y-6" data-scheme="A">
+
+        <!-- 选题 -->
+        <section class="space-y-2.5">
+          <header class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/15">1</span>
+              <h3 class="text-sm font-semibold text-neutral-800">选题</h3>
+            </div>
+            <span class="text-[11px] text-neutral-400">≥ 12 字</span>
+          </header>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-3">
+            <textarea rows="3" placeholder="例如：3 个让深度工作变成习惯的小切口" class="w-full text-sm text-neutral-800 placeholder:text-neutral-300 outline-none resize-none"></textarea>
+          </div>
+        </section>
+
+        <!-- 文章类型 — 列表卡片 -->
+        <section class="space-y-2.5">
+          <header class="flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/15">2</span>
+            <h3 class="text-sm font-semibold text-neutral-800">文章类型</h3>
+          </header>
+          <div class="space-y-2">
+            <button class="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50/40 transition-all cursor-pointer text-left">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-lg">💡</span>
+              <span class="flex-1 min-w-0">
+                <span class="block text-sm font-semibold text-neutral-800">观点洞察</span>
+                <span class="block text-[11px] text-neutral-500 mt-0.5">表达判断、趋势、认知升级</span>
+              </span>
+              <svg class="h-4 w-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            </button>
+            <button class="w-full flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-lg">🧭</span>
+              <span class="flex-1 min-w-0">
+                <span class="block text-sm font-semibold text-neutral-700">方法指南</span>
+                <span class="block text-[11px] text-neutral-500 mt-0.5">输出步骤、框架和可执行建议</span>
+              </span>
+            </button>
+            <button class="w-full flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-lg">📖</span>
+              <span class="flex-1 min-w-0">
+                <span class="block text-sm font-semibold text-neutral-700">故事叙事</span>
+                <span class="block text-[11px] text-neutral-500 mt-0.5">用经历、案例或冲突展开文章</span>
+              </span>
+            </button>
+            <button class="w-full flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-lg">📰</span>
+              <span class="flex-1 min-w-0">
+                <span class="block text-sm font-semibold text-neutral-700">简报解读</span>
+                <span class="block text-[11px] text-neutral-500 mt-0.5">对事件、信息和变化做梳理</span>
+              </span>
+            </button>
+          </div>
+        </section>
+
+        <!-- 语气 — 列表卡片 -->
+        <section class="space-y-2.5">
+          <header class="flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/15">3</span>
+            <h3 class="text-sm font-semibold text-neutral-800">语气</h3>
+          </header>
+          <div class="space-y-2">
+            <button class="w-full p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50/40 transition-all cursor-pointer text-left">
+              <div class="flex items-center gap-2.5">
+                <span class="text-base">📚</span>
+                <span class="text-sm font-semibold text-neutral-800">知识分享</span>
+                <span class="text-[10px] uppercase tracking-wide text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">Knowledge</span>
+              </div>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-neutral-500">结构清晰、信息密度高，适合经验总结和方法论内容。</p>
+              <p class="mt-1 text-[11px] italic text-neutral-400">"这 3 个细节，决定一篇内容能不能被看完"</p>
+            </button>
+            <button class="w-full p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <div class="flex items-center gap-2.5">
+                <span class="text-base">💬</span>
+                <span class="text-sm font-semibold text-neutral-700">轻松解释</span>
+                <span class="text-[10px] uppercase tracking-wide text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">Casual</span>
+              </div>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-neutral-500">语气自然、解释友好，适合把复杂观点讲得更好懂。</p>
+            </button>
+            <button class="w-full p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <div class="flex items-center gap-2.5">
+                <span class="text-base">✨</span>
+                <span class="text-sm font-semibold text-neutral-700">朋友推荐</span>
+                <span class="text-[10px] uppercase tracking-wide text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">BFF</span>
+              </div>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-neutral-500">更有情绪和代入感，适合种草、推荐和生活化表达。</p>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============ 方案 B：2×2 网格 + 列表 ============ -->
+      <div class="scheme space-y-6" data-scheme="B">
+
+        <!-- 选题 -->
+        <section class="space-y-2.5">
+          <header class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/15">1</span>
+              <h3 class="text-sm font-semibold text-neutral-800">选题</h3>
+            </div>
+            <span class="text-[11px] text-neutral-400">≥ 12 字</span>
+          </header>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-3">
+            <textarea rows="3" placeholder="例如：3 个让深度工作变成习惯的小切口" class="w-full text-sm text-neutral-800 placeholder:text-neutral-300 outline-none resize-none"></textarea>
+          </div>
+        </section>
+
+        <!-- 文章类型 — 2×2 网格 -->
+        <section class="space-y-2.5">
+          <header class="flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/15">2</span>
+            <h3 class="text-sm font-semibold text-neutral-800">文章类型</h3>
+          </header>
+          <div class="grid grid-cols-2 gap-2">
+            <button class="flex flex-col items-start p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50/40 transition-all cursor-pointer text-left">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">💡</span>
+                <span class="text-sm font-semibold text-neutral-800">观点洞察</span>
+              </div>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-neutral-500">表达判断、趋势、认知升级</p>
+            </button>
+            <button class="flex flex-col items-start p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">🧭</span>
+                <span class="text-sm font-semibold text-neutral-700">方法指南</span>
+              </div>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-neutral-500">输出步骤、框架和可执行建议</p>
+            </button>
+            <button class="flex flex-col items-start p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">📖</span>
+                <span class="text-sm font-semibold text-neutral-700">故事叙事</span>
+              </div>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-neutral-500">用经历、案例或冲突展开文章</p>
+            </button>
+            <button class="flex flex-col items-start p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <div class="flex items-center gap-2">
+                <span class="text-xl">📰</span>
+                <span class="text-sm font-semibold text-neutral-700">简报解读</span>
+              </div>
+              <p class="mt-1.5 text-[11px] leading-relaxed text-neutral-500">对事件、信息和变化做梳理</p>
+            </button>
+          </div>
+        </section>
+
+        <!-- 语气 — 列表卡片（精简） -->
+        <section class="space-y-2.5">
+          <header class="flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/15">3</span>
+            <h3 class="text-sm font-semibold text-neutral-800">语气</h3>
+          </header>
+          <div class="space-y-2">
+            <button class="w-full flex items-center gap-3 p-3 rounded-xl border-2 border-emerald-400 bg-emerald-50/40 transition-all cursor-pointer text-left">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-lg">📚</span>
+              <span class="flex-1 min-w-0">
+                <span class="block text-sm font-semibold text-neutral-800">知识分享 <span class="text-[10px] font-normal text-emerald-600">· Knowledge</span></span>
+                <span class="block text-[11px] text-neutral-500 mt-0.5">结构清晰、信息密度高</span>
+              </span>
+              <svg class="h-4 w-4 text-emerald-500 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+            </button>
+            <button class="w-full flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-lg">💬</span>
+              <span class="flex-1 min-w-0">
+                <span class="block text-sm font-semibold text-neutral-700">轻松解释 <span class="text-[10px] font-normal text-neutral-400">· Casual</span></span>
+                <span class="block text-[11px] text-neutral-500 mt-0.5">语气自然、解释友好</span>
+              </span>
+            </button>
+            <button class="w-full flex items-center gap-3 p-3 rounded-xl border border-neutral-200 bg-white hover:border-emerald-200 hover:bg-emerald-50/30 transition-all cursor-pointer text-left">
+              <span class="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-lg">✨</span>
+              <span class="flex-1 min-w-0">
+                <span class="block text-sm font-semibold text-neutral-700">朋友推荐 <span class="text-[10px] font-normal text-neutral-400">· BFF</span></span>
+                <span class="block text-[11px] text-neutral-500 mt-0.5">情绪化、代入感强</span>
+              </span>
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <!-- ============ 方案 C：芯片 + 详情卡 ============ -->
+      <div class="scheme space-y-6" data-scheme="C">
+
+        <!-- 选题 -->
+        <section class="space-y-2.5">
+          <header class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/15">1</span>
+              <h3 class="text-sm font-semibold text-neutral-800">选题</h3>
+            </div>
+            <span class="text-[11px] text-neutral-400">≥ 12 字</span>
+          </header>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-3">
+            <textarea rows="3" placeholder="例如：3 个让深度工作变成习惯的小切口" class="w-full text-sm text-neutral-800 placeholder:text-neutral-300 outline-none resize-none"></textarea>
+          </div>
+        </section>
+
+        <!-- 文章类型 — 芯片 + 详情 -->
+        <section class="space-y-2.5">
+          <header class="flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/15">2</span>
+            <h3 class="text-sm font-semibold text-neutral-800">文章类型</h3>
+          </header>
+          <!-- 芯片排（紧凑） -->
+          <div class="flex flex-wrap gap-1.5">
+            <button class="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-medium bg-emerald-500 text-white shadow-card transition-all cursor-pointer">
+              <span>💡</span><span>观点洞察</span>
+            </button>
+            <button class="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-medium bg-white text-neutral-600 border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-all cursor-pointer">
+              <span>🧭</span><span>方法指南</span>
+            </button>
+            <button class="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-medium bg-white text-neutral-600 border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-all cursor-pointer">
+              <span>📖</span><span>故事叙事</span>
+            </button>
+            <button class="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-medium bg-white text-neutral-600 border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-all cursor-pointer">
+              <span>📰</span><span>简报解读</span>
+            </button>
+          </div>
+          <!-- 当前选中详情 -->
+          <div class="rounded-xl bg-emerald-50/60 border border-emerald-200 p-3 flex items-start gap-2.5">
+            <span class="text-base mt-0.5">💡</span>
+            <div class="min-w-0">
+              <p class="text-sm font-semibold text-emerald-800">观点洞察</p>
+              <p class="text-[11px] text-neutral-600 mt-0.5 leading-relaxed">表达判断、趋势、认知升级。适合写思考型长文，AI 会在结构里多带「为什么」和「转折」。</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- 语气 — 芯片 + 详情 -->
+        <section class="space-y-2.5">
+          <header class="flex items-center gap-2">
+            <span class="inline-flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-700 ring-1 ring-emerald-500/15">3</span>
+            <h3 class="text-sm font-semibold text-neutral-800">语气</h3>
+          </header>
+          <div class="flex flex-wrap gap-1.5">
+            <button class="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-medium bg-emerald-500 text-white shadow-card transition-all cursor-pointer">
+              <span>📚</span><span>知识分享</span>
+            </button>
+            <button class="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-medium bg-white text-neutral-600 border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-all cursor-pointer">
+              <span>💬</span><span>轻松解释</span>
+            </button>
+            <button class="inline-flex items-center gap-1 rounded-full px-2.5 py-1.5 text-[12px] font-medium bg-white text-neutral-600 border border-neutral-200 hover:border-emerald-300 hover:bg-emerald-50 hover:text-emerald-700 transition-all cursor-pointer">
+              <span>✨</span><span>朋友推荐</span>
+            </button>
+          </div>
+          <div class="rounded-xl bg-emerald-50/60 border border-emerald-200 p-3">
+            <div class="flex items-center gap-2">
+              <span class="text-base">📚</span>
+              <span class="text-sm font-semibold text-emerald-800">知识分享</span>
+              <span class="text-[10px] uppercase tracking-wide text-emerald-700 bg-emerald-100 px-1.5 py-0.5 rounded">Knowledge</span>
+            </div>
+            <p class="text-[11px] text-neutral-600 mt-1.5 leading-relaxed">结构清晰、信息密度高，适合经验总结和方法论内容。</p>
+            <p class="text-[11px] italic text-neutral-400 mt-1">"这 3 个细节，决定一篇内容能不能被看完"</p>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- 右：方案说明 -->
+    <aside class="space-y-4 lg:sticky lg:top-20">
+      <div class="scheme-info active rounded-3xl bg-white shadow-card p-6 border border-neutral-200" data-scheme="A">
+        <h2 class="text-xl font-bold text-neutral-900 mb-2">方案 A · 列表卡片纵向堆叠</h2>
+        <p class="text-sm text-neutral-500 leading-relaxed">每个选项一整行：左 emoji 大图标 + 标题，下面一行短描述；选中态用 emerald 边框 + 浅底色 + 右侧勾。</p>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span><strong class="text-neutral-800">最稳</strong>：每个选项完整呈现，零信息损失</span></li>
+          <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>左对齐 + 等行高 → 阅读节奏整齐</span></li>
+          <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>语气保留示例引用 + 标签</span></li>
+          <li class="flex items-start gap-2"><span class="text-neutral-400 mt-0.5">−</span><span class="text-neutral-500">占垂直空间最多，文章类型 4 行 + 语气 3 行</span></li>
+        </ul>
+        <p class="mt-4 text-xs text-neutral-400">推荐场景：用户偏好详细文案、不介意滚动；左栏内容相对稳定</p>
+      </div>
+
+      <div class="scheme-info hidden rounded-3xl bg-white shadow-card p-6 border border-neutral-200" data-scheme="B">
+        <h2 class="text-xl font-bold text-neutral-900 mb-2">方案 B · 2×2 网格 + 列表</h2>
+        <p class="text-sm text-neutral-500 leading-relaxed">文章类型 4 项天然适合 2×2 网格；语气 3 项继续走列表（3 项也只占 3 行）。</p>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span><strong class="text-neutral-800">最平衡</strong>：节省一半垂直空间</span></li>
+          <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>2 列网格 emoji 居左 + 标题加粗，扫读快</span></li>
+          <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>语气仍保留描述 + 副标题</span></li>
+          <li class="flex items-start gap-2"><span class="text-neutral-400 mt-0.5">−</span><span class="text-neutral-500">语气示例引用被精简，主标题旁副标题</span></li>
+        </ul>
+        <p class="mt-4 text-xs text-neutral-400">推荐场景：日常使用、希望左栏紧凑但仍可阅读</p>
+      </div>
+
+      <div class="scheme-info hidden rounded-3xl bg-white shadow-card p-6 border border-neutral-200" data-scheme="C">
+        <h2 class="text-xl font-bold text-neutral-900 mb-2">方案 C · 芯片 + 详情卡</h2>
+        <p class="text-sm text-neutral-500 leading-relaxed">所有选项压成圆角胶囊横排（自动 wrap 换行），下方独立卡片展示当前选中项的完整描述。</p>
+        <ul class="mt-4 space-y-2 text-sm">
+          <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span><strong class="text-neutral-800">最紧凑</strong>：4 项芯片可挤一行</span></li>
+          <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>详情卡始终展示当前选项完整说明</span></li>
+          <li class="flex items-start gap-2"><span class="text-emerald-500 mt-0.5">✓</span><span>视觉最轻、最现代（类似 Apple Settings 风）</span></li>
+          <li class="flex items-start gap-2"><span class="text-neutral-400 mt-0.5">−</span><span class="text-neutral-500">未选中项只有 emoji+标题，看不到描述</span></li>
+        </ul>
+        <p class="mt-4 text-xs text-neutral-400">推荐场景：用户已熟悉选项含义、追求极简紧凑</p>
+      </div>
+
+      <!-- 全方案对比 -->
+      <div class="rounded-3xl bg-white shadow-card p-6 border border-neutral-200">
+        <h3 class="text-sm font-semibold text-neutral-800 mb-3">三方案对比</h3>
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="text-left text-neutral-500 border-b border-neutral-100">
+              <th class="py-2 font-medium">维度</th>
+              <th class="py-2 font-medium text-center">A 列表</th>
+              <th class="py-2 font-medium text-center">B 2×2</th>
+              <th class="py-2 font-medium text-center">C 芯片</th>
+            </tr>
+          </thead>
+          <tbody class="text-neutral-700">
+            <tr class="border-b border-neutral-50"><td class="py-2">垂直空间</td><td class="text-center text-neutral-400">多</td><td class="text-center text-emerald-600">中</td><td class="text-center text-emerald-600">少</td></tr>
+            <tr class="border-b border-neutral-50"><td class="py-2">信息完整度</td><td class="text-center text-emerald-600">高</td><td class="text-center text-emerald-600">中</td><td class="text-center text-neutral-400">低</td></tr>
+            <tr class="border-b border-neutral-50"><td class="py-2">扫读速度</td><td class="text-center text-neutral-400">慢</td><td class="text-center text-emerald-600">中</td><td class="text-center text-emerald-600">快</td></tr>
+            <tr class="border-b border-neutral-50"><td class="py-2">实施成本</td><td class="text-center text-emerald-600">最低</td><td class="text-center text-emerald-600">低</td><td class="text-center text-neutral-500">中</td></tr>
+            <tr><td class="py-2">推荐度</td><td class="text-center font-bold text-emerald-700">★★★☆</td><td class="text-center font-bold text-emerald-700">★★★★</td><td class="text-center font-bold text-emerald-700">★★★</td></tr>
+          </tbody>
+        </table>
+        <p class="mt-3 text-[11px] text-neutral-400">个人建议：<span class="text-emerald-700 font-semibold">方案 B</span> — 文章类型 4 个网格扫读快、语气 3 个列表仍有充足空间。</p>
+      </div>
+    </aside>
+  </div>
+</main>
+
+<script>
+document.querySelectorAll('.panel-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const scheme = tab.dataset.scheme;
+    document.querySelectorAll('.panel-tab').forEach(t => t.setAttribute('aria-selected', String(t.dataset.scheme === scheme)));
+    document.querySelectorAll('.scheme').forEach(el => el.classList.toggle('active', el.dataset.scheme === scheme));
+    document.querySelectorAll('.scheme-info').forEach(el => el.classList.toggle('hidden', el.dataset.scheme !== scheme));
+  });
+});
+</script>
+</body>
+</html>

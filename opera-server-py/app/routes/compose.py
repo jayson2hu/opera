@@ -1,8 +1,7 @@
-import json
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 
 from app.config import VALID_PROVIDER_VALUES, get_settings
 from app.prompts_composer import (
@@ -11,33 +10,39 @@ from app.prompts_composer import (
     build_composer_tags_prompt,
     build_composer_title_prompt,
 )
-from app.providers.base import LLMProvider
-from app.providers.factory import create_provider
+from app.providers.base import LLMProvider, stream_with_budget
+from app.providers.factory import create_provider, is_model_allowed
+from app.routes._shared import (
+    VALID_LENGTH_VALUES,
+    VALID_LENGTHS,
+    VALID_PROVIDERS,
+    VALID_TONE_VALUES,
+    VALID_TONES,
+    OUTPUT_MAX_TOKENS,
+    logger,
+    parse_json_body,
+    require_string_list,
+    safe_stream_error,
+    sse_response,
+)
+from app.routes._current_content import parse_current_content, stream_current_content
 from app.sse import format_sse
 from app.types import (
     ComposeRequestModel,
     ComposerRegenerateTarget,
     ContentType,
-    ProviderId,
-    TargetLength,
-    ToneType,
 )
 from app.utils import extract_json
 
 router = APIRouter(prefix="/api")
-VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
 VALID_CONTENT_TYPE_VALUES: tuple[ContentType, ...] = (
     "recommend",
     "knowledge",
     "story",
     "tutorial",
 )
-VALID_LENGTH_VALUES: tuple[TargetLength, ...] = ("short", "medium", "long")
 VALID_REGENERATE_VALUES: tuple[ComposerRegenerateTarget, ...] = ("title", "body", "tags")
-VALID_TONES: set[ToneType] = set(VALID_TONE_VALUES)
-VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)
 VALID_CONTENT_TYPES: set[ContentType] = set(VALID_CONTENT_TYPE_VALUES)
-VALID_LENGTHS: set[TargetLength] = set(VALID_LENGTH_VALUES)
 VALID_REGENERATES: set[ComposerRegenerateTarget] = set(VALID_REGENERATE_VALUES)
 
 
@@ -60,23 +65,35 @@ def validate_request(body: Any) -> tuple[bool, str | None, ComposeRequestModel |
     if len(topic) < 10 or len(topic) > 500:
         return False, "topic must be 10-500 characters", None
 
-    if content_type not in VALID_CONTENT_TYPES:
+    if not isinstance(content_type, str) or content_type not in VALID_CONTENT_TYPES:
         return False, f"contentType must be one of: {', '.join(VALID_CONTENT_TYPE_VALUES)}", None
 
-    if tone not in VALID_TONES:
+    if not isinstance(tone, str) or tone not in VALID_TONES:
         return False, f"tone must be one of: {', '.join(VALID_TONE_VALUES)}", None
 
-    if target_length not in VALID_LENGTHS:
+    if not isinstance(target_length, str) or target_length not in VALID_LENGTHS:
         return False, f"targetLength must be one of: {', '.join(VALID_LENGTH_VALUES)}", None
 
-    if provider is not None and provider not in VALID_PROVIDERS:
+    if provider is not None and (
+        not isinstance(provider, str) or provider not in VALID_PROVIDERS
+    ):
         return False, f"provider must be one of: {', '.join(VALID_PROVIDER_VALUES)}", None
 
-    if model is not None and not isinstance(model, str):
-        return False, "model must be a string", None
+    if model is not None:
+        if not isinstance(model, str):
+            return False, "model must be a string", None
+        model = model.strip()
+        if not model:
+            return False, "model must be a non-empty string", None
 
-    if regenerate is not None and regenerate not in VALID_REGENERATES:
+    if regenerate is not None and (
+        not isinstance(regenerate, str) or regenerate not in VALID_REGENERATES
+    ):
         return False, f"regenerate must be one of: {', '.join(VALID_REGENERATE_VALUES)}", None
+
+    current_content, context_error = parse_current_content(body.get("currentContent"))
+    if context_error:
+        return False, context_error, None
 
     return True, None, ComposeRequestModel(
         topic=topic,
@@ -86,13 +103,8 @@ def validate_request(body: Any) -> tuple[bool, str | None, ComposeRequestModel |
         provider=provider,
         model=model,
         regenerate=regenerate,
+        currentContent=current_content,
     )
-
-
-def require_string_list(value: Any, error_message: str) -> list[str]:
-    if not isinstance(value, list) or not all(isinstance(item, str) and item.strip() for item in value):
-        raise RuntimeError(error_message)
-    return [item.strip() for item in value]
 
 
 def require_structure(value: Any) -> dict[str, object]:
@@ -117,9 +129,15 @@ def require_structure(value: Any) -> dict[str, object]:
     return value
 
 
-async def collect_stream_text(provider: LLMProvider, system: str, user: str) -> str:
+async def collect_stream_text(
+    provider: LLMProvider,
+    system: str,
+    user: str,
+    *,
+    max_tokens: int,
+) -> str:
     chunks: list[str] = []
-    async for chunk in provider.stream(system, user):
+    async for chunk in stream_with_budget(provider, system, user, max_tokens=max_tokens):
         if chunk:
             chunks.append(chunk)
     combined = "".join(chunks).strip()
@@ -130,20 +148,26 @@ async def collect_stream_text(provider: LLMProvider, system: str, user: str) -> 
 
 @router.post("/compose")
 async def compose(request: Request):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        body = None
+    body = await parse_json_body(request)
 
     valid, error, payload = validate_request(body)
     if not valid or payload is None:
         return JSONResponse(status_code=400, content={"error": error})
 
     settings = get_settings()
+    if not is_model_allowed(settings, payload.provider, payload.model):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "model is not available for the selected provider"},
+        )
     try:
         provider = create_provider(settings, payload.provider, payload.model)
-    except Exception as exc:
-        return JSONResponse(status_code=400, content={"error": str(exc)})
+    except Exception:
+        logger.exception("Provider creation failed")
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Selected provider is not available"},
+        )
 
     async def generate_title(structure: dict[str, object]) -> str:
         title_prompt = build_composer_title_prompt(payload.topic, structure, payload.tone)
@@ -166,6 +190,11 @@ async def compose(request: Request):
 
     async def event_stream():
         try:
+            if payload.currentContent is not None and payload.regenerate is not None:
+                async for event in stream_current_content(request, payload, provider, "composer"):
+                    yield event
+                return
+
             yield format_sse("step", {"step": "extracting"})
             extraction_prompt = build_composer_extraction_prompt(
                 payload.topic,
@@ -208,7 +237,12 @@ async def compose(request: Request):
                     payload.targetLength,
                     payload.contentType,
                 )
-                async for chunk in provider.stream(body_prompt["system"], body_prompt["user"]):
+                async for chunk in stream_with_budget(
+                    provider,
+                    body_prompt["system"],
+                    body_prompt["user"],
+                    max_tokens=OUTPUT_MAX_TOKENS[payload.targetLength],
+                ):
                     if await request.is_disconnected():
                         return
                     if not chunk:
@@ -236,6 +270,7 @@ async def compose(request: Request):
                     provider,
                     body_prompt["system"],
                     body_prompt["user"],
+                    max_tokens=OUTPUT_MAX_TOKENS[payload.targetLength],
                 )
                 if await request.is_disconnected():
                     return
@@ -251,15 +286,10 @@ async def compose(request: Request):
         except Exception as exc:
             if await request.is_disconnected():
                 return
-            print(f"[opera-server-py] Composer error ({type(exc).__name__}): {exc!r}")
-            yield format_sse("error", {"error": str(exc) or "Unknown error during compose"})
+            logger.exception("Composer error")
+            yield format_sse(
+                "error",
+                {"error": safe_stream_error(exc, "Composition failed. Please try again.")},
+            )
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    return sse_response(event_stream())

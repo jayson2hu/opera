@@ -94,7 +94,7 @@ export function buildApiUrl(path: string): string {
 }
 
 export function countChars(text: string): number {
-  return text.replace(/\s/g, '').length;
+  return Array.from(text.replace(/\s/g, '')).length;
 }
 
 export function countParagraphs(text: string): number {

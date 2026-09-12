@@ -1,6 +1,6 @@
 from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field, StrictStr, field_validator
 
 ToneType = Literal["knowledge", "casual", "bff"]
 ProviderId = Literal["anthropic", "anthropic_compat", "openai", "openai_compat", "deepseek", "custom"]
@@ -41,6 +41,10 @@ class WeChatComposeResult(BaseModel):
     body: str
 
 
+class RewriteParagraphResult(BaseModel):
+    text: str
+
+
 class GenerateRequestModel(BaseModel):
     text: str
     tone: ToneType
@@ -48,6 +52,22 @@ class GenerateRequestModel(BaseModel):
     provider: ProviderId | None = None
     model: str | None = None
     points: list[str] | None = None
+
+
+class CurrentContentModel(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+    title: StrictStr = Field(max_length=500)
+    body: StrictStr = Field(min_length=1, max_length=20000)
+    digest: StrictStr = Field(default="", max_length=2000)
+    draftId: StrictStr | None = Field(default=None, max_length=128)
+    revision: StrictStr | None = Field(default=None, max_length=128)
+
+    @field_validator("body")
+    @classmethod
+    def body_not_blank(cls, value: str) -> str:
+        if not value.strip():
+            raise ValueError("body must be non-empty")
+        return value
 
 
 class ComposeRequestModel(BaseModel):
@@ -58,6 +78,7 @@ class ComposeRequestModel(BaseModel):
     provider: ProviderId | None = None
     model: str | None = None
     regenerate: ComposerRegenerateTarget | None = None
+    currentContent: CurrentContentModel | None = None
 
 
 class WeChatComposeRequestModel(BaseModel):
@@ -68,6 +89,14 @@ class WeChatComposeRequestModel(BaseModel):
     provider: ProviderId | None = None
     model: str | None = None
     regenerate: WeChatRegenerateTarget | None = None
+    currentContent: CurrentContentModel | None = None
+
+
+class RewriteParagraphRequestModel(BaseModel):
+    text: str
+    instruction: str
+    provider: ProviderId | None = None
+    model: str | None = None
 
 
 class ProviderInfo(BaseModel):

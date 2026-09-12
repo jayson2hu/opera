@@ -1,8 +1,7 @@
-import json
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 
 from app.config import VALID_PROVIDER_VALUES, get_settings
 from app.prompts_wechat import (
@@ -11,12 +10,23 @@ from app.prompts_wechat import (
     build_wechat_extraction_prompt,
     build_wechat_title_prompt,
 )
-from app.providers.factory import create_provider
+from app.providers.base import stream_with_budget
+from app.providers.factory import create_provider, is_model_allowed
+from app.routes._shared import (
+    VALID_LENGTH_VALUES,
+    VALID_LENGTHS,
+    VALID_PROVIDERS,
+    VALID_TONE_VALUES,
+    VALID_TONES,
+    OUTPUT_MAX_TOKENS,
+    logger,
+    parse_json_body,
+    safe_stream_error,
+    sse_response,
+)
+from app.routes._current_content import parse_current_content, stream_current_content
 from app.sse import format_sse
 from app.types import (
-    ProviderId,
-    TargetLength,
-    ToneType,
     WeChatArticleType,
     WeChatComposeRequestModel,
     WeChatRegenerateTarget,
@@ -24,19 +34,14 @@ from app.types import (
 from app.utils import extract_json
 
 router = APIRouter(prefix="/api")
-VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
 VALID_ARTICLE_TYPE_VALUES: tuple[WeChatArticleType, ...] = (
     "insight",
     "guide",
     "story",
     "briefing",
 )
-VALID_LENGTH_VALUES: tuple[TargetLength, ...] = ("short", "medium", "long")
 VALID_REGENERATE_VALUES: tuple[WeChatRegenerateTarget, ...] = ("title", "digest", "body")
-VALID_TONES: set[ToneType] = set(VALID_TONE_VALUES)
-VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)
 VALID_ARTICLE_TYPES: set[WeChatArticleType] = set(VALID_ARTICLE_TYPE_VALUES)
-VALID_LENGTHS: set[TargetLength] = set(VALID_LENGTH_VALUES)
 VALID_REGENERATES: set[WeChatRegenerateTarget] = set(VALID_REGENERATE_VALUES)
 
 
@@ -59,23 +64,35 @@ def validate_request(body: Any) -> tuple[bool, str | None, WeChatComposeRequestM
     if len(topic) < 12 or len(topic) > 500:
         return False, "topic must be 12-500 characters", None
 
-    if article_type not in VALID_ARTICLE_TYPES:
+    if not isinstance(article_type, str) or article_type not in VALID_ARTICLE_TYPES:
         return False, f"articleType must be one of: {', '.join(VALID_ARTICLE_TYPE_VALUES)}", None
 
-    if tone not in VALID_TONES:
+    if not isinstance(tone, str) or tone not in VALID_TONES:
         return False, f"tone must be one of: {', '.join(VALID_TONE_VALUES)}", None
 
-    if target_length not in VALID_LENGTHS:
+    if not isinstance(target_length, str) or target_length not in VALID_LENGTHS:
         return False, f"targetLength must be one of: {', '.join(VALID_LENGTH_VALUES)}", None
 
-    if provider is not None and provider not in VALID_PROVIDERS:
+    if provider is not None and (
+        not isinstance(provider, str) or provider not in VALID_PROVIDERS
+    ):
         return False, f"provider must be one of: {', '.join(VALID_PROVIDER_VALUES)}", None
 
-    if model is not None and not isinstance(model, str):
-        return False, "model must be a string", None
+    if model is not None:
+        if not isinstance(model, str):
+            return False, "model must be a string", None
+        model = model.strip()
+        if not model:
+            return False, "model must be a non-empty string", None
 
-    if regenerate is not None and regenerate not in VALID_REGENERATES:
+    if regenerate is not None and (
+        not isinstance(regenerate, str) or regenerate not in VALID_REGENERATES
+    ):
         return False, f"regenerate must be one of: {', '.join(VALID_REGENERATE_VALUES)}", None
+
+    current_content, context_error = parse_current_content(body.get("currentContent"))
+    if context_error:
+        return False, context_error, None
 
     return True, None, WeChatComposeRequestModel(
         topic=topic,
@@ -85,6 +102,7 @@ def validate_request(body: Any) -> tuple[bool, str | None, WeChatComposeRequestM
         provider=provider,
         model=model,
         regenerate=regenerate,
+        currentContent=current_content,
     )
 
 
@@ -110,20 +128,26 @@ def require_structure(value: Any) -> dict[str, object]:
 
 @router.post("/wechat/compose")
 async def compose_wechat(request: Request):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        body = None
+    body = await parse_json_body(request)
 
     valid, error, payload = validate_request(body)
     if not valid or payload is None:
         return JSONResponse(status_code=400, content={"error": error})
 
     settings = get_settings()
+    if not is_model_allowed(settings, payload.provider, payload.model):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "model is not available for the selected provider"},
+        )
     try:
         provider = create_provider(settings, payload.provider, payload.model)
-    except Exception as exc:
-        return JSONResponse(status_code=400, content={"error": str(exc)})
+    except Exception:
+        logger.exception("Provider creation failed")
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Selected provider is not available"},
+        )
 
     async def generate_title(structure: dict[str, object]) -> str:
         title_prompt = build_wechat_title_prompt(payload.topic, structure)
@@ -143,6 +167,11 @@ async def compose_wechat(request: Request):
 
     async def event_stream():
         try:
+            if payload.currentContent is not None and payload.regenerate is not None:
+                async for event in stream_current_content(request, payload, provider, "wechat"):
+                    yield event
+                return
+
             yield format_sse("step", {"step": "extracting"})
             extraction_prompt = build_wechat_extraction_prompt(
                 payload.topic,
@@ -201,7 +230,12 @@ async def compose_wechat(request: Request):
                 title or None,
                 digest or None,
             )
-            async for chunk in provider.stream(body_prompt["system"], body_prompt["user"]):
+            async for chunk in stream_with_budget(
+                provider,
+                body_prompt["system"],
+                body_prompt["user"],
+                max_tokens=OUTPUT_MAX_TOKENS[payload.targetLength],
+            ):
                 if await request.is_disconnected():
                     return
                 if not chunk:
@@ -216,15 +250,10 @@ async def compose_wechat(request: Request):
         except Exception as exc:
             if await request.is_disconnected():
                 return
-            print(f"[opera-server-py] WeChat compose error ({type(exc).__name__}): {exc!r}")
-            yield format_sse("error", {"error": str(exc) or "Unknown error during wechat compose"})
+            logger.exception("WeChat compose error")
+            yield format_sse(
+                "error",
+                {"error": safe_stream_error(exc, "WeChat composition failed. Please try again.")},
+            )
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    return sse_response(event_stream())

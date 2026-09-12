@@ -1,5 +1,6 @@
 import { WECHAT_ARTICLE_TYPE_OPTIONS } from '../../constants';
 import type { WeChatArticleType } from '../../types';
+import ChipPicker, { type ChipOption } from '../shared/ChipPicker';
 
 interface ArticleTypeSelectorProps {
   selected: WeChatArticleType | null;
@@ -12,38 +13,21 @@ export default function ArticleTypeSelector({
   onSelect,
   disabled = false,
 }: ArticleTypeSelectorProps) {
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <label className="block text-sm font-medium text-neutral-700">
-          文章类型
-        </label>
-        <span className="text-xs text-neutral-400">帮助 AI 调整公众号文章结构与表达方式</span>
-      </div>
+  const options: ChipOption<WeChatArticleType>[] = WECHAT_ARTICLE_TYPE_OPTIONS.map((opt) => ({
+    id: opt.id,
+    emoji: opt.emoji,
+    label: opt.label,
+    description: opt.description,
+  }));
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        {WECHAT_ARTICLE_TYPE_OPTIONS.map((option) => {
-          const isSelected = selected === option.id;
-          return (
-            <button
-              key={option.id}
-              type="button"
-              onClick={() => onSelect(option.id)}
-              disabled={disabled}
-              aria-pressed={isSelected}
-              className={`rounded-2xl border-2 p-3 text-left transition-all duration-200 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed ${
-                isSelected
-                  ? 'border-emerald-400 bg-emerald-50/70 text-emerald-700 shadow-md shadow-emerald-500/10'
-                  : 'border-neutral-200 bg-white text-neutral-600 hover:border-emerald-200 hover:bg-emerald-50/40'
-              }`}
-            >
-              <div className="text-xl mb-1">{option.emoji}</div>
-              <div className="text-xs font-semibold mb-1">{option.label}</div>
-              <div className="text-[11px] leading-relaxed opacity-80">{option.description}</div>
-            </button>
-          );
-        })}
-      </div>
-    </div>
+  return (
+    <ChipPicker
+      options={options}
+      selected={selected}
+      onSelect={onSelect}
+      disabled={disabled}
+      tone="emerald"
+      ariaLabel="文章类型"
+    />
   );
 }

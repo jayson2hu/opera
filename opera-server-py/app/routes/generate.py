@@ -1,9 +1,9 @@
-import json
 from typing import Any
 
 from fastapi import APIRouter, Request
-from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.responses import JSONResponse
 
+from app.card_protocol import read_cards_response
 from app.config import VALID_PROVIDER_VALUES, get_settings
 from app.prompts import (
     build_caption_prompt,
@@ -12,18 +12,33 @@ from app.prompts import (
     build_tags_prompt,
     build_titles_prompt,
 )
-from app.providers.factory import create_provider, get_available_providers
+from app.providers.factory import create_provider, get_available_providers, is_model_allowed
+from app.routes._shared import (
+    VALID_LENGTH_VALUES,
+    VALID_LENGTHS,
+    VALID_PROVIDERS,
+    VALID_TONE_VALUES,
+    VALID_TONES,
+    OUTPUT_MAX_TOKENS,
+    logger,
+    parse_json_body,
+    require_string_list,
+    safe_stream_error,
+    sse_response,
+)
 from app.sse import format_sse
-from app.types import GenerateRequestModel, ProviderId, TagGroup, TargetLength, ToneType
+from app.types import GenerateRequestModel, TagGroup
+from app.providers.base import call_with_budget
 from app.utils import extract_json, preprocess_article_text
 
 router = APIRouter(prefix="/api")
-VALID_TONE_VALUES: tuple[ToneType, ...] = ("knowledge", "casual", "bff")
-VALID_LENGTH_VALUES: tuple[TargetLength, ...] = ("short", "medium", "long")
-VALID_TONES: set[ToneType] = set(VALID_TONE_VALUES)
-VALID_PROVIDERS: set[ProviderId] = set(VALID_PROVIDER_VALUES)
-VALID_LENGTHS: set[TargetLength] = set(VALID_LENGTH_VALUES)
 
+MIN_COVER_TITLE_COUNT = 3
+EXPECTED_COVER_TITLE_COUNT = 6
+MIN_CARD_COUNT = 5
+EXPECTED_CARD_COUNT = 7
+MIN_EXTRACTION_POINT_COUNT = 3
+MAX_EXTRACTION_POINT_COUNT = 8
 
 
 def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel | None]:
@@ -50,17 +65,23 @@ def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel 
         return False, f"text exceeds maximum length of {settings.max_input_length} characters", None
 
 
-    if tone not in VALID_TONES:
+    if not isinstance(tone, str) or tone not in VALID_TONES:
         return False, f"tone must be one of: {', '.join(VALID_TONE_VALUES)}", None
 
-    if provider is not None and provider not in VALID_PROVIDERS:
+    if provider is not None and (
+        not isinstance(provider, str) or provider not in VALID_PROVIDERS
+    ):
         return False, f"provider must be one of: {', '.join(VALID_PROVIDER_VALUES)}", None
 
-    if target_length not in VALID_LENGTHS:
+    if not isinstance(target_length, str) or target_length not in VALID_LENGTHS:
         return False, f"targetLength must be one of: {', '.join(VALID_LENGTH_VALUES)}", None
 
-    if model is not None and not isinstance(model, str):
-        return False, "model must be a string", None
+    if model is not None:
+        if not isinstance(model, str):
+            return False, "model must be a string", None
+        model = model.strip()
+        if not model:
+            return False, "model must be a non-empty string", None
 
     if points is not None:
         if not isinstance(points, list) or not all(isinstance(point, str) for point in points):
@@ -81,18 +102,34 @@ def validate_request(body: Any) -> tuple[bool, str | None, GenerateRequestModel 
     )
 
 
-def require_string_list(value: Any, error_message: str) -> list[str]:
-    if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
-        raise RuntimeError(error_message)
-    return value
-
-
 def read_string_list_response(parsed: Any, key: str, error_message: str) -> list[str]:
     if isinstance(parsed, list):
-        return require_string_list(parsed, error_message)
-    if isinstance(parsed, dict):
-        return require_string_list(parsed.get(key), error_message)
-    raise RuntimeError(error_message)
+        values = require_string_list(parsed, error_message)
+    elif isinstance(parsed, dict):
+        values = require_string_list(parsed.get(key), error_message)
+    else:
+        raise RuntimeError(error_message)
+
+    if len(values) < MIN_EXTRACTION_POINT_COUNT or len(values) > MAX_EXTRACTION_POINT_COUNT:
+        raise RuntimeError(error_message)
+    return values
+
+
+def read_prompt_list_response(
+    parsed: Any,
+    key: str,
+    error_message: str,
+    *,
+    minimum: int,
+    maximum: int,
+) -> list[str]:
+    """Validate list fields against the counts promised by the generation prompt."""
+    if not isinstance(parsed, dict):
+        raise RuntimeError(error_message)
+    values = require_string_list(parsed.get(key), error_message)
+    if len(values) < minimum or len(values) > maximum:
+        raise RuntimeError(error_message)
+    return values
 
 
 @router.get("/providers")
@@ -102,20 +139,26 @@ async def providers() -> dict[str, object]:
 
 @router.post("/generate")
 async def generate(request: Request):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        body = None
+    body = await parse_json_body(request)
 
     valid, error, payload = validate_request(body)
     if not valid or payload is None:
         return JSONResponse(status_code=400, content={"error": error})
 
     settings = get_settings()
+    if not is_model_allowed(settings, payload.provider, payload.model):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "model is not available for the selected provider"},
+        )
     try:
         provider = create_provider(settings, payload.provider, payload.model)
-    except Exception as exc:
-        return JSONResponse(status_code=400, content={"error": str(exc)})
+    except Exception:
+        logger.exception("Provider creation failed")
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Selected provider is not available"},
+        )
 
     async def event_stream():
         try:
@@ -142,26 +185,18 @@ async def generate(request: Request):
         except Exception as exc:
             if await request.is_disconnected():
                 return
-            print(f"[opera-server-py] Generation error ({type(exc).__name__}): {exc!r}")
-            yield format_sse("error", {"error": str(exc) or "Unknown error during generation"})
+            logger.exception("Generation error")
+            yield format_sse(
+                "error",
+                {"error": safe_stream_error(exc, "Generation failed. Please try again.")},
+            )
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    return sse_response(event_stream())
 
 
 @router.post("/generate/continue")
 async def generate_continue(request: Request):
-    try:
-        body = await request.json()
-    except json.JSONDecodeError:
-        body = None
+    body = await parse_json_body(request)
 
     valid, error, payload = validate_request(body)
     if not valid or payload is None:
@@ -170,10 +205,19 @@ async def generate_continue(request: Request):
         return JSONResponse(status_code=400, content={"error": "points must contain 3-8 items"})
 
     settings = get_settings()
+    if not is_model_allowed(settings, payload.provider, payload.model):
+        return JSONResponse(
+            status_code=400,
+            content={"error": "model is not available for the selected provider"},
+        )
     try:
         provider = create_provider(settings, payload.provider, payload.model)
-    except Exception as exc:
-        return JSONResponse(status_code=400, content={"error": str(exc)})
+    except Exception:
+        logger.exception("Provider creation failed")
+        return JSONResponse(
+            status_code=400,
+            content={"error": "Selected provider is not available"},
+        )
 
     async def event_stream():
         try:
@@ -182,27 +226,25 @@ async def generate_continue(request: Request):
         except Exception as exc:
             if await request.is_disconnected():
                 return
-            print(f"[opera-server-py] Generation error ({type(exc).__name__}): {exc!r}")
-            yield format_sse("error", {"error": str(exc) or "Unknown error during generation"})
+            logger.exception("Generation error")
+            yield format_sse(
+                "error",
+                {"error": safe_stream_error(exc, "Generation failed. Please try again.")},
+            )
 
-    return StreamingResponse(
-        event_stream(),
-        media_type="text/event-stream",
-        headers={
-            "Cache-Control": "no-cache",
-            "Connection": "keep-alive",
-            "X-Accel-Buffering": "no",
-        },
-    )
+    return sse_response(event_stream())
 
 
 async def generate_from_points(request: Request, provider: Any, payload: GenerateRequestModel, points: list[str]):
     yield format_sse("step", {"step": "titles"})
     titles_prompt = build_titles_prompt(payload.text, points, payload.tone)
     titles_raw = await provider.call(titles_prompt["system"], titles_prompt["user"])
-    cover_titles = require_string_list(
-        extract_json(titles_raw).get("coverTitles"),
+    cover_titles = read_prompt_list_response(
+        extract_json(titles_raw),
+        "coverTitles",
         "Invalid titles response",
+        minimum=MIN_COVER_TITLE_COUNT,
+        maximum=EXPECTED_COVER_TITLE_COUNT,
     )
     if await request.is_disconnected():
         return
@@ -211,17 +253,27 @@ async def generate_from_points(request: Request, provider: Any, payload: Generat
     yield format_sse("step", {"step": "cards"})
     cards_prompt = build_cards_prompt(payload.text, points, payload.tone)
     cards_raw = await provider.call(cards_prompt["system"], cards_prompt["user"])
-    cards = require_string_list(
-        extract_json(cards_raw).get("cards"),
+    structured_cards = read_cards_response(
+        extract_json(cards_raw),
         "Invalid cards response",
+        minimum=MIN_CARD_COUNT,
+        maximum=EXPECTED_CARD_COUNT,
     )
+    cards = [card["content"] for card in structured_cards]
     if await request.is_disconnected():
         return
+    # Keep the original string event for older clients and expose the typed event to new clients.
     yield format_sse("cards", {"cards": cards})
+    yield format_sse("cards_v2", {"cards": structured_cards})
 
     yield format_sse("step", {"step": "caption"})
     caption_prompt = build_caption_prompt(payload.text, points, cards, payload.tone, payload.targetLength)
-    caption_raw = await provider.call(caption_prompt["system"], caption_prompt["user"])
+    caption_raw = await call_with_budget(
+        provider,
+        caption_prompt["system"],
+        caption_prompt["user"],
+        max_tokens=OUTPUT_MAX_TOKENS[payload.targetLength],
+    )
     caption = extract_json(caption_raw).get("caption")
     if not isinstance(caption, str) or not caption:
         raise RuntimeError("Invalid caption response")

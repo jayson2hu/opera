@@ -85,6 +85,11 @@ Endpoints:
 - `POST /api/generate`
 - `POST /api/compose`
 - `POST /api/wechat/compose`
+- `POST /api/rewrite-paragraph`
+
+`/api/rewrite-paragraph` accepts `{text, instruction, provider?, model?}` and returns
+`{text}` for the paragraph-level editor action. It is a synchronous JSON request; the
+three composition endpoints remain SSE streams.
 
 SSE events used by the frontend:
 

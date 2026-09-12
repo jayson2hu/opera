@@ -5,6 +5,7 @@ interface EditableDigestProps {
   value: string;
   onChange: (value: string) => void;
   onRegenerate: () => void;
+  onBeforeChange?: () => void;
   canRegenerate: boolean;
   disabled?: boolean;
 }
@@ -13,6 +14,7 @@ export default function EditableDigest({
   value,
   onChange,
   onRegenerate,
+  onBeforeChange,
   canRegenerate,
   disabled = false,
 }: EditableDigestProps) {
@@ -41,7 +43,9 @@ export default function EditableDigest({
 
       <textarea
         value={value}
-        onChange={(event) => onChange(event.target.value.slice(0, 180))}
+        onChange={(event) => onChange(event.target.value)}
+        onFocus={onBeforeChange}
+        aria-label="摘要"
         placeholder="用于公众号封面导语或草稿摘要的短文案"
         disabled={disabled}
         className="w-full min-h-[108px] resize-none bg-transparent text-sm leading-7 text-neutral-700 outline-none placeholder:text-neutral-300 disabled:cursor-not-allowed"

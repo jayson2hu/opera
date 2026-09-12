@@ -8,6 +8,7 @@ The canonical project documentation now lives at the repository root and in `doc
 - `../docs/PROJECT.md`
 - `../docs/DEPLOYMENT.md`
 - `../docs/REVIEW.md`
+- `../docs/RELEASE-READINESS.md`
 
 ## Local Development
 
@@ -23,7 +24,7 @@ The canonical project documentation now lives at the repository root and in `doc
 
    ```bash
    cd opera-app
-   npm install
+   npm ci
    npm run dev
    ```
 
@@ -33,6 +34,8 @@ The canonical project documentation now lives at the repository root and in `doc
 
 ```bash
 cd opera-app
+npm run test
+npm run lint
 npm run build
 ```
 

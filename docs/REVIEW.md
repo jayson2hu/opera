@@ -43,3 +43,50 @@ Completed:
 - Re-enable or rebuild PowerShell profile initialization if conda/chocolatey shell helpers are needed interactively.
 - Revisit the user-level Git ignore permission issue outside this repository if global Git ignore behavior is needed.
 - Consider moving active generated runtime logs out of the repository root in a future cleanup.
+
+---
+
+## 2026-06-09 — SSE client + route deduplication refactor
+
+### Summary
+Removed the duplicated streaming/parsing logic on both ends and fixed a latent SSE
+event-loss bug, with no product or API behavior change.
+
+### Changes Made
+- Frontend: added `opera-app/src/lib/sse.ts` (`streamSSE`) and refactored `AdapterPage`,
+  `ComposerPage`, and `WeChatPage` onto it. The previous per-page parser declared its
+  event type inside the read loop and split on every newline, so an event whose `event:`
+  and `data:` lines fell in different network chunks was silently dropped. The shared
+  parser buffers on the SSE event boundary (blank line), persists state across chunks,
+  and skips malformed frames instead of tearing down the stream.
+- Frontend: lazy-initialized WeChat draft state and annotated the Adapter prop-sync
+  effect to clear two `react-hooks/set-state-in-effect` errors that the refactor
+  un-masked (the analyzer previously bailed out on the removed `while (true)` loop).
+- Backend: added `opera-server-py/app/routes/_shared.py` (shared validation constants,
+  `parse_json_body`, `sse_response`, a parameterized `require_string_list`, and a module
+  logger) and refactored `generate.py`, `compose.py`, and `wechat_compose.py` onto it.
+- Backend: replaced `print(...)` diagnostics with the standard `logging` module in the
+  routes, `config.py`, and `main.py`.
+
+### Verification
+- `npm run lint` (opera-app): passed, 0 problems.
+- `npm run build` (opera-app): passed (`tsc -b` + `vite build`).
+- Backend contract + utils equivalents (29 checks mirroring `tests/test_api_contract.py`
+  and `tests/test_utils.py`) via Starlette `TestClient`: all passed — identical SSE event
+  sequences, 400 validation messages, all regenerate variants, and article preprocessing.
+  (The local `pytest` install is missing `iniconfig`; an equivalent TestClient driver was
+  used and then removed. Re-run `python -m pytest -q` once dev extras are installed.)
+- Not run: `python scripts/test_e2e.py` (needs live provider credentials); Docker smoke test.
+
+### Current Status
+Frontend builds and lints clean; backend passes the full contract equivalent. Zero-change
+frontend/backend compatibility preserved.
+
+### Known Issues / Risks
+- `.tmp-new-api/` (~26 MB, untracked) is an unrelated project clone left at the repo root;
+  recommend relocating it outside the repository (already excluded from version control).
+- Stale `tmp-*.log` files remain at the repo root (already git-ignored).
+
+### Next Steps
+- Optionally add retry/backoff to the shared SSE helper if proxied deployments need it.
+- Relocate `.tmp-new-api/` and remove stale root logs in a hygiene pass.

@@ -4,7 +4,16 @@ from collections.abc import AsyncIterator
 
 import httpx
 
-from app.providers.base import LLMProvider
+from app.providers.base import (
+    DEFAULT_MAX_TOKENS,
+    LLMProvider,
+    PROVIDER_STREAM_TIMEOUT,
+    ProviderResponseRejectedError,
+    ProviderResponseTimeoutError,
+    ProviderResponseTruncatedError,
+    is_rejected_finish_reason,
+    is_truncated_finish_reason,
+)
 
 
 class OpenAICompatProvider(LLMProvider):
@@ -24,10 +33,17 @@ class OpenAICompatProvider(LLMProvider):
             "Authorization": f"Bearer {self.api_key}",
         }
 
-    def _payload(self, system: str, user: str, *, stream: bool = False) -> dict[str, object]:
+    def _payload(
+        self,
+        system: str,
+        user: str,
+        *,
+        stream: bool = False,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+    ) -> dict[str, object]:
         return {
             "model": self.model,
-            "max_tokens": 2048,
+            "max_tokens": max_tokens,
             "stream": stream,
             "messages": [
                 {"role": "system", "content": system},
@@ -58,41 +74,117 @@ class OpenAICompatProvider(LLMProvider):
 
         return ""
 
-    async def call(self, system: str, user: str) -> str:
+    async def call(
+        self,
+        system: str,
+        user: str,
+        *,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+    ) -> str:
         async with httpx.AsyncClient(timeout=120.0) as client:
             response = await client.post(
                 self._chat_url(),
                 headers=self._headers(),
-                json=self._payload(system, user),
+                json=self._payload(system, user, max_tokens=max_tokens),
             )
             response.raise_for_status()
             payload = response.json()
 
-        content = ((payload.get("choices") or [{}])[0].get("message") or {}).get("content")
+        choice = (payload.get("choices") or [{}])[0]
+        incomplete_details = payload.get("incomplete_details") or {}
+        incomplete_reason = (
+            incomplete_details.get("reason")
+            if isinstance(incomplete_details, dict)
+            else None
+        )
+        reasons = (
+            choice.get("finish_reason"),
+            payload.get("finish_reason"),
+            incomplete_reason,
+        )
+        if any(is_rejected_finish_reason(reason) for reason in reasons):
+            raise ProviderResponseRejectedError("Provider response was rejected")
+        if any(is_truncated_finish_reason(reason) for reason in reasons):
+            raise ProviderResponseTruncatedError("Provider response was truncated")
+
+        message = choice.get("message") or {}
+        if isinstance(message, dict):
+            refusal = message.get("refusal")
+            if isinstance(refusal, str) and refusal.strip():
+                raise ProviderResponseRejectedError("Provider response was rejected")
+            content = message.get("content")
+        else:
+            content = None
         normalized = self._normalize_content(content)
         if normalized:
             return normalized
         raise RuntimeError("Unexpected response type from OpenAI-compatible API")
 
-    async def stream(self, system: str, user: str) -> AsyncIterator[str]:
-        async with httpx.AsyncClient(timeout=None) as client:
-            async with client.stream(
-                "POST",
-                self._chat_url(),
-                headers=self._headers(),
-                json=self._payload(system, user, stream=True),
-            ) as response:
-                response.raise_for_status()
-                async for line in response.aiter_lines():
-                    if not line or not line.startswith("data: "):
-                        continue
+    async def stream(
+        self,
+        system: str,
+        user: str,
+        *,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+    ) -> AsyncIterator[str]:
+        completed = False
+        rejected = False
+        truncated = False
+        try:
+            async with httpx.AsyncClient(timeout=PROVIDER_STREAM_TIMEOUT) as client:
+                async with client.stream(
+                    "POST",
+                    self._chat_url(),
+                    headers=self._headers(),
+                    json=self._payload(system, user, stream=True, max_tokens=max_tokens),
+                ) as response:
+                    response.raise_for_status()
+                    async for line in response.aiter_lines():
+                        if not line or not line.startswith("data: "):
+                            continue
 
-                    raw = line[6:].strip()
-                    if not raw or raw == "[DONE]":
-                        continue
+                        raw = line[6:].strip()
+                        if not raw:
+                            continue
+                        if raw == "[DONE]":
+                            completed = True
+                            continue
 
-                    payload = json.loads(raw)
-                    delta = ((payload.get("choices") or [{}])[0].get("delta") or {}).get("content")
-                    normalized = self._normalize_content(delta)
-                    if normalized:
-                        yield normalized
+                        payload = json.loads(raw)
+                        choice = (payload.get("choices") or [{}])[0]
+                        incomplete_details = payload.get("incomplete_details") or {}
+                        incomplete_reason = (
+                            incomplete_details.get("reason")
+                            if isinstance(incomplete_details, dict)
+                            else None
+                        )
+                        reasons = (
+                            choice.get("finish_reason"),
+                            payload.get("finish_reason"),
+                            incomplete_reason,
+                        )
+                        if any(isinstance(reason, str) and reason for reason in reasons):
+                            completed = True
+                        if any(is_rejected_finish_reason(reason) for reason in reasons):
+                            rejected = True
+                        if any(is_truncated_finish_reason(reason) for reason in reasons):
+                            truncated = True
+
+                        delta_payload = choice.get("delta") or {}
+                        if isinstance(delta_payload, dict):
+                            refusal = delta_payload.get("refusal")
+                            if isinstance(refusal, str) and refusal.strip():
+                                rejected = True
+                            delta = delta_payload.get("content")
+                        else:
+                            delta = None
+                        normalized = self._normalize_content(delta)
+                        if normalized:
+                            yield normalized
+        except httpx.TimeoutException:
+            raise ProviderResponseTimeoutError("Provider response timed out") from None
+
+        if rejected:
+            raise ProviderResponseRejectedError("Provider response was rejected")
+        if truncated or not completed:
+            raise ProviderResponseTruncatedError("Provider response was truncated")

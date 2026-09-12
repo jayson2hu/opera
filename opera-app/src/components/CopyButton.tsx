@@ -50,7 +50,7 @@ export default function CopyButton({
         focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary-500
         ${
           copied
-            ? 'bg-success-50 text-success-500 border border-success-500/20'
+            ? 'bg-success-50 text-success-500 border border-success-500/20 animate-pop'
             : 'bg-white text-neutral-500 border border-neutral-200 hover:text-primary-600 hover:border-primary-300 hover:bg-primary-50'
         }
         ${sizeClasses}

@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Opera 前端优化预览 · 现状 vs 优化后</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@700;900&display=swap" rel="stylesheet">
+<script>
+tailwind.config = {
+  theme: {
+    extend: {
+      colors: {
+        primary: {50:'#fef7ee',100:'#fdedd3',200:'#fad7a5',300:'#f6bb6d',400:'#f19a3a',500:'#ee8019',600:'#df6610',700:'#b94d0f',800:'#933d14',900:'#773414'},
+        accent:  {50:'#f5f3ff',100:'#ede8ff',200:'#ddd5ff',300:'#c4b4fe',400:'#a78bfa',500:'#8b5cf6',600:'#7c3aed'},
+        neutral: {50:'#faf6f1',100:'#f4ede4',200:'#ebe1d3',300:'#d8c9b6',400:'#a8998a',500:'#7c6e60',600:'#5a4e42',700:'#423831',800:'#2b2521',900:'#1c1815'},
+      },
+      fontFamily: {
+        sans: ['"Noto Sans SC"','system-ui','sans-serif'],
+        serif: ['"Noto Serif SC"','serif'],
+      },
+      boxShadow: {
+        card: '0 1px 2px rgb(120 90 50 / 0.04), 0 1px 3px -1px rgb(120 90 50 / 0.05)',
+        'card-hover': '0 6px 16px -6px rgb(120 90 50 / 0.12), 0 2px 6px -2px rgb(120 90 50 / 0.06)',
+        paper: '0 10px 30px -12px rgb(120 90 50 / 0.18), 0 4px 12px -6px rgb(120 90 50 / 0.08)',
+        float: '0 10px 25px -5px rgb(120 90 50 / 0.12), 0 4px 10px -5px rgb(120 90 50 / 0.06)',
+        'glow-primary': '0 0 40px -8px rgb(238 128 25 / 0.4)',
+        'glow-accent': '0 0 40px -8px rgb(139 92 246 / 0.4)',
+      },
+      borderRadius: { card: '18px', paper: '22px' }
+    }
+  }
+}
+</script>
+<style>
+  html { scroll-behavior: smooth; }
+  body { font-family: 'Noto Sans SC', system-ui, sans-serif; background: #faf6f1; color: #2b2521; }
+  ::selection { background: #fad7a5; color: #773414; }
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: #d8c9b6; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #a8998a; }
+
+  /* 场景切换 */
+  .scene { display: none; }
+  .scene.active { display: block; animation: sceneIn .4s ease-out; }
+  @keyframes sceneIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+  /* 对比模式 */
+  .compare-after { display: none; }
+  .scene[data-mode="after"] .compare-after { display: block; }
+  .scene[data-mode="after"] .compare-before { display: none; }
+
+  /* 高亮改动点 */
+  .diff-marker { position: relative; }
+  .diff-marker::before {
+    content: ''; position: absolute; inset: -6px; border-radius: 20px;
+    border: 2px dashed #f19a3a; opacity: 0; pointer-events: none;
+    transition: opacity .3s;
+  }
+  .scene[data-mode="after"] .diff-marker.has-diff::before { opacity: 1; }
+  .diff-badge {
+    position: absolute; top: -12px; left: 12px; z-index: 10;
+    background: linear-gradient(135deg, #f19a3a, #ee8019);
+    color: #fff; font-size: 10px; font-weight: 700; padding: 3px 10px;
+    border-radius: 999px; letter-spacing: 0.02em;
+    box-shadow: 0 2px 8px rgb(238 128 25 / 0.4);
+    display: none;
+  }
+  .scene[data-mode="after"] .diff-badge { display: inline-flex; align-items: center; gap: 4px; }
+
+  /* 微交互 */
+  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+  @keyframes pulse-dot { 0%,100% { opacity: 1; } 50% { opacity: .4; } }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  @keyframes gradient-x { 0%,100% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } }
+  .animate-gradient-x { background-size: 200% 200%; animation: gradient-x 6s ease infinite; }
+
+  /* 光晕背景 */
+  .hero-glow { position: absolute; border-radius: 50%; filter: blur(80px); pointer-events: none; }
+
+  /* 手机外壳 */
+  .phone-frame { background: #1c1815; border-radius: 38px; padding: 8px; box-shadow: 0 10px 25px -5px rgb(120 90 50 / 0.12), 0 4px 10px -5px rgb(120 90 50 / 0.06); }
+  .phone-screen { border-radius: 30px; overflow: hidden; background: #fff; height: 540px; display: flex; flex-direction: column; }
+  .phone-scroll::-webkit-scrollbar { width: 3px; }
+  .phone-scroll::-webkit-scrollbar-thumb { background: rgb(0 0 0 / 0.15); }
+
+  /* toggle 开关 */
+  .mode-toggle { position: relative; background: #ebe1d3; border-radius: 999px; padding: 4px; display: inline-flex; gap: 2px; }
+  .mode-toggle button { position: relative; z-index: 1; padding: 6px 20px; border-radius: 999px; font-size: 12px; font-weight: 600; color: #7c6e60; transition: color .25s; }
+  .mode-toggle button.active { color: #fff; }
+  .mode-toggle .thumb { position: absolute; top: 4px; left: 4px; height: calc(100% - 8px); background: linear-gradient(135deg, #f19a3a, #ee8019); border-radius: 999px; transition: transform .3s cubic-bezier(.4,0,.2,1), width .3s; box-shadow: 0 2px 8px rgb(238 128 25 / 0.4); }
+
+  .nav-tab { transition: all .25s; }
+  .nav-tab.active { background: #fff; color: #ee8019; box-shadow: 0 1px 2px rgb(120 90 50 / 0.04), 0 1px 3px -1px rgb(120 90 50 / 0.05); }
+
+  .kbd { display: inline-flex; align-items: center; justify-content: center; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 5px; background: #fff; border: 1px solid #ebe1d3; border-bottom-width: 2px; font-size: 10px; font-weight: 600; color: #7c6e60; font-family: ui-monospace, monospace; }
+
+  .check-item { display: flex; align-items: flex-start; gap: 8px; }
+  .check-item .icon { flex-shrink: 0; width: 16px; height: 16px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin-top: 2px; }
+</style>
+</head>
+<body class="min-h-screen">
+
+<!-- ═══════════════ 顶部说明栏 ═══════════════ -->
+<header class="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-neutral-200">
+  <div class="max-w-[1400px] mx-auto px-6 py-3 flex items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <span class="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600 shadow-card">
+        <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+      </span>
+      <div>
+        <h1 class="text-sm font-bold text-neutral-900">Opera 前端优化预览</h1>
+        <p class="text-[11px] text-neutral-400">现状 vs 优化后 · 高保真对比</p>
+      </div>
+    </div>
+
+    <!-- 场景 Tab -->
+    <nav class="flex items-center gap-1 rounded-2xl bg-neutral-100 p-1">
+      <button class="nav-tab active rounded-xl px-4 py-1.5 text-xs font-semibold text-neutral-600" data-scene="home">首页</button>
+      <button class="nav-tab rounded-xl px-4 py-1.5 text-xs font-semibold text-neutral-600" data-scene="composer">小红书编排台</button>
+      <button class="nav-tab rounded-xl px-4 py-1.5 text-xs font-semibold text-neutral-600" data-scene="adapter">改写结果页</button>
+      <button class="nav-tab rounded-xl px-4 py-1.5 text-xs font-semibold text-neutral-600" data-scene="system">设计系统</button>
+    </nav>
+
+    <!-- 现状/优化后 切换 -->
+    <div class="mode-toggle" id="modeToggle">
+      <span class="thumb"></span>
+      <button class="active" data-mode="before">现状</button>
+      <button data-mode="after">优化后</button>
+    </div>
+  </div>
+</header>
+
+<!-- 改动点摘要条 -->
+<div class="bg-gradient-to-r from-primary-50 via-accent-50 to-primary-50 border-b border-primary-100">
+  <div class="max-w-[1400px] mx-auto px-6 py-2.5 flex items-center gap-6 text-[11px] overflow-x-auto">
+    <span class="text-neutral-500 font-medium shrink-0">本页改动点：</span>
+    <span class="scene-diff shrink-0 inline-flex items-center gap-1.5 text-primary-700" data-for="home"><i class="w-1 h-1 rounded-full bg-primary-500"></i>Hero 视觉升级</span>
+    <span class="scene-diff shrink-0 inline-flex items-center gap-1.5 text-primary-700" data-for="home"><i class="w-1 h-1 rounded-full bg-primary-500"></i>Flow 卡片信息层级</span>
+    <span class="scene-diff shrink-0 inline-flex items-center gap-1.5 text-primary-700" data-for="home"><i class="w-1 h-1 rounded-full bg-primary-500"></i>草稿区重设计</span>
+    <span class="scene-diff shrink-0 hidden items-center gap-1.5 text-primary-700" data-for="composer"><i class="w-1 h-1 rounded-full bg-primary-500"></i>步骤完成态</span>
+    <span class="scene-diff shrink-0 hidden items-center gap-1.5 text-primary-700" data-for="composer"><i class="w-1 h-1 rounded-full bg-primary-500"></i>质量检测面板</span>
+    <span class="scene-diff shrink-0 hidden items-center gap-1.5 text-primary-700" data-for="composer"><i class="w-1 h-1 rounded-full bg-primary-500"></i>快捷键提示</span>
+    <span class="scene-diff shrink-0 hidden items-center gap-1.5 text-primary-700" data-for="adapter"><i class="w-1 h-1 rounded-full bg-primary-500"></i>卡片用途标签</span>
+    <span class="scene-diff shrink-0 hidden items-center gap-1.5 text-primary-700" data-for="adapter"><i class="w-1 h-1 rounded-full bg-primary-500"></i>导出为图片</span>
+    <span class="scene-diff shrink-0 hidden items-center gap-1.5 text-primary-700" data-for="adapter"><i class="w-1 h-1 rounded-full bg-primary-500"></i>换语气重生</span>
+    <span class="scene-diff shrink-0 hidden items-center gap-1.5 text-primary-700" data-for="system"><i class="w-1 h-1 rounded-full bg-primary-500"></i>阴影层级</span>
+    <span class="scene-diff shrink-0 hidden items-center gap-1.5 text-primary-700" data-for="system"><i class="w-1 h-1 rounded-full bg-primary-500"></i>微交互动效</span>
+    <span class="scene-diff shrink-0 hidden items-center gap-1.5 text-primary-700" data-for="system"><i class="w-1 h-1 rounded-full bg-primary-500"></i>深色模式</span>
+  </div>
+</div>
+
+<main class="max-w-[1400px] mx-auto px-6 py-8">
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 场景 1：首页 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="scene active" id="scene-home" data-mode="before">
+
+  <!-- ── 现状 ── -->
+  <div class="compare-before">
+    <div class="rounded-paper border border-neutral-200 bg-white shadow-paper overflow-hidden">
+      <!-- 模拟 Header -->
+      <div class="flex h-14 items-center justify-between border-b border-neutral-200 bg-white/85 px-6">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600">
+            <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+          </span>
+          <span class="text-base font-bold">Opera</span>
+          <span class="text-xs text-neutral-400">· 内容创作工作台</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-xs"><i class="h-1.5 w-1.5 rounded-full bg-emerald-500"></i><span class="text-neutral-400">anthropic</span>/<span>claude-sonnet-4</span></span>
+          <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-500 text-xs font-bold text-white">创</span>
+        </div>
+      </div>
+
+      <div class="px-6 sm:px-10 pt-10 pb-14">
+        <div class="inline-flex items-center gap-2 rounded-full bg-primary-50 px-3 py-1.5 text-xs font-medium text-primary-700">
+          <span class="h-1.5 w-1.5 rounded-full bg-primary-500"></span>
+          下午好，开始今天的创作 · 本地工作台 · 3 个草稿
+        </div>
+        <h2 class="mt-5 text-[34px] font-extrabold tracking-tight">你想做什么？</h2>
+
+        <div class="mt-8 grid grid-cols-3 gap-5">
+          <button class="group relative overflow-hidden rounded-3xl bg-white p-7 text-left shadow-card border border-neutral-100 transition-all hover:-translate-y-1 hover:shadow-card-hover">
+            <span class="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-emerald-100/70"></span>
+            <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-emerald-50 text-2xl">✍️</div>
+            <h3 class="relative mt-5 text-xl font-bold">写公众号</h3>
+            <p class="relative mt-2 text-sm text-neutral-500 leading-relaxed">从选题出发，生成结构化长文，支持段落级局部修改。</p>
+            <div class="relative mt-6 flex items-center gap-1.5 text-sm font-semibold text-emerald-600">开始 →</div>
+          </button>
+          <button class="group relative overflow-hidden rounded-3xl bg-white p-7 text-left shadow-card border border-neutral-100 transition-all hover:-translate-y-1 hover:shadow-card-hover">
+            <span class="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-primary-100/70"></span>
+            <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-primary-50 text-2xl">⇋</div>
+            <h3 class="relative mt-5 text-xl font-bold">改写成小红书</h3>
+            <p class="relative mt-2 text-sm text-neutral-500 leading-relaxed">粘贴长文，确认要点，一键改成可发布的小红书笔记包。</p>
+            <div class="relative mt-6 flex items-center gap-1.5 text-sm font-semibold text-primary-600">开始 →</div>
+          </button>
+          <button class="group relative overflow-hidden rounded-3xl bg-white p-7 text-left shadow-card border border-neutral-100 transition-all hover:-translate-y-1 hover:shadow-card-hover">
+            <span class="absolute -top-10 -right-10 h-32 w-32 rounded-full bg-accent-100/70"></span>
+            <div class="relative flex h-12 w-12 items-center justify-center rounded-2xl bg-accent-50 text-2xl">📒</div>
+            <h3 class="relative mt-5 text-xl font-bold">写小红书</h3>
+            <p class="relative mt-2 text-sm text-neutral-500 leading-relaxed">三栏编排台：左配置、中草稿、右手机预览，所见即所得。</p>
+            <div class="relative mt-6 flex items-center gap-1.5 text-sm font-semibold text-accent-600">开始 →</div>
+          </button>
+        </div>
+
+        <div class="mt-12">
+          <div class="flex items-baseline justify-between">
+            <h3 class="text-base font-bold">继续上次</h3>
+            <span class="text-xs text-neutral-400">本地草稿 · 待保存</span>
+          </div>
+          <div class="mt-4 grid grid-cols-3 gap-4">
+            <button class="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-left shadow-card hover:-translate-y-0.5 transition-all">
+              <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-xl">📒</span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-semibold">断奶第 7 天的真实感受</span>
+                <span class="mt-1 block text-xs text-neutral-400">写小红书 · 昨天 23:41</span>
+              </span>
+            </button>
+            <button class="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-left shadow-card hover:-translate-y-0.5 transition-all">
+              <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-xl">⇋</span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-semibold">面试领导力：从业务到团队</span>
+                <span class="mt-1 block text-xs text-neutral-400">改写小红书 · 3 天前</span>
+              </span>
+            </button>
+            <button class="flex items-start gap-3 rounded-2xl border border-neutral-200 bg-white p-4 text-left shadow-card hover:-translate-y-0.5 transition-all">
+              <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-neutral-100 text-xl">✍️</span>
+              <span class="min-w-0 flex-1">
+                <span class="block truncate text-sm font-semibold">2026 年内容创作者生存指南</span>
+                <span class="mt-1 block text-xs text-neutral-400">写公众号 · 上周</span>
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 优化后 ── -->
+  <div class="compare-after">
+    <div class="rounded-paper border border-neutral-200 bg-white shadow-paper overflow-hidden">
+      <div class="flex h-14 items-center justify-between border-b border-neutral-200 bg-white/85 px-6">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600">
+            <svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg>
+          </span>
+          <span class="text-base font-bold">Opera</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 rounded-full border border-neutral-200 px-3 py-1.5 text-xs"><i class="h-1.5 w-1.5 rounded-full bg-emerald-500"></i><span class="text-neutral-400">anthropic</span>/<span>claude-sonnet-4</span></span>
+          <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-500 text-xs font-bold text-white">创</span>
+        </div>
+      </div>
+
+      <div class="relative px-6 sm:px-10 pt-12 pb-14 overflow-hidden">
+        <!-- 改动 1：Hero 光晕背景 -->
+        <span class="diff-badge">① Hero 视觉升级</span>
+        <div class="diff-marker has-diff absolute inset-0">
+          <span class="hero-glow w-[500px] h-[500px] bg-primary-200/50 -top-40 -left-40"></span>
+          <span class="hero-glow w-[400px] h-[400px] bg-accent-200/40 top-20 right-0"></span>
+        </div>
+
+        <div class="relative">
+          <div class="inline-flex items-center gap-2 rounded-full bg-white/80 backdrop-blur border border-primary-100 px-3 py-1.5 text-xs font-medium text-primary-700 shadow-card">
+            <span class="h-1.5 w-1.5 rounded-full bg-primary-500" style="animation: pulse-dot 2s infinite"></span>
+            下午好，创作者 · 已连续创作 <b class="text-primary-600">6 天</b>
+          </div>
+          <h2 class="mt-5 text-[40px] font-black tracking-tight leading-[1.15]">
+            把灵感变成<br/>
+            <span class="bg-gradient-to-r from-primary-500 via-primary-600 to-accent-500 bg-clip-text text-transparent animate-gradient-x">可发布的内容</span>
+          </h2>
+          <p class="mt-3 text-sm text-neutral-500 max-w-md">选择一个创作流程开始，所有草稿保存在本地，无需登录。</p>
+        </div>
+
+        <!-- 改动 2：Flow 卡片信息层级 -->
+        <div class="relative mt-10 grid grid-cols-3 gap-5">
+          <span class="diff-badge" style="top:-16px">② Flow 卡片升级</span>
+          <div class="diff-marker has-diff col-span-3 grid grid-cols-3 gap-5">
+            <button class="group relative overflow-hidden rounded-3xl bg-white p-6 text-left shadow-card border border-neutral-100 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-glow-primary hover:border-emerald-200">
+              <div class="flex items-start justify-between">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-50 to-emerald-100 text-2xl shadow-card">✍️</div>
+                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">长文</span>
+              </div>
+              <h3 class="mt-4 text-lg font-bold">写公众号</h3>
+              <p class="mt-1.5 text-[13px] text-neutral-500 leading-relaxed">选题 → 结构化长文 → 段落级精修</p>
+              <div class="mt-5 flex items-center justify-between">
+                <span class="text-[11px] text-neutral-400">本月已写 <b class="text-neutral-700">4</b> 篇</span>
+                <span class="flex items-center gap-1 text-xs font-semibold text-emerald-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all">开始 <span>→</span></span>
+              </div>
+            </button>
+            <button class="group relative overflow-hidden rounded-3xl bg-white p-6 text-left shadow-card border border-neutral-100 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-glow-primary hover:border-primary-200">
+              <div class="flex items-start justify-between">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-primary-50 to-primary-100 text-2xl shadow-card">⇋</div>
+                <span class="rounded-full bg-primary-50 px-2 py-0.5 text-[10px] font-semibold text-primary-600">改写</span>
+              </div>
+              <h3 class="mt-4 text-lg font-bold">改写成小红书</h3>
+              <p class="mt-1.5 text-[13px] text-neutral-500 leading-relaxed">粘贴长文 → 确认要点 → 笔记包</p>
+              <div class="mt-5 flex items-center justify-between">
+                <span class="text-[11px] text-neutral-400">本月已改 <b class="text-neutral-700">12</b> 篇</span>
+                <span class="flex items-center gap-1 text-xs font-semibold text-primary-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all">开始 <span>→</span></span>
+              </div>
+            </button>
+            <button class="group relative overflow-hidden rounded-3xl bg-white p-6 text-left shadow-card border border-neutral-100 transition-all duration-300 hover:-translate-y-1.5 hover:shadow-glow-accent hover:border-accent-200">
+              <div class="flex items-start justify-between">
+                <div class="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-accent-50 to-accent-100 text-2xl shadow-card">📒</div>
+                <span class="rounded-full bg-accent-50 px-2 py-0.5 text-[10px] font-semibold text-accent-600">原创</span>
+              </div>
+              <h3 class="mt-4 text-lg font-bold">写小红书</h3>
+              <p class="mt-1.5 text-[13px] text-neutral-500 leading-relaxed">三栏编排台，实时手机预览</p>
+              <div class="mt-5 flex items-center justify-between">
+                <span class="text-[11px] text-neutral-400">本月已写 <b class="text-neutral-700">7</b> 篇</span>
+                <span class="flex items-center gap-1 text-xs font-semibold text-accent-600 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all">开始 <span>→</span></span>
+              </div>
+            </button>
+          </div>
+        </div>
+
+        <!-- 改动 3：草稿区重设计 -->
+        <div class="relative mt-12">
+          <span class="diff-badge">③ 草稿区重设计</span>
+          <div class="diff-marker has-diff rounded-3xl border border-neutral-200 bg-gradient-to-br from-neutral-50/80 to-white p-5">
+            <div class="flex items-center justify-between">
+              <h3 class="text-sm font-bold flex items-center gap-2">
+                <span class="flex h-6 w-6 items-center justify-center rounded-lg bg-primary-100 text-primary-600">
+                  <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                </span>
+                继续上次
+              </h3>
+              <button class="text-xs text-primary-600 font-medium hover:underline">查看全部 8 个草稿 →</button>
+            </div>
+            <div class="mt-4 flex gap-3 overflow-x-auto pb-1">
+              <button class="group shrink-0 w-[240px] rounded-2xl border border-neutral-200 bg-white p-4 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-accent-300 hover:shadow-card-hover">
+                <div class="flex items-center justify-between">
+                  <span class="rounded-md bg-accent-50 px-1.5 py-0.5 text-[10px] font-semibold text-accent-600">写小红书</span>
+                  <span class="text-[10px] text-neutral-400">昨天 23:41</span>
+                </div>
+                <p class="mt-2.5 truncate text-sm font-semibold">断奶第 7 天的真实感受</p>
+                <div class="mt-3 h-1 rounded-full bg-neutral-100 overflow-hidden"><div class="h-full w-3/4 rounded-full bg-gradient-to-r from-accent-400 to-accent-500"></div></div>
+                <p class="mt-1.5 text-[10px] text-neutral-400">已完成 75% · 还差配图</p>
+              </button>
+              <button class="group shrink-0 w-[240px] rounded-2xl border border-neutral-200 bg-white p-4 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-primary-300 hover:shadow-card-hover">
+                <div class="flex items-center justify-between">
+                  <span class="rounded-md bg-primary-50 px-1.5 py-0.5 text-[10px] font-semibold text-primary-600">改写小红书</span>
+                  <span class="text-[10px] text-neutral-400">3 天前</span>
+                </div>
+                <p class="mt-2.5 truncate text-sm font-semibold">面试领导力：从业务到团队</p>
+                <div class="mt-3 h-1 rounded-full bg-neutral-100 overflow-hidden"><div class="h-full w-full rounded-full bg-gradient-to-r from-primary-400 to-primary-500"></div></div>
+                <p class="mt-1.5 text-[10px] text-emerald-600 font-medium">✓ 已完成 · 可复用</p>
+              </button>
+              <button class="group shrink-0 w-[240px] rounded-2xl border border-neutral-200 bg-white p-4 text-left shadow-card transition-all hover:-translate-y-0.5 hover:border-emerald-300 hover:shadow-card-hover">
+                <div class="flex items-center justify-between">
+                  <span class="rounded-md bg-emerald-50 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-600">写公众号</span>
+                  <span class="text-[10px] text-neutral-400">上周</span>
+                </div>
+                <p class="mt-2.5 truncate text-sm font-semibold">2026 年内容创作者生存指南</p>
+                <div class="mt-3 h-1 rounded-full bg-neutral-100 overflow-hidden"><div class="h-full w-1/3 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500"></div></div>
+                <p class="mt-1.5 text-[10px] text-neutral-400">已完成 33% · 草稿阶段</p>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 场景 2：小红书编排台 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="scene" id="scene-composer" data-mode="before">
+
+  <!-- ── 现状 ── -->
+  <div class="compare-before">
+    <div class="rounded-paper border border-neutral-200 bg-neutral-50 shadow-paper overflow-hidden">
+      <div class="flex h-14 items-center justify-between border-b border-neutral-200 bg-white/85 px-6">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600"><svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg></span>
+          <span class="text-base font-bold">Opera</span>
+        </div>
+        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-500 text-xs font-bold text-white">创</span>
+      </div>
+      <div class="flex h-9 items-center gap-2 border-b border-neutral-200 bg-white px-6 text-xs text-neutral-500">
+        <button class="hover:text-neutral-800">← 返回首页</button>
+        <span class="text-neutral-300">/</span>
+        <span class="font-semibold text-neutral-800">写小红书</span>
+      </div>
+
+      <div class="grid gap-6 p-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <!-- 左栏 -->
+        <div class="space-y-5">
+          <div class="rounded-2xl border border-neutral-200 bg-white p-4">
+            <div class="flex items-center gap-2 text-xs font-bold text-neutral-700"><span class="flex h-5 w-5 items-center justify-center rounded-md bg-accent-100 text-accent-600 text-[10px]">1</span>选题 <span class="ml-auto text-[10px] font-normal text-neutral-400">≥ 10 字</span></div>
+            <div class="mt-3 rounded-xl border border-neutral-200 p-3 text-sm text-neutral-700 bg-neutral-50/50">断奶第 7 天的真实感受</div>
+          </div>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-4">
+            <div class="flex items-center gap-2 text-xs font-bold text-neutral-700"><span class="flex h-5 w-5 items-center justify-center rounded-md bg-accent-100 text-accent-600 text-[10px]">2</span>内容类型</div>
+            <div class="mt-3 grid grid-cols-2 gap-2">
+              <span class="rounded-lg border border-accent-400 bg-accent-50 px-2.5 py-1.5 text-xs font-medium text-accent-700 text-center">故事经验</span>
+              <span class="rounded-lg border border-neutral-200 px-2.5 py-1.5 text-xs text-neutral-500 text-center">知识干货</span>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-4">
+            <div class="flex items-center gap-2 text-xs font-bold text-neutral-700"><span class="flex h-5 w-5 items-center justify-center rounded-md bg-accent-100 text-accent-600 text-[10px]">3</span>语气</div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              <span class="rounded-full border border-accent-400 bg-accent-50 px-3 py-1 text-xs font-medium text-accent-700">真诚记录</span>
+              <span class="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500">知识分享</span>
+              <span class="rounded-full border border-neutral-200 px-3 py-1 text-xs text-neutral-500">朋友推荐</span>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-neutral-200 bg-white p-4">
+            <div class="flex items-center gap-2 text-xs font-bold text-neutral-700"><span class="flex h-5 w-5 items-center justify-center rounded-md bg-accent-100 text-accent-600 text-[10px]">4</span>篇幅</div>
+            <div class="mt-3 grid grid-cols-3 gap-1.5">
+              <span class="rounded-lg border border-neutral-200 px-2 py-1.5 text-[11px] text-neutral-500 text-center">精简</span>
+              <span class="rounded-lg border border-accent-400 bg-accent-50 px-2 py-1.5 text-[11px] font-medium text-accent-700 text-center">标准</span>
+              <span class="rounded-lg border border-neutral-200 px-2 py-1.5 text-[11px] text-neutral-500 text-center">详细</span>
+            </div>
+          </div>
+          <button class="w-full rounded-2xl bg-gradient-to-r from-accent-500 to-accent-600 py-3 text-sm font-bold text-white shadow-card">重新生成</button>
+        </div>
+
+        <!-- 中右栏 -->
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_348px] items-start">
+          <div class="space-y-4 min-w-0">
+            <div class="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-2.5">
+              <span class="inline-flex items-center gap-2 text-xs"><i class="h-1.5 w-1.5 rounded-full bg-emerald-500"></i>已完成 · 623 字 · 6 标签</span>
+              <button class="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white">复制全文</button>
+            </div>
+
+            <article class="overflow-hidden rounded-paper border border-neutral-200 bg-white shadow-paper">
+              <div class="h-0.5 w-full bg-gradient-to-r from-accent-400 via-accent-500 to-primary-400"></div>
+              <header class="flex items-center justify-between border-b border-neutral-100 px-5 py-3">
+                <span class="inline-flex items-center gap-2 text-xs font-semibold text-neutral-700"><i class="h-1.5 w-1.5 rounded-full bg-accent-500"></i>笔记草稿 <span class="font-normal text-neutral-400">· 悬停段落可局部修改</span></span>
+                <div class="flex gap-1">
+                  <button class="rounded-lg px-2 py-1 text-xs text-neutral-500 hover:bg-accent-50">重写</button>
+                  <button class="rounded-lg px-2 py-1 text-xs text-neutral-500 hover:bg-accent-50">复制</button>
+                </div>
+              </header>
+              <div class="px-5 py-5 space-y-4">
+                <h3 class="text-xl font-bold">断奶第 7 天，我终于睡了一个整觉 🌙</h3>
+                <p class="text-[14px] leading-[1.85] text-neutral-800">凌晨 4 点，我习惯性地醒来，身边没有那个熟悉的小哭声。愣了几秒才反应过来——宝宝昨晚居然睡了整觉。</p>
+                <p class="text-[14px] leading-[1.85] text-neutral-800">断奶这条路，我们走得比想象中顺利。前 3 天最难熬，他哭我也跟着掉眼泪。但从第 5 天开始，夜醒次数明显减少。</p>
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="rounded-md bg-accent-50 px-2 py-1 text-xs text-accent-600">#断奶日记</span>
+                  <span class="rounded-md bg-accent-50 px-2 py-1 text-xs text-accent-600">#新手妈妈</span>
+                  <span class="rounded-md bg-accent-50 px-2 py-1 text-xs text-accent-600">#睡眠训练</span>
+                </div>
+              </div>
+            </article>
+
+            <div class="rounded-2xl border border-neutral-200 bg-white p-4">
+              <p class="text-xs font-bold text-neutral-700">配图建议</p>
+              <div class="mt-3 grid grid-cols-4 gap-2">
+                <div class="aspect-square rounded-lg bg-gradient-to-br from-accent-100 to-primary-100 flex items-center justify-center text-2xl">🌙</div>
+                <div class="aspect-square rounded-lg bg-neutral-100 border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 text-xl">+</div>
+                <div class="aspect-square rounded-lg bg-neutral-100 border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 text-xl">+</div>
+                <div class="aspect-square rounded-lg bg-neutral-100 border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 text-xl">+</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右栏手机 -->
+          <div class="hidden lg:flex justify-center">
+            <div class="phone-frame w-[280px]">
+              <div class="phone-screen">
+                <div class="flex h-8 shrink-0 items-center justify-between bg-white px-5 text-[10px] font-semibold"><span>9:41</span><span class="absolute left-1/2 top-1.5 h-5 w-20 -translate-x-1/2 rounded-full bg-neutral-900"></span><span>📶 🔋</span></div>
+                <div class="flex h-7 shrink-0 items-center justify-between border-b border-neutral-100 px-3"><span class="text-[10px]">‹ 创作者 <i class="not-italic rounded-full bg-[#FF2E4D] px-1 text-[8px] text-white">关注</i></span><span class="text-[10px]">⋯</span></div>
+                <div class="flex-1 overflow-y-auto phone-scroll">
+                  <div class="aspect-[3/4] bg-gradient-to-br from-accent-300 via-accent-500 to-primary-400 flex items-end p-3"><p class="font-serif text-sm font-extrabold text-white leading-tight">断奶第 7 天，我终于睡了一个整觉 🌙</p></div>
+                  <div class="px-3 py-2">
+                    <h4 class="text-[11px] font-bold">断奶第 7 天，我终于睡了一个整觉 🌙</h4>
+                    <p class="mt-1.5 text-[10px] leading-[1.65] text-neutral-700">凌晨 4 点，我习惯性地醒来，身边没有那个熟悉的小哭声…</p>
+                    <div class="mt-2 flex flex-wrap gap-1"><span class="text-[10px] text-accent-600">#断奶日记</span><span class="text-[10px] text-accent-600">#新手妈妈</span></div>
+                  </div>
+                </div>
+                <div class="flex h-8 shrink-0 items-center gap-2 border-t border-neutral-100 px-3 text-[10px] text-neutral-400"><div class="flex-1 rounded-full bg-neutral-100 px-2 py-1">说点什么…</div><span>❤️ 1.2k</span><span>⭐ 收藏</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 优化后 ── -->
+  <div class="compare-after">
+    <div class="rounded-paper border border-neutral-200 bg-neutral-50 shadow-paper overflow-hidden">
+      <div class="flex h-14 items-center justify-between border-b border-neutral-200 bg-white/85 px-6">
+        <div class="flex items-center gap-2.5">
+          <span class="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-primary-400 to-primary-600"><svg class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5"/></svg></span>
+          <span class="text-base font-bold">Opera</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="hidden sm:inline-flex items-center gap-1 text-[10px] text-neutral-400"><span class="kbd">⌘</span><span class="kbd">K</span> 快捷操作</span>
+          <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-500 text-xs font-bold text-white">创</span>
+        </div>
+      </div>
+      <div class="flex h-9 items-center gap-2 border-b border-neutral-200 bg-white px-6 text-xs text-neutral-500">
+        <button class="hover:text-neutral-800">← 首页</button>
+        <span class="text-neutral-300">/</span>
+        <span class="font-semibold text-neutral-800">写小红书</span>
+        <span class="ml-auto text-[10px] text-neutral-400">草稿已自动保存 · 2 分钟前</span>
+      </div>
+
+      <div class="grid gap-6 p-6 lg:grid-cols-[300px_minmax(0,1fr)]">
+        <!-- 左栏：步骤导航 -->
+        <div class="space-y-4">
+          <span class="diff-badge">① 步骤完成态导航</span>
+          <div class="diff-marker has-diff rounded-2xl border border-neutral-200 bg-white p-4">
+            <div class="flex items-center justify-between">
+              <p class="text-xs font-bold text-neutral-700">创作配置</p>
+              <span class="text-[10px] text-accent-600 font-medium">3/4 完成</span>
+            </div>
+            <div class="mt-4 space-y-1">
+              <button class="w-full flex items-center gap-3 rounded-xl p-2.5 text-left hover:bg-neutral-50 transition-colors">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>
+                <span class="flex-1 min-w-0"><span class="block text-xs font-semibold">选题</span><span class="block truncate text-[10px] text-neutral-400">断奶第 7 天的真实感受</span></span>
+              </button>
+              <button class="w-full flex items-center gap-3 rounded-xl p-2.5 text-left hover:bg-neutral-50 transition-colors">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600"><svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>
+                <span class="flex-1"><span class="block text-xs font-semibold">内容类型</span><span class="block text-[10px] text-neutral-400">故事经验</span></span>
+              </button>
+              <button class="w-full flex items-center gap-3 rounded-xl p-2.5 text-left bg-accent-50/60 ring-1 ring-accent-200 transition-colors">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-accent-500 text-white text-[10px] font-bold">3</span>
+                <span class="flex-1"><span class="block text-xs font-semibold text-accent-700">语气</span><span class="block text-[10px] text-accent-500">真诚记录 · 当前</span></span>
+              </button>
+              <button class="w-full flex items-center gap-3 rounded-xl p-2.5 text-left hover:bg-neutral-50 transition-colors opacity-50">
+                <span class="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 border-neutral-200 text-neutral-400 text-[10px] font-bold">4</span>
+                <span class="flex-1"><span class="block text-xs font-semibold">篇幅</span><span class="block text-[10px] text-neutral-400">未选择</span></span>
+              </button>
+            </div>
+            <div class="mt-4 rounded-xl bg-neutral-50 p-3">
+              <p class="text-[10px] font-semibold text-neutral-500 mb-1.5">已选语气</p>
+              <div class="flex flex-wrap gap-1.5">
+                <span class="rounded-full bg-accent-500 px-2.5 py-0.5 text-[10px] font-medium text-white">真诚记录</span>
+                <span class="rounded-full border border-neutral-200 bg-white px-2.5 py-0.5 text-[10px] text-neutral-500">知识分享</span>
+                <span class="rounded-full border border-neutral-200 bg-white px-2.5 py-0.5 text-[10px] text-neutral-500">朋友推荐</span>
+              </div>
+            </div>
+          </div>
+
+          <button class="w-full rounded-2xl bg-gradient-to-r from-accent-500 to-accent-600 py-3 text-sm font-bold text-white shadow-card hover:shadow-glow-accent transition-shadow">
+            重新生成 <span class="ml-1 opacity-70 text-xs font-normal">⌘⏎</span>
+          </button>
+        </div>
+
+        <!-- 中右栏 -->
+        <div class="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] items-start">
+          <div class="space-y-4 min-w-0">
+            <div class="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-2.5">
+              <span class="inline-flex items-center gap-2 text-xs"><i class="h-1.5 w-1.5 rounded-full bg-emerald-500"></i>已完成 · 623 字 · 6 标签</span>
+              <div class="flex items-center gap-1.5">
+                <button class="rounded-lg px-2.5 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100" title="历史版本">🕐</button>
+                <button class="rounded-lg px-2.5 py-1.5 text-xs text-neutral-500 hover:bg-neutral-100" title="导出图片">🖼</button>
+                <button class="rounded-lg bg-accent-500 px-3 py-1.5 text-xs font-semibold text-white">复制全文</button>
+              </div>
+            </div>
+
+            <article class="overflow-hidden rounded-paper border border-neutral-200 bg-white shadow-paper">
+              <div class="h-0.5 w-full bg-gradient-to-r from-accent-400 via-accent-500 to-primary-400"></div>
+              <header class="flex items-center justify-between border-b border-neutral-100 px-5 py-3">
+                <span class="inline-flex items-center gap-2 text-xs font-semibold text-neutral-700"><i class="h-1.5 w-1.5 rounded-full bg-accent-500"></i>笔记草稿</span>
+                <div class="flex gap-1">
+                  <button class="rounded-lg px-2 py-1 text-xs text-neutral-500 hover:bg-accent-50">重写</button>
+                  <button class="rounded-lg px-2 py-1 text-xs text-neutral-500 hover:bg-accent-50">复制</button>
+                </div>
+              </header>
+              <div class="px-5 py-5 space-y-4">
+                <h3 class="text-xl font-bold">断奶第 7 天，我终于睡了一个整觉 🌙</h3>
+                <p class="text-[14px] leading-[1.85] text-neutral-800">凌晨 4 点，我习惯性地醒来，身边没有那个熟悉的小哭声。愣了几秒才反应过来——宝宝昨晚居然睡了整觉。</p>
+                <p class="text-[14px] leading-[1.85] text-neutral-800">断奶这条路，我们走得比想象中顺利。前 3 天最难熬，他哭我也跟着掉眼泪。但从第 5 天开始，夜醒次数明显减少。</p>
+                <div class="flex flex-wrap gap-1.5">
+                  <span class="rounded-md bg-accent-50 px-2 py-1 text-xs text-accent-600">#断奶日记</span>
+                  <span class="rounded-md bg-accent-50 px-2 py-1 text-xs text-accent-600">#新手妈妈</span>
+                  <span class="rounded-md bg-accent-50 px-2 py-1 text-xs text-accent-600">#睡眠训练</span>
+                </div>
+              </div>
+            </article>
+
+            <!-- 改动 2：质量检测面板 -->
+            <span class="diff-badge">② 质量检测面板</span>
+            <div class="diff-marker has-diff rounded-2xl border border-neutral-200 bg-white p-4">
+              <div class="flex items-center justify-between">
+                <p class="text-xs font-bold text-neutral-700 flex items-center gap-1.5">
+                  <span class="flex h-5 w-5 items-center justify-center rounded-md bg-emerald-100 text-emerald-600"><svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></span>
+                  发布前检测
+                </p>
+                <span class="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-emerald-600">适合发布</span>
+              </div>
+              <div class="mt-3 grid grid-cols-2 gap-x-4 gap-y-2">
+                <div class="check-item"><span class="icon bg-emerald-100 text-emerald-600"><svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span><span class="text-[11px] text-neutral-600">正文 623 字 · 在推荐区间</span></div>
+                <div class="check-item"><span class="icon bg-emerald-100 text-emerald-600"><svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span><span class="text-[11px] text-neutral-600">含 6 个相关标签</span></div>
+                <div class="check-item"><span class="icon bg-emerald-100 text-emerald-600"><svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span><span class="text-[11px] text-neutral-600">标题含互动钩子</span></div>
+                <div class="check-item"><span class="icon bg-amber-100 text-amber-600"><svg class="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01"/></svg></span><span class="text-[11px] text-neutral-600">建议补充 2-3 张配图</span></div>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-neutral-200 bg-white p-4">
+              <p class="text-xs font-bold text-neutral-700">配图建议 <span class="ml-1 font-normal text-neutral-400 text-[10px]">拖拽排序</span></p>
+              <div class="mt-3 grid grid-cols-4 gap-2">
+                <div class="group relative aspect-square rounded-lg bg-gradient-to-br from-accent-100 to-primary-100 flex items-center justify-center text-2xl cursor-grab">🌙<span class="absolute top-1 left-1 rounded bg-black/50 px-1 text-[9px] text-white">封面</span></div>
+                <div class="aspect-square rounded-lg bg-neutral-100 border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 text-xl hover:border-accent-300 hover:text-accent-400 cursor-pointer transition-colors">+</div>
+                <div class="aspect-square rounded-lg bg-neutral-100 border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 text-xl hover:border-accent-300 hover:text-accent-400 cursor-pointer transition-colors">+</div>
+                <div class="aspect-square rounded-lg bg-neutral-100 border-2 border-dashed border-neutral-300 flex items-center justify-center text-neutral-400 text-xl hover:border-accent-300 hover:text-accent-400 cursor-pointer transition-colors">+</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 右栏：手机 + 数据 -->
+          <div class="hidden lg:block space-y-4">
+            <div class="phone-frame w-[280px] mx-auto">
+              <div class="phone-screen">
+                <div class="flex h-8 shrink-0 items-center justify-between bg-white px-5 text-[10px] font-semibold"><span>9:41</span><span class="absolute left-1/2 top-1.5 h-5 w-20 -translate-x-1/2 rounded-full bg-neutral-900"></span><span>📶 🔋</span></div>
+                <div class="flex h-7 shrink-0 items-center justify-between border-b border-neutral-100 px-3"><span class="text-[10px]">‹ 创作者 <i class="not-italic rounded-full bg-[#FF2E4D] px-1 text-[8px] text-white">关注</i></span><span class="text-[10px]">⋯</span></div>
+                <div class="flex-1 overflow-y-auto phone-scroll">
+                  <div class="aspect-[3/4] bg-gradient-to-br from-accent-300 via-accent-500 to-primary-400 flex items-end p-3"><p class="font-serif text-sm font-extrabold text-white leading-tight">断奶第 7 天，我终于睡了一个整觉 🌙</p></div>
+                  <div class="px-3 py-2">
+                    <h4 class="text-[11px] font-bold">断奶第 7 天，我终于睡了一个整觉 🌙</h4>
+                    <p class="mt-1.5 text-[10px] leading-[1.65] text-neutral-700">凌晨 4 点，我习惯性地醒来，身边没有那个熟悉的小哭声…</p>
+                    <div class="mt-2 flex flex-wrap gap-1"><span class="text-[10px] text-accent-600">#断奶日记</span><span class="text-[10px] text-accent-600">#新手妈妈</span></div>
+                  </div>
+                </div>
+                <div class="flex h-8 shrink-0 items-center gap-2 border-t border-neutral-100 px-3 text-[10px] text-neutral-400"><div class="flex-1 rounded-full bg-neutral-100 px-2 py-1">说点什么…</div><span>❤️ 1.2k</span><span>⭐ 收藏</span></div>
+              </div>
+            </div>
+
+            <!-- 改动 3：预估数据 -->
+            <span class="diff-badge">③ 发布预估</span>
+            <div class="diff-marker has-diff rounded-2xl border border-neutral-200 bg-white p-4">
+              <p class="text-xs font-bold text-neutral-700">📊 发布预估</p>
+              <div class="mt-3 space-y-2.5">
+                <div><div class="flex justify-between text-[11px] mb-1"><span class="text-neutral-500">完读率预估</span><span class="font-semibold text-emerald-600">高</span></div><div class="h-1.5 rounded-full bg-neutral-100"><div class="h-full w-4/5 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500"></div></div></div>
+                <div><div class="flex justify-between text-[11px] mb-1"><span class="text-neutral-500">互动潜力</span><span class="font-semibold text-amber-600">中</span></div><div class="h-1.5 rounded-full bg-neutral-100"><div class="h-full w-3/5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500"></div></div></div>
+                <div><div class="flex justify-between text-[11px] mb-1"><span class="text-neutral-500">标签覆盖度</span><span class="font-semibold text-emerald-600">高</span></div><div class="h-1.5 rounded-full bg-neutral-100"><div class="h-full w-5/6 rounded-full bg-gradient-to-r from-emerald-400 to-emerald-500"></div></div></div>
+              </div>
+              <p class="mt-3 rounded-lg bg-accent-50 px-2.5 py-2 text-[10px] leading-relaxed text-accent-700">💡 建议在结尾添加提问式互动，如"你家宝宝断奶顺利吗？"可提升评论率。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 场景 3：改写结果页 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="scene" id="scene-adapter" data-mode="before">
+
+  <!-- ── 现状 ── -->
+  <div class="compare-before">
+    <div class="rounded-paper border border-neutral-200 bg-neutral-50 shadow-paper overflow-hidden">
+      <div class="flex h-14 items-center justify-between border-b border-neutral-200 bg-white/85 px-6">
+        <span class="text-base font-bold">Opera · 改写成小红书</span>
+        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-500 text-xs font-bold text-white">创</span>
+      </div>
+      <div class="grid gap-6 p-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div class="space-y-5">
+          <div class="rounded-2xl border border-neutral-200 bg-white p-4">
+            <p class="text-xs font-bold">公众号原文</p>
+            <div class="mt-2 rounded-xl bg-neutral-50 p-3 text-xs text-neutral-500 leading-relaxed h-24 overflow-hidden">面试中最容易被低估的能力，不是技术深度，而是"把复杂问题讲简单"的能力。我带团队 5 年，面试过 200+ 候选人…</div>
+          </div>
+          <button class="w-full rounded-2xl bg-gradient-to-r from-primary-500 to-primary-600 py-3 text-sm font-bold text-white">重新改写</button>
+        </div>
+
+        <div class="space-y-5">
+          <div class="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-2.5">
+            <span class="text-xs"><i class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1.5"></i>改写完成 · 可全选或单独复制</span>
+            <button class="rounded-lg border border-neutral-200 px-3 py-1.5 text-xs">复制全部</button>
+          </div>
+
+          <div class="rounded-card border border-neutral-200 bg-white shadow-card overflow-hidden">
+            <div class="h-0.5 bg-gradient-to-r from-primary-400 to-primary-500"></div>
+            <div class="p-5">
+              <p class="text-xs font-bold text-neutral-700 mb-3">封面标题 · 6 个</p>
+              <div class="space-y-2">
+                <label class="flex items-start gap-2.5 rounded-xl border border-neutral-200 p-3 text-sm hover:border-primary-300 cursor-pointer"><input type="checkbox" class="mt-0.5 accent-primary-500">面试 200 人后我发现：技术好不如会讲故事</label>
+                <label class="flex items-start gap-2.5 rounded-xl border border-neutral-200 p-3 text-sm hover:border-primary-300 cursor-pointer"><input type="checkbox" class="mt-0.5 accent-primary-500">带团队 5 年，我最看重的不是能力</label>
+                <label class="flex items-start gap-2.5 rounded-xl border border-neutral-200 p-3 text-sm hover:border-primary-300 cursor-pointer"><input type="checkbox" class="mt-0.5 accent-primary-500">把复杂问题讲简单，是顶级职场能力</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-card border border-neutral-200 bg-white shadow-card overflow-hidden">
+            <div class="h-0.5 bg-gradient-to-r from-accent-400 to-accent-500"></div>
+            <div class="p-5">
+              <p class="text-xs font-bold text-neutral-700 mb-3">图文卡片 · 7 张</p>
+              <div class="grid grid-cols-2 gap-3">
+                <div class="rounded-xl border border-neutral-200 p-3.5"><p class="text-[13px] leading-relaxed">面试 200+ 候选人后，我发现一个反直觉的规律：技术深度排第二，表达能力排第一。</p></div>
+                <div class="rounded-xl border border-neutral-200 p-3.5"><p class="text-[13px] leading-relaxed">为什么"会讲"比"会做"更重要？因为面试官无法在 45 分钟内验证你的技术，但能立刻感受到你的表达。</p></div>
+                <div class="rounded-xl border border-neutral-200 p-3.5"><p class="text-[13px] leading-relaxed">三个立即见效的表达技巧：① 用类比解释概念 ② 先讲结论再展开 ③ 用数字代替形容词</p></div>
+                <div class="rounded-xl border border-neutral-200 p-3.5"><p class="text-[13px] leading-relaxed">下次面试前，试着把你的项目经历用 3 句话讲给一个非技术朋友听。如果他听懂了，你就过关了。</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 优化后 ── -->
+  <div class="compare-after">
+    <div class="rounded-paper border border-neutral-200 bg-neutral-50 shadow-paper overflow-hidden">
+      <div class="flex h-14 items-center justify-between border-b border-neutral-200 bg-white/85 px-6">
+        <span class="text-base font-bold">Opera · 改写成小红书</span>
+        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-accent-300 to-accent-500 text-xs font-bold text-white">创</span>
+      </div>
+      <div class="grid gap-6 p-6 lg:grid-cols-[320px_minmax(0,1fr)]">
+        <div class="space-y-5">
+          <div class="rounded-2xl border border-neutral-200 bg-white p-4">
+            <p class="text-xs font-bold">公众号原文</p>
+            <div class="mt-2 rounded-xl bg-neutral-50 p-3 text-xs text-neutral-500 leading-relaxed h-24 overflow-hidden">面试中最容易被低估的能力，不是技术深度，而是"把复杂问题讲简单"的能力。我带团队 5 年，面试过 200+ 候选人…</div>
+          </div>
+          <button class="w-full rounded-2xl bg-gradient-to-r from-primary-500 to-primary-600 py-3 text-sm font-bold text-white">重新改写</button>
+
+          <!-- 改动 3：换语气重生 -->
+          <span class="diff-badge">③ 换语气快速重生</span>
+          <div class="diff-marker has-diff rounded-2xl border border-neutral-200 bg-white p-4">
+            <p class="text-xs font-bold text-neutral-700 mb-2.5">换个语气试试</p>
+            <div class="flex flex-wrap gap-1.5">
+              <button class="rounded-full border border-neutral-200 px-3 py-1.5 text-[11px] text-neutral-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 transition-colors">😊 更轻松</button>
+              <button class="rounded-full border border-neutral-200 px-3 py-1.5 text-[11px] text-neutral-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 transition-colors">📚 更专业</button>
+              <button class="rounded-full border border-neutral-200 px-3 py-1.5 text-[11px] text-neutral-600 hover:border-primary-300 hover:bg-primary-50 hover:text-primary-700 transition-colors">💬 更口语</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-5">
+          <div class="flex items-center justify-between rounded-2xl border border-neutral-200 bg-white px-4 py-2.5">
+            <span class="text-xs"><i class="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500 mr-1.5"></i>改写完成 · 已选中 3 项</span>
+            <div class="flex items-center gap-1.5">
+              <!-- 改动 2：导出图片 -->
+              <button class="diff-marker has-diff relative rounded-lg border border-neutral-200 px-3 py-1.5 text-xs text-neutral-600 hover:bg-neutral-50">🖼 导出图片</button>
+              <button class="rounded-lg bg-primary-500 px-3 py-1.5 text-xs font-semibold text-white">复制选中 (3)</button>
+            </div>
+          </div>
+
+          <div class="rounded-card border border-neutral-200 bg-white shadow-card overflow-hidden">
+            <div class="h-0.5 bg-gradient-to-r from-primary-400 to-primary-500"></div>
+            <div class="p-5">
+              <div class="flex items-center justify-between mb-3">
+                <p class="text-xs font-bold text-neutral-700">封面标题 · 6 个</p>
+                <button class="text-[10px] text-primary-600 font-medium hover:underline">全选</button>
+              </div>
+              <div class="space-y-2">
+                <label class="flex items-start gap-2.5 rounded-xl border-2 border-primary-300 bg-primary-50/40 p-3 text-sm cursor-pointer">
+                  <input type="checkbox" checked class="mt-0.5 accent-primary-500">
+                  <span class="flex-1">面试 200 人后我发现：技术好不如会讲故事</span>
+                  <button class="shrink-0 rounded-md p-1 text-neutral-400 hover:bg-white hover:text-primary-600" title="单独复制"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+                </label>
+                <label class="flex items-start gap-2.5 rounded-xl border border-neutral-200 p-3 text-sm hover:border-primary-300 cursor-pointer">
+                  <input type="checkbox" class="mt-0.5 accent-primary-500">
+                  <span class="flex-1">带团队 5 年，我最看重的不是能力</span>
+                  <button class="shrink-0 rounded-md p-1 text-neutral-400 hover:bg-white hover:text-primary-600"><svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg></button>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-card border border-neutral-200 bg-white shadow-card overflow-hidden">
+            <div class="h-0.5 bg-gradient-to-r from-accent-400 to-accent-500"></div>
+            <div class="p-5">
+              <p class="text-xs font-bold text-neutral-700 mb-3">图文卡片 · 7 张</p>
+              <!-- 改动 1：卡片用途标签 -->
+              <span class="diff-badge">① 卡片用途标签</span>
+              <div class="diff-marker has-diff grid grid-cols-2 gap-3">
+                <div class="relative rounded-xl border-2 border-accent-300 bg-accent-50/30 p-3.5">
+                  <span class="absolute -top-2 left-3 rounded-full bg-accent-500 px-2 py-0.5 text-[9px] font-bold text-white">开头钩子</span>
+                  <p class="text-[13px] leading-relaxed mt-1">面试 200+ 候选人后，我发现一个反直觉的规律：技术深度排第二，表达能力排第一。</p>
+                  <div class="mt-2.5 flex gap-1">
+                    <button class="rounded-md bg-white/80 px-1.5 py-0.5 text-[10px] text-neutral-500 hover:text-accent-600">复制</button>
+                    <button class="rounded-md bg-white/80 px-1.5 py-0.5 text-[10px] text-neutral-500 hover:text-accent-600">改写</button>
+                  </div>
+                </div>
+                <div class="relative rounded-xl border border-neutral-200 p-3.5">
+                  <span class="absolute -top-2 left-3 rounded-full bg-neutral-400 px-2 py-0.5 text-[9px] font-bold text-white">核心观点</span>
+                  <p class="text-[13px] leading-relaxed mt-1">为什么"会讲"比"会做"更重要？因为面试官无法在 45 分钟内验证你的技术，但能立刻感受到你的表达。</p>
+                  <div class="mt-2.5 flex gap-1">
+                    <button class="rounded-md bg-neutral-50 px-1.5 py-0.5 text-[10px] text-neutral-500 hover:text-accent-600">复制</button>
+                    <button class="rounded-md bg-neutral-50 px-1.5 py-0.5 text-[10px] text-neutral-500 hover:text-accent-600">改写</button>
+                  </div>
+                </div>
+                <div class="relative rounded-xl border-2 border-accent-300 bg-accent-50/30 p-3.5">
+                  <span class="absolute -top-2 left-3 rounded-full bg-primary-500 px-2 py-0.5 text-[9px] font-bold text-white">方法清单</span>
+                  <p class="text-[13px] leading-relaxed mt-1">三个立即见效的表达技巧：① 用类比解释概念 ② 先讲结论再展开 ③ 用数字代替形容词</p>
+                  <div class="mt-2.5 flex gap-1">
+                    <button class="rounded-md bg-white/80 px-1.5 py-0.5 text-[10px] text-neutral-500 hover:text-accent-600">复制</button>
+                    <button class="rounded-md bg-white/80 px-1.5 py-0.5 text-[10px] text-neutral-500 hover:text-accent-600">改写</button>
+                  </div>
+                </div>
+                <div class="relative rounded-xl border border-neutral-200 p-3.5">
+                  <span class="absolute -top-2 left-3 rounded-full bg-emerald-500 px-2 py-0.5 text-[9px] font-bold text-white">行动总结</span>
+                  <p class="text-[13px] leading-relaxed mt-1">下次面试前，试着把你的项目经历用 3 句话讲给一个非技术朋友听。如果他听懂了，你就过关了。</p>
+                  <div class="mt-2.5 flex gap-1">
+                    <button class="rounded-md bg-neutral-50 px-1.5 py-0.5 text-[10px] text-neutral-500 hover:text-accent-600">复制</button>
+                    <button class="rounded-md bg-neutral-50 px-1.5 py-0.5 text-[10px] text-neutral-500 hover:text-accent-600">改写</button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- 场景 4：设计系统 -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<section class="scene" id="scene-system" data-mode="before">
+
+  <!-- ── 现状 ── -->
+  <div class="compare-before">
+    <div class="grid grid-cols-2 gap-6">
+      <div class="rounded-paper border border-neutral-200 bg-white p-6 shadow-paper">
+        <h3 class="text-sm font-bold mb-4">阴影层级（现状）</h3>
+        <div class="space-y-4">
+          <div class="rounded-2xl bg-white p-4 shadow-card border border-neutral-100"><p class="text-xs text-neutral-500">shadow-card · 几乎所有卡片都用这个</p></div>
+          <div class="rounded-2xl bg-white p-4 shadow-card border border-neutral-100"><p class="text-xs text-neutral-500">shadow-card · 层级区分不明显</p></div>
+          <div class="rounded-2xl bg-white p-4 shadow-paper border border-neutral-100"><p class="text-xs text-neutral-500">shadow-paper · 仅用于主内容卡</p></div>
+        </div>
+      </div>
+      <div class="rounded-paper border border-neutral-200 bg-white p-6 shadow-paper">
+        <h3 class="text-sm font-bold mb-4">交互动效（现状）</h3>
+        <div class="space-y-3">
+          <button class="w-full rounded-xl bg-primary-500 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-primary-600">按钮 · 仅颜色变化</button>
+          <button class="w-full rounded-xl border border-neutral-200 bg-white py-2.5 text-sm font-semibold text-neutral-600 transition-all hover:-translate-y-0.5 hover:shadow-card-hover">卡片 · 轻微上浮</button>
+          <p class="text-xs text-neutral-400 text-center pt-2">无骨架屏 / 无加载动效 / 无成功反馈动画</p>
+        </div>
+      </div>
+      <div class="col-span-2 rounded-paper border border-neutral-200 bg-white p-6 shadow-paper">
+        <h3 class="text-sm font-bold mb-4">主题（现状）</h3>
+        <div class="flex items-center gap-4">
+          <div class="flex-1 rounded-2xl border border-neutral-200 bg-neutral-50 p-4 text-center"><p class="text-2xl mb-1">☀️</p><p class="text-xs text-neutral-500">浅色模式</p></div>
+          <div class="flex-1 rounded-2xl border-2 border-dashed border-neutral-200 p-4 text-center opacity-40"><p class="text-2xl mb-1">🌙</p><p class="text-xs text-neutral-400">深色模式 · 未实现</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 优化后 ── -->
+  <div class="compare-after">
+    <div class="grid grid-cols-2 gap-6">
+      <!-- 阴影层级 -->
+      <div class="relative rounded-paper border border-neutral-200 bg-white p-6 shadow-paper">
+        <span class="diff-badge">① 阴影层级系统</span>
+        <h3 class="text-sm font-bold mb-4">阴影层级（4 级）</h3>
+        <div class="diff-marker has-diff space-y-4">
+          <div class="rounded-2xl bg-white p-4 border border-neutral-100" style="box-shadow: 0 1px 2px rgb(120 90 50 / 0.03)"><p class="text-xs text-neutral-500">Lv1 · 列表项 / 输入框</p></div>
+          <div class="rounded-2xl bg-white p-4 shadow-card border border-neutral-100"><p class="text-xs text-neutral-500">Lv2 · 普通卡片</p></div>
+          <div class="rounded-2xl bg-white p-4 shadow-card-hover border border-neutral-100"><p class="text-xs text-neutral-500">Lv3 · 悬浮卡片 / 弹窗</p></div>
+          <div class="rounded-2xl bg-white p-4 shadow-paper border border-neutral-100"><p class="text-xs text-neutral-500">Lv4 · 主内容 / 模态</p></div>
+        </div>
+      </div>
+
+      <!-- 微交互 -->
+      <div class="relative rounded-paper border border-neutral-200 bg-white p-6 shadow-paper">
+        <span class="diff-badge">② 微交互动效</span>
+        <h3 class="text-sm font-bold mb-4">交互动效（新增）</h3>
+        <div class="diff-marker has-diff space-y-3">
+          <button class="group w-full rounded-xl bg-gradient-to-r from-primary-500 to-primary-600 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-glow-primary hover:scale-[1.01] active:scale-[0.99]">
+            按钮 · 光晕 + 微缩放 <span class="inline-block transition-transform group-hover:translate-x-0.5">→</span>
+          </button>
+          <div class="rounded-xl border border-neutral-200 bg-white p-3">
+            <div class="flex items-center gap-2">
+              <span class="flex h-6 w-6 items-center justify-center rounded-full bg-emerald-100"><svg class="h-3 w-3 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg></span>
+              <p class="text-xs font-medium text-emerald-700">已复制到剪贴板</p>
+            </div>
+            <p class="mt-1 text-[10px] text-neutral-400">↑ 成功反馈动画（缩放 + 颜色）</p>
+          </div>
+          <div class="rounded-xl border border-neutral-200 bg-white p-3 space-y-2">
+            <div class="h-3 rounded-full bg-gradient-to-r from-neutral-100 via-neutral-200 to-neutral-100" style="background-size:200% 100%;animation:shimmer 2s linear infinite"></div>
+            <div class="h-3 w-2/3 rounded-full bg-gradient-to-r from-neutral-100 via-neutral-200 to-neutral-100" style="background-size:200% 100%;animation:shimmer 2s linear infinite"></div>
+            <p class="text-[10px] text-neutral-400">↑ 骨架屏加载动效</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 深色模式 -->
+      <div class="relative col-span-2 rounded-paper border border-neutral-200 bg-white p-6 shadow-paper">
+        <span class="diff-badge">③ 深色模式</span>
+        <h3 class="text-sm font-bold mb-4">主题系统（新增深色模式）</h3>
+        <div class="diff-marker has-diff grid grid-cols-2 gap-4">
+          <div class="rounded-2xl border border-neutral-200 bg-neutral-50 p-5">
+            <p class="text-2xl mb-3">☀️ 浅色</p>
+            <div class="rounded-xl bg-white p-3 shadow-card border border-neutral-100">
+              <p class="text-xs font-semibold text-neutral-800">笔记草稿</p>
+              <p class="mt-1 text-[11px] text-neutral-500">背景 #faf6f1 · 卡片 #ffffff</p>
+            </div>
+          </div>
+          <div class="rounded-2xl border border-neutral-700 bg-neutral-900 p-5">
+            <p class="text-2xl mb-3">🌙 深色</p>
+            <div class="rounded-xl bg-neutral-800 p-3 border border-neutral-700" style="box-shadow: 0 1px 2px rgb(0 0 0 / 0.3)">
+              <p class="text-xs font-semibold text-neutral-100">笔记草稿</p>
+              <p class="mt-1 text-[11px] text-neutral-400">背景 #1c1815 · 卡片 #2b2521</p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-4 rounded-xl bg-accent-50 px-4 py-3 flex items-start gap-2">
+          <span class="text-accent-500">💡</span>
+          <p class="text-[11px] leading-relaxed text-accent-700">深色模式通过 CSS 变量切换实现，所有颜色 token 已定义在 <code class="rounded bg-white/60 px-1 font-mono text-[10px]">index.css</code> 的 <code class="rounded bg-white/60 px-1 font-mono text-[10px]">@theme</code> 中，只需新增 <code class="rounded bg-white/60 px-1 font-mono text-[10px]">[data-theme="dark"]</code> 覆盖层。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- 底部说明 -->
+<footer class="border-t border-neutral-200 bg-white/50 mt-8">
+  <div class="max-w-[1400px] mx-auto px-6 py-6 text-center">
+    <p class="text-xs text-neutral-400">Opera 前端优化预览 · 点击顶部 Tab 切换场景 · 点击"现状 / 优化后"对比差异</p>
+    <p class="mt-1 text-[10px] text-neutral-300">橙色虚线框 = 改动点 · 改动点编号与摘要条一一对应</p>
+  </div>
+</footer>
+
+<script>
+(function() {
+  // 场景切换
+  const tabs = document.querySelectorAll('.nav-tab');
+  const scenes = document.querySelectorAll('.scene');
+  const diffTags = document.querySelectorAll('.scene-diff');
+
+  function switchScene(name) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.scene === name));
+    scenes.forEach(s => s.classList.toggle('active', s.id === 'scene-' + name));
+    diffTags.forEach(d => {
+      const match = d.dataset.for === name;
+      d.classList.toggle('hidden', !match);
+      d.classList.toggle('inline-flex', match);
+    });
+  }
+  tabs.forEach(t => t.addEventListener('click', () => switchScene(t.dataset.scene)));
+
+  // 现状/优化后切换
+  const modeToggle = document.getElementById('modeToggle');
+  const modeBtns = modeToggle.querySelectorAll('button');
+  const thumb = modeToggle.querySelector('.thumb');
+
+  function setMode(mode, animate) {
+    modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    const activeBtn = modeToggle.querySelector('button.active');
+    thumb.style.width = activeBtn.offsetWidth + 'px';
+    thumb.style.transform = 'translateX(' + (activeBtn.offsetLeft - 4) + 'px)';
+    scenes.forEach(s => s.dataset.mode = mode);
+  }
+  modeBtns.forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode, true)));
+
+  // 初始化 thumb 位置
+  window.addEventListener('load', () => setMode('before', false));
+  window.addEventListener('resize', () => setMode(document.querySelector('.mode-toggle button.active').dataset.mode, false));
+})();
+</script>
+</body>
+</html>

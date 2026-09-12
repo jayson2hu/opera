@@ -89,6 +89,17 @@ function applyEmoji(lines: string[], options: ComposerLayoutOptions) {
   });
 }
 
+/** 仅格式化正文（按 template / emoji / divider），用于预览展示 */
+export function formatComposerBody(body: string, options: ComposerLayoutOptions): string {
+  const rawLines = normalizeLines(body)
+    .flatMap(splitLongParagraph)
+    .map((line) => (options.keepTagsAtEnd ? stripHashTags(line) : line))
+    .filter(Boolean);
+  const templatedLines = applyEmoji(applyTemplate(rawLines, options), options);
+  const divider = options.useDividers ? '\n\n—\n\n' : '\n\n';
+  return templatedLines.join(divider);
+}
+
 export function formatComposerText({
   title,
   body,
@@ -101,13 +112,7 @@ export function formatComposerText({
   options: ComposerLayoutOptions;
 }) {
   const normalizedTitle = title.trim();
-  const rawLines = normalizeLines(body)
-    .flatMap(splitLongParagraph)
-    .map((line) => (options.keepTagsAtEnd ? stripHashTags(line) : line))
-    .filter(Boolean);
-  const templatedLines = applyEmoji(applyTemplate(rawLines, options), options);
-  const divider = options.useDividers ? '\n\n—\n\n' : '\n\n';
-  const content = templatedLines.join(divider);
+  const content = formatComposerBody(body, options);
   const cleanTags = uniqueTags(tags);
   const tagBlock = options.keepTagsAtEnd && cleanTags.length ? cleanTags.map((tag) => `#${tag}`).join(' ') : '';
 

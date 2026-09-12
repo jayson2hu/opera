@@ -22,7 +22,7 @@ services:
     build:
       context: ./opera-app
       args:
-        VITE_API_BASE_URL: ""
+        VITE_API_BASE_URL: "${VITE_API_BASE_URL:-}"
     container_name: opera-frontend
     depends_on:
       backend:

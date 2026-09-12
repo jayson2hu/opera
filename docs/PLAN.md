@@ -2,6 +2,11 @@
 
 Status date: 2026-04-28
 
+> **Superseded verification note (2026-07-29):** This plan is historical. Its live
+> provider E2E and Docker statements are not current release evidence. Use
+> [`docs/RELEASE-READINESS.md`](RELEASE-READINESS.md) for the authoritative test and
+> go/no-go status.
+
 ## Completed
 
 - Consolidated project documentation under `docs/`.
@@ -41,7 +46,8 @@ Status date: 2026-04-28
 ## Still Open
 
 - Live provider E2E.
-  Status: completed. The E2E script now uses clean stable sample inputs and passed for `/api/generate`, `/api/compose`, and `/api/wechat/compose`.
+  Status: not rerun in the current review; it requires configured credentials and can
+  consume provider quota. See `docs/RELEASE-READINESS.md`.
 - Historical document encoding repair.
   Status: completed for this pass. Added clean archive/feature indexes and reliability notes; unrecoverable original mojibake was left unchanged to avoid inventing historical content.
 - Local shell cleanup.

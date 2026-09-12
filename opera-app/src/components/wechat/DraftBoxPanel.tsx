@@ -17,12 +17,12 @@ const STATUS_COPY = {
   not_saved: {
     label: '未保存',
     badgeClass: 'bg-neutral-100 text-neutral-600',
-    description: '当前编辑内容还没有进入本地待同步草稿箱。',
+    description: '当前编辑内容还没有保存到本地草稿箱。',
   },
   queued: {
-    label: '待同步',
+    label: '已保存本地',
     badgeClass: 'bg-emerald-100 text-emerald-700',
-    description: '内容已保存到本地草稿箱。当前版本不会自动同步到真实公众号后台。',
+    description: '内容只保存在当前浏览器，不会上传或自动同步到公众号后台。',
   },
 } as const;
 
@@ -45,13 +45,13 @@ export default function DraftBoxPanel({
   const current = STATUS_COPY[currentStatus];
 
   return (
-    <aside className="space-y-4 rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-white to-white p-5 shadow-card">
+    <aside className="space-y-4 rounded-[28px] border border-emerald-100 bg-gradient-to-br from-emerald-50 via-neutral-50 to-neutral-50 p-5 shadow-card">
       <div className="space-y-3">
         <div className="flex items-center justify-between gap-3">
           <div>
             <p className="text-sm font-semibold text-neutral-800">本地草稿箱</p>
             <p className="mt-1 text-xs leading-6 text-neutral-500">
-              V1 只保存到浏览器本地，后续接入公众号账号后再同步到官方草稿箱。
+              草稿只保存在当前浏览器；清理浏览器数据后可能丢失。
             </p>
           </div>
           <span className={`rounded-full px-3 py-1 text-xs font-semibold ${current.badgeClass}`}>
@@ -75,7 +75,7 @@ export default function DraftBoxPanel({
             ? 'inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-emerald-500 to-green-500 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-emerald-500/20 transition-all hover:-translate-y-0.5 hover:shadow-xl cursor-pointer'
             : 'inline-flex items-center justify-center rounded-2xl bg-neutral-200 px-4 py-3 text-sm font-semibold text-neutral-400 cursor-not-allowed'}
         >
-          保存到草稿箱
+          保存到本地草稿
         </button>
         <CopyButton text={fullText} size="md" label="复制待发布全文" className="justify-center rounded-2xl px-4 py-3" />
         {onConvertToAdapter && (
@@ -97,7 +97,7 @@ export default function DraftBoxPanel({
 
         {drafts.length === 0 ? (
           <div className="rounded-2xl border border-dashed border-emerald-200 bg-white/70 p-4 text-sm leading-6 text-neutral-500">
-            还没有待同步草稿。先生成一篇文章，再保存到草稿箱。
+            还没有本地草稿。先生成一篇文章，再保存到本地。
           </div>
         ) : (
           <div className="space-y-3">
@@ -118,7 +118,7 @@ export default function DraftBoxPanel({
                       <p className="mt-1 text-xs leading-6 text-neutral-500">{draft.digest || '已保存正文，可稍后继续补充摘要。'}</p>
                     </div>
                     <span className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-medium text-emerald-700">
-                      待同步
+                      已保存本地
                     </span>
                   </div>
 
