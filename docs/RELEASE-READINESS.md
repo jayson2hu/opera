@@ -1,18 +1,25 @@
 # Release Readiness
 
-## Ubuntu / Docker acceptance checkpoint — 2026-09-12
+## Final Ubuntu / Docker recheck — 2026-09-12
 
 **Engineering checks passed; final release remains NO-GO pending live-provider and
 native-device acceptance.** This checkpoint supersedes the earlier Docker/browser
-deferral, not the outstanding release gates. See the [current acceptance report](ACCEPTANCE-2026-09-12.md)
-and [machine-readable evidence](acceptance/2026-09-12-results.json).
+deferral, not the outstanding release gates. See the [current acceptance report](ACCEPTANCE-2026-09-12-RECHECK.md)
+and [machine-readable evidence](acceptance/2026-09-12-recheck.json).
 
 - Frontend: 136 tests / 20 files, ESLint, TypeScript/Vite passed.
-- Backend: 173 application tests plus 4 runner-safety tests; combined 177 passed.
+- Backend: 180 application tests, 5 dependency-lock tests and 4 runner-safety tests;
+  combined 189 passed on Python 3.12. Dependency compatibility/closure and Ruff passed.
+- Frontend clean install/audit: 0 known vulnerabilities including development dependencies
+  at the time of this check. Backend runtime image installed from a hash-checked lock.
 - Docker production images built and started: direct API 67/67, Nginx proxy 69/69.
 - Chromium interaction: 30/30 groups; browser → Docker → fixture journeys: 3/3.
-- Ten product/deployment defect groups fixed and rechecked. CI now includes Ruff,
-  image build/start and HTTP/proxy acceptance; remote CI has not run for these uncommitted changes.
+- The first ten defect groups and seven additional empty-output regression cases are
+  closed. Tested source commit: `f724cd7`; 170 source/config file hashes match the snapshot.
+- CI now includes dependency gates, image build/start, HTTP/proxy, Chromium mock/integration
+  and 14-day evidence artifacts. This recheck did not push or claim remote CI success.
+- Run-owned Docker resources and temporary filesystem assets are cleaned after compact
+  evidence archival; existing user environments and unrelated resources are preserved.
 - Paid live providers, native Safari/iOS and physical IME remain unverified.
   No unauthenticated public/SaaS release is approved.
 

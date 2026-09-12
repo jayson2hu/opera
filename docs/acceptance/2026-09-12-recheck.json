@@ -1,0 +1,294 @@
+{
+  "schemaVersion": 1,
+  "capturedAtUtc": "2026-09-12T05:56:06.300Z",
+  "codeCommit": "f724cd70e57b5f6fe1abddd86a13c81d3d3b5a5a",
+  "repository": "https://github.com/jayson2hu/opera",
+  "engineeringDecision": "PASS: Ubuntu local/private deployment engineering acceptance",
+  "releaseDecision": "NO-GO pending real-provider content quality and native-device acceptance",
+  "realModelCalls": 0,
+  "remoteCiForCodeCommit": "Not executed or claimed by this recheck; no push performed",
+  "environment": {
+    "os": "Ubuntu 22.04.3 LTS",
+    "node": "22.22.2",
+    "npm": "10.9.7",
+    "pythonTest": "3.12.13",
+    "pythonContainer": "3.12.14",
+    "nativeHttpRunnerPython": "3.14.5",
+    "dockerEngine": "29.1.3",
+    "compose": "2.40.3",
+    "buildx": "0.30.1",
+    "playwright": "1.63.0",
+    "chromiumHeadlessShell": "153.0.8010.12"
+  },
+  "sourceFingerprint": {
+    "file": "2026-09-12-recheck.sha256",
+    "fileCount": 170,
+    "sha256": "6ec018111c1841a770006a6d7d489508078c89009889600a42fb85512c99b6e4",
+    "scope": "Tracked/nonignored frontend, backend, acceptance assets, Compose and CI files; excludes docs/",
+    "command": "git ls-files --cached --others --exclude-standard -z opera-app opera-server-py tests docker-compose.yml .github/workflows/ci.yml | sort -zu | xargs -0 sha256sum",
+    "verifiedAgainstCodeCommit": true,
+    "matchedRunningBackendPythonFiles": 23,
+    "frontendBuildNote": "Docker acceptance exercised the final pinned-Nginx production bundle directly. Separate local/container builds were not byte-identical; no bit-for-bit build reproducibility claim is made."
+  },
+  "frontend": {
+    "environment": {
+      "node": "22.22.2",
+      "npm": "10.9.7",
+      "vitest": "4.1.11"
+    },
+    "packageSha256": "0fe0eb384f6bc135e58780d6cd392269c6c3dbcd6e3360aeba42ef62e16975df",
+    "lockSha256": "589f6cdc5f0a2773fe711f618b4b1074816bd844b90d9ced42c51bf47f55faa5",
+    "sourceManifestSha256": "5f420ec76aa1af296da04a36899d6cf957ecccdef7485d13beb0aa1940518a6a",
+    "sourceManifestCommand": "rg --files src public | sort | xargs sha256sum | sha256sum",
+    "cleanInstall": {
+      "command": "npm ci --fetch-timeout=15000 --fetch-retries=0 --cache /tmp/opera-frontend-deps.KtZjbX/npm-cache",
+      "startedAtUtc": "2026-09-12T05:17:28.750Z",
+      "reportedDurationSeconds": 39,
+      "installedPackages": 197,
+      "auditedPackages": 198,
+      "vulnerabilities": 0,
+      "exitCode": 0,
+      "debugLog": "/tmp/opera-frontend-deps.KtZjbX/npm-cache/_logs/2026-09-12T05_17_28_750Z-debug-0.log"
+    },
+    "tests": {
+      "command": "npm test",
+      "startedAtUtc": "2026-09-12T05:18:24Z",
+      "reportedDurationSeconds": 50.55,
+      "passedFiles": 20,
+      "passedTests": 136,
+      "exitCode": 0,
+      "outputCapture": "Tool transcript only; no standalone stdout log was created."
+    },
+    "lint": {
+      "command": "npm run lint",
+      "exitCode": 0,
+      "outputCapture": "Tool transcript only; no standalone stdout log or exact UTC timing was created."
+    },
+    "build": {
+      "command": "npm run build",
+      "exitCode": 0,
+      "artifactModifiedAtUtc": "2026-09-12T05:19:52.432Z",
+      "viteReportedDurationSeconds": 24.37,
+      "javascriptKilobytes": 396.59,
+      "javascriptGzipKilobytes": 116.06,
+      "outputCapture": "Tool transcript only; artifact timestamp is not an exact command completion timestamp."
+    },
+    "frontendSourceOrPackageWritesByThisAgent": false
+  },
+  "backend": {
+    "verifiedAtUtc": "2026-09-12 05:49:10 UTC",
+    "tests": {
+      "passed": 189,
+      "failed": 0,
+      "application": 180,
+      "dependencyLockUnitTests": 5,
+      "acceptanceRunner": 4,
+      "warnings": 1,
+      "durationSeconds": 7.76,
+      "warning": "Upstream Starlette imports the deprecated anyio.abc.BlockingPortal alias."
+    },
+    "pipCheck": {
+      "status": "passed",
+      "output": "No broken requirements found."
+    },
+    "lockChecker": {
+      "status": "passed",
+      "runtimePackages": 24,
+      "developmentPackages": 33
+    },
+    "ruff": {
+      "status": "passed",
+      "version": "0.16.7",
+      "config": "opera-server-py/pyproject.toml",
+      "targets": [
+        "app",
+        "tests",
+        "scripts",
+        "../tests/acceptance"
+      ]
+    },
+    "environmentProvenance": {
+      "runtime": {
+        "reused": true,
+        "sourceContainer": "opera-verify-oxusg4-backend-1",
+        "sourcePython": "3.12.14",
+        "sourcePath": "/usr/local/lib/python3.12/site-packages",
+        "sourceVerification": "Parent completed Docker installation from requirements.lock with --require-hashes --only-binary=:all: and pip check.",
+        "copiedReadOnly": true
+      },
+      "ruff": {
+        "reused": true,
+        "source": "opera-server-py/.venv",
+        "version": "0.16.7",
+        "completePackageAndRealDistInfoCopied": true,
+        "metadataEdited": false,
+        "wheelHashRevalidatedInThisRun": false
+      },
+      "otherDevelopmentDependencies": {
+        "installedWith": "pip install --require-hashes --only-binary=:all: -r requirements-dev.lock",
+        "hashValidated": true
+      },
+      "testExecution": "Outside the restricted sandbox because TestClient event-loop startup hangs inside the sandbox; both Python 3.14.5 and 3.12.13 pass outside it."
+    },
+    "sourceSha256": {
+      "app/routes/compose.py": "6e8d0fb7a071c172d6563a41399e17458f870db9095a882de65d7213f3168c3c",
+      "app/routes/generate.py": "e3da962f744a11953e1399bea4872fa38e067938266aa7f60c79050d4b928975",
+      "app/routes/_shared.py": "f227630a8daaeaccedd3d5e737644c2a19b3386f7bb499101edb8be86faa7fc7",
+      "app/providers/anthropic_provider.py": "d8caf5066dc8b6d8d3b47f4aa92d326e22e29f02d5490bd4ddaad4321bb7aee3",
+      "app/providers/openai_compat_provider.py": "1b8ea8514d74a76497641c13a9591efa17a50ed228b4d6c37e7cfb468bcfcb6e",
+      "tests/test_generation_integrity.py": "aafaa73eea1ea10abdb647590c817041fc5a6bbf1a2e2ee35b0107581eddf05e",
+      "tests/test_api_contract.py": "9f88a00867963967d4fd2133c017668293d60e545abb1a156fab7be954641e0d",
+      "pyproject.toml": "994309c08425780dcccbe311ad3547d7ab0363c57e4c8da28dfdbd8e06e5c4ae",
+      "requirements.lock": "7ea59997c971081849ada6718b05561ed160a247032f08c77f164112266dc6bc",
+      "requirements-dev.lock": "04c671d6a6876339c7740bef86b7b6ac762dfdb1a94cb63e234fce2a36f4c8bc",
+      "../tests/acceptance/test_http_acceptance.py": "645ec2dfd242148bb1c18a8b2c87ee36c329aa6c9a4a2ab9ec1e9ec632a2b4d0",
+      "scripts/check_dependency_locks.py": "fea48ca78008aac011c6026a85c05d2bcd623e84389e2917f9834be7e0e314af"
+    }
+  },
+  "http": {
+    "native": {
+      "passed": 67,
+      "total": 67,
+      "failed": 0,
+      "syntheticProviderCalls": 75,
+      "resultSha256": "e778769d84ece47f969f28a3cdebf9aad7c9f514ec964ca09496f582fe28dc3e"
+    },
+    "dockerBackend": {
+      "passed": 67,
+      "total": 67,
+      "failed": 0,
+      "syntheticProviderCalls": 75,
+      "resultSha256": "92b4c85c1ca2d2942fa079ff3af88169432954992af57b9105e820e4066a1943"
+    },
+    "dockerProxy": {
+      "passed": 69,
+      "total": 69,
+      "failed": 0,
+      "syntheticProviderCalls": 75,
+      "resultSha256": "7dce24fc7b54ab4044948bd47a64a909d1e91e964467b9d5e68d56f6ed58e056"
+    }
+  },
+  "browser": {
+    "startedAtUtc": "2026-09-12T05:39:32Z",
+    "finishedAtUtc": "2026-09-12T05:44:07Z",
+    "target": "Final production frontend at http://127.0.0.1:28080",
+    "mock": {
+      "passed": 30,
+      "total": 30,
+      "failed": 0,
+      "resultSha256": "92da1102b466747b6e055cd7b22be6ed2317cf431f345a0b56f0aa937809d8e6",
+      "checks": [
+        "B06-dark-button-contrast",
+        "B01-storage-getter",
+        "B02-paragraph-other-field-stale",
+        "B03-tags-ime",
+        "B04-clipboard-false",
+        "B05-paragraph-checkpoint-failure",
+        "M05-paragraph-accept-discard-stale-composer",
+        "M07-switch-page-aborts-composer",
+        "M13-output-matrix-composer",
+        "M05-paragraph-accept-discard-stale-wechat",
+        "M07-switch-page-aborts-wechat",
+        "M13-output-matrix-wechat",
+        "M05-paragraph-accept-discard-stale-adapter",
+        "M07-switch-page-aborts-adapter",
+        "M13-output-matrix-adapter",
+        "M01-M02-M03-M04-composer",
+        "M05-M06-M07-M08-M09-composer",
+        "M01-M02-M03-M04-wechat",
+        "M05-M06-M07-M08-M09-wechat",
+        "M01-M02-M03-M04-adapter",
+        "M05-M06-M07-M08-M09-adapter",
+        "M10-version-roundtrip",
+        "M11-storage-quota-navigation-backup",
+        "M11-external-modify",
+        "M11-external-delete",
+        "M12-delete-confirm-failure-and-clear",
+        "M13-layout-theme-keyboard-matrix",
+        "M14-copy-json-image-reselection",
+        "M14-card-select-export",
+        "M15-convert-preserves-both-existing-drafts"
+      ]
+    },
+    "integration": {
+      "passed": 3,
+      "total": 3,
+      "failed": 0,
+      "resultSha256": "a766fbb232c261799c340891e51751ea86205dd53be1f57f8320ac8f5fbd9815",
+      "checks": [
+        "integration-generation-delivery-composer",
+        "integration-generation-delivery-wechat",
+        "integration-generation-delivery-adapter"
+      ]
+    },
+    "screenshotStabilization": "Disabled finite animations for screenshots and reset matrix scroll position; no product CSS change required.",
+    "nativeDevicesVerified": false,
+    "physicalImeVerified": false
+  },
+  "docker": {
+    "project": "opera-verify-oxusg4",
+    "builder": "opera-verify-oxusg4",
+    "finalImageIds": {
+      "backend": "sha256:bee844e5df6c2d1705cfec4b8a51866377719e1adef6b1e5aff928299fc3e5d5",
+      "frontend": "sha256:6f0521018e60ea12b8a06c9b90f3b059b030de0abb1e0c77639e0bab5106552d"
+    },
+    "nginxBase": "nginx:1.30.4-alpine@sha256:dc5069ad14f19660b141b21236140b91656bf89bbc3e2417c70ae650cd66104c",
+    "health": {
+      "services": 3,
+      "healthy": 3,
+      "backendPipCheck": "passed",
+      "nginxConfig": "passed",
+      "loopbackBindingsVerified": true
+    },
+    "composeContract": "passed without real .env or provider credentials",
+    "runtimeInstall": "pip install --require-hashes --only-binary=:all: -r requirements.lock",
+    "assets": [
+      {
+        "file": "index-Doe1HU38.css",
+        "bytes": 86235,
+        "sha256": "7645014d7090fefa21c3ef37053e989ed076bdf582e004a35c79b3064de57531"
+      },
+      {
+        "file": "index-09uKYfMb.js",
+        "bytes": 396591,
+        "sha256": "06bc89e5a623688315f54ccb7c4aaf35824fa0e4c424578cab817f448f3ec84d"
+      }
+    ]
+  },
+  "cleanup": {
+    "dockerCompletedAtUtc": "2026-09-12T05:49:04Z",
+    "removedDockerResources": [
+      "3 project containers",
+      "2 final project image tags",
+      "1 unused initial frontend image",
+      "1 project network",
+      "1 dedicated builder including its container, state volume and cache"
+    ],
+    "noProjectResourcesRemain": true,
+    "portsReleased": [
+      23101,
+      28080,
+      28081,
+      28180
+    ],
+    "filesystemStatus": "Completed; all six run-owned temporary directories verified absent",
+    "filesystemCompletedAtUtc": "2026-09-12T05:59:37.126Z",
+    "removedTemporaryDiskBytes": 1080111104,
+    "ownedTemporaryDirectories": [
+      "/tmp/opera-verify.oxuSg4",
+      "/tmp/opera-frontend-deps.KtZjbX",
+      "/tmp/opera-frontend-acceptance-dist",
+      "/tmp/opera-ui-probe.9qk8ex",
+      "/tmp/opera-backend-review.LYMQ0y",
+      "/tmp/playwright-download-nmqtPM"
+    ],
+    "retained": "Compact JSON and source manifest, acceptance scripts, existing user files/development environments, unrelated Docker resources and shared base images",
+    "rawArtifactPolicy": "Large raw logs, screenshots, browser profiles, synthetic draft/image downloads and temporary build artifacts are removed after archival. Raw-result hashes above identify the summarized outputs; raw outputs are not committed."
+  },
+  "remainingReleaseGates": [
+    "Configured real-provider end-to-end content-quality acceptance",
+    "Native Safari/iOS and physical OS Chinese IME acceptance",
+    "Remote CI confirmation after an authorized push"
+  ],
+  "exposureBoundary": "No unauthenticated public/SaaS release approved"
+}

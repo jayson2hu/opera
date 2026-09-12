@@ -4,7 +4,8 @@ This directory is the canonical documentation location for the project.
 
 ## Current Docs
 
-- [ACCEPTANCE-2026-09-12.md](ACCEPTANCE-2026-09-12.md): **最新验收结果**，Ubuntu/Docker/Chromium 实测、修复、架构对照和清理边界。
+- [ACCEPTANCE-2026-09-12-RECHECK.md](ACCEPTANCE-2026-09-12-RECHECK.md): **最新验收结果**，`f724cd7` 的 Ubuntu/Docker/Chromium 复验、189 项后端测试、依赖检查、源码指纹与清理记录。
+- [ACCEPTANCE-2026-09-12.md](ACCEPTANCE-2026-09-12.md): 首轮验收历史记录，保留 10 类缺陷、架构对照和验收边界；最新结果见复验报告。
 - [PROGRESS-2026-09-12.md](PROGRESS-2026-09-12.md): 进展归档、推送前复测、远程同步范围与待验收项；推送不代表发布完成。
 - [PRODUCT-IMPROVEMENT-IMPLEMENTATION.md](PRODUCT-IMPROVEMENT-IMPLEMENTATION.md): **2026-09-10 当前实施状态**，设计冲突取舍、问题台账、自动化结果和剩余验收。
 - [DRAFT-WORKSPACE-CONTRACT.md](DRAFT-WORKSPACE-CONTRACT.md): 本轮草稿/候选/局部生成契约、数据范围及手工验收步骤。
