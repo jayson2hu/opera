@@ -1,0 +1,503 @@
+{
+  "date": "2026-09-12",
+  "testedCommit": "f724cd70e57b5f6fe1abddd86a13c81d3d3b5a5a",
+  "baselineCommit": "a9728fa",
+  "decision": "engineering acceptance passed; live-provider/native-device release gates remain open",
+  "remotePushed": false,
+  "remoteCiExecuted": false,
+  "commitAuthor": "Opera Acceptance Agent <opera-acceptance@localhost>",
+  "sourceVerification": {
+    "commit": "f724cd70e57b5f6fe1abddd86a13c81d3d3b5a5a",
+    "filesCompared": 151,
+    "mismatches": 0,
+    "scope": [
+      "opera-app",
+      "opera-server-py/app",
+      "opera-server-py/requirements.lock",
+      "opera-server-py/Dockerfile",
+      "docker-compose.yml",
+      "tests/acceptance/compose.yml",
+      "tests/acceptance/http_acceptance.py"
+    ],
+    "fingerprintMethod": "SHA-256 over each lexicographically sorted Git path, NUL, file bytes, NUL; files selected with git ls-tree -r --name-only on the listed scope.",
+    "sourceFingerprintSha256": "ffd2182d4c5044cf3044554513374c5775a15087304d704c2fd10408ac5fe1ca"
+  },
+  "frontend": {
+    "postCommit": true,
+    "tests": {
+      "files": 20,
+      "passed": 136,
+      "failed": 0,
+      "vitest": "4.1.11"
+    },
+    "lint": "passed",
+    "build": "passed",
+    "auditBefore": {
+      "low": 1,
+      "moderate": 4,
+      "high": 3,
+      "critical": 0,
+      "total": 8
+    },
+    "auditAfterIncludingDev": {
+      "low": 0,
+      "moderate": 0,
+      "high": 0,
+      "critical": 0,
+      "total": 0
+    },
+    "auditedDependencyCount": 230,
+    "lockfileSha256": "589f6cdc5f0a2773fe711f618b4b1074816bd844b90d9ced42c51bf47f55faa5",
+    "lockfileUpdates": [
+      {
+        "package": "@babel/core",
+        "before": "7.29.0",
+        "after": "7.29.7",
+        "advisory": "https://github.com/advisories/GHSA-4x5r-pxfx-6jf8"
+      },
+      {
+        "package": "@humanfs/node",
+        "before": "0.16.7",
+        "after": "0.16.8",
+        "advisory": "https://github.com/advisories/GHSA-p498-v437-472g"
+      },
+      {
+        "package": "@vitest/mocker",
+        "before": "4.1.10",
+        "after": "4.1.11",
+        "advisory": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9"
+      },
+      {
+        "package": "vitest",
+        "before": "4.1.10",
+        "after": "4.1.11",
+        "advisory": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9"
+      },
+      {
+        "package": "baseline-browser-mapping",
+        "before": "2.10.12",
+        "after": "2.11.22",
+        "advisory": "https://github.com/advisories/GHSA-w5vr-8v7q-w6rv"
+      },
+      {
+        "package": "brace-expansion",
+        "before": "5.0.8",
+        "after": "5.0.9",
+        "advisory": "https://github.com/advisories/GHSA-rgw5-rvv9-x895"
+      },
+      {
+        "package": "browserslist",
+        "before": "4.28.1",
+        "after": "4.28.9",
+        "advisories": [
+          "https://github.com/advisories/GHSA-c83g-rgw3-j3cx",
+          "https://github.com/advisories/GHSA-73wf-gq98-2v4g"
+        ]
+      },
+      {
+        "package": "nanoid",
+        "before": "3.3.16",
+        "after": "3.3.19",
+        "advisory": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
+      }
+    ],
+    "installNpmVersion": "10.9.7",
+    "temporaryLockGeneratorNpmVersion": "12.0.2",
+    "productionArtifacts": {
+      "buildApiBase": "",
+      "hostAndDockerBytesIdentical": true,
+      "htmlSha256": "055fc4a88526070e799cf7afc0a378c0a45f3cbdaea9fb49c43f99e9fd8171c4",
+      "cssSha256": "7645014d7090fefa21c3ef37053e989ed076bdf582e004a35c79b3064de57531",
+      "javascriptSha256": "06bc89e5a623688315f54ccb7c4aaf35824fa0e4c424578cab817f448f3ec84d",
+      "javascriptBytes": 396591,
+      "note": "Unspecified versus empty VITE_API_BASE_URL produced an equivalent four-byte JS difference. Rebuilding the committed source with the production empty build argument made HTML/JS byte-identical to Docker; CSS was already identical."
+    }
+  },
+  "backend": {
+    "postCommit": true,
+    "python": "3.12.14",
+    "tests": {
+      "passed": 189,
+      "failed": 0,
+      "errors": 0,
+      "skipped": 0,
+      "seconds": 11.19,
+      "warnings": 1
+    },
+    "counts": {
+      "application": 180,
+      "dependencyLockRegressions": 5,
+      "runnerSafety": 4
+    },
+    "dependencyLockCheck": {
+      "passed": true,
+      "runtimePackages": 24,
+      "developmentPackages": 33
+    },
+    "runtimeLockSha256": "7ea59997c971081849ada6718b05561ed160a247032f08c77f164112266dc6bc",
+    "devLockSha256": "04c671d6a6876339c7740bef86b7b6ac762dfdb1a94cb63e234fce2a36f4c8bc",
+    "pipCheck": "No broken requirements found.",
+    "ruff": {
+      "version": "0.16.7",
+      "passed": true
+    },
+    "remainingWarning": "Starlette 1.6.0 testclient.py:53 uses the deprecated anyio.abc.BlockingPortal alias; warning retained without filtering or dependency downgrade.",
+    "devInstall": "Temporary uv 0.11.16, Python 3.12 target, require-hashes, binary wheels only; mounted read-only into Python 3.12 Docker.",
+    "productionInstall": "Dockerfile pip install --require-hashes --only-binary=:all: -r requirements.lock"
+  },
+  "http": {
+    "postCommit": true,
+    "direct": {
+      "total": 67,
+      "passed": 67,
+      "failures": [],
+      "providerCalls": 75,
+      "checks": [
+        "health",
+        "not_found",
+        "providers_no_secrets",
+        "cors_True",
+        "cors_False",
+        "/api/generate:broken_json",
+        "/api/generate:array_json",
+        "/api/generate:invalid_utf8",
+        "/api/generate/continue:broken_json",
+        "/api/generate/continue:array_json",
+        "/api/generate/continue:invalid_utf8",
+        "/api/compose:broken_json",
+        "/api/compose:array_json",
+        "/api/compose:invalid_utf8",
+        "/api/wechat/compose:broken_json",
+        "/api/wechat/compose:array_json",
+        "/api/wechat/compose:invalid_utf8",
+        "/api/rewrite-paragraph:broken_json",
+        "/api/rewrite-paragraph:array_json",
+        "/api/rewrite-paragraph:invalid_utf8",
+        "deepseek:/api/compose:full_flow",
+        "deepseek:/api/compose:sse_headers",
+        "deepseek:/api/compose:incremental_stream",
+        "deepseek:/api/compose:stub-truncated",
+        "deepseek:/api/compose:stub-error",
+        "deepseek:/api/wechat/compose:full_flow",
+        "deepseek:/api/wechat/compose:sse_headers",
+        "deepseek:/api/wechat/compose:incremental_stream",
+        "deepseek:/api/wechat/compose:stub-truncated",
+        "deepseek:/api/wechat/compose:stub-error",
+        "deepseek:generate_pause",
+        "deepseek:generate_continue",
+        "deepseek:rewrite",
+        "anthropic:/api/compose:full_flow",
+        "anthropic:/api/compose:sse_headers",
+        "anthropic:/api/compose:incremental_stream",
+        "anthropic:/api/compose:stub-truncated",
+        "anthropic:/api/compose:stub-error",
+        "anthropic:/api/wechat/compose:full_flow",
+        "anthropic:/api/wechat/compose:sse_headers",
+        "anthropic:/api/wechat/compose:incremental_stream",
+        "anthropic:/api/wechat/compose:stub-truncated",
+        "anthropic:/api/wechat/compose:stub-error",
+        "anthropic:generate_pause",
+        "anthropic:generate_continue",
+        "anthropic:rewrite",
+        "openai:/api/compose:full_flow",
+        "openai:/api/compose:sse_headers",
+        "openai:/api/compose:incremental_stream",
+        "openai:/api/compose:stub-truncated",
+        "openai:/api/compose:stub-error",
+        "openai:/api/wechat/compose:full_flow",
+        "openai:/api/wechat/compose:sse_headers",
+        "openai:/api/wechat/compose:incremental_stream",
+        "openai:/api/wechat/compose:stub-truncated",
+        "openai:/api/wechat/compose:stub-error",
+        "openai:generate_pause",
+        "openai:generate_continue",
+        "openai:rewrite",
+        "/api/compose:current_title",
+        "/api/compose:current_body",
+        "/api/compose:current_tags",
+        "/api/wechat/compose:current_title",
+        "/api/wechat/compose:current_digest",
+        "/api/wechat/compose:current_body",
+        "model_allowlist",
+        "long_output_budget"
+      ],
+      "incrementalGapsMs": [
+        {
+          "name": "deepseek:/api/compose:incremental_stream",
+          "gapMs": 145.38
+        },
+        {
+          "name": "deepseek:/api/wechat/compose:incremental_stream",
+          "gapMs": 157.69
+        },
+        {
+          "name": "anthropic:/api/compose:incremental_stream",
+          "gapMs": 147.45
+        },
+        {
+          "name": "anthropic:/api/wechat/compose:incremental_stream",
+          "gapMs": 149.74
+        },
+        {
+          "name": "openai:/api/compose:incremental_stream",
+          "gapMs": 145.56
+        },
+        {
+          "name": "openai:/api/wechat/compose:incremental_stream",
+          "gapMs": 149.14
+        }
+      ]
+    },
+    "proxy": {
+      "total": 69,
+      "passed": 69,
+      "failures": [],
+      "providerCalls": 75,
+      "checks": [
+        "health",
+        "not_found",
+        "providers_no_secrets",
+        "frontend_html",
+        "frontend_javascript",
+        "cors_True",
+        "cors_False",
+        "/api/generate:broken_json",
+        "/api/generate:array_json",
+        "/api/generate:invalid_utf8",
+        "/api/generate/continue:broken_json",
+        "/api/generate/continue:array_json",
+        "/api/generate/continue:invalid_utf8",
+        "/api/compose:broken_json",
+        "/api/compose:array_json",
+        "/api/compose:invalid_utf8",
+        "/api/wechat/compose:broken_json",
+        "/api/wechat/compose:array_json",
+        "/api/wechat/compose:invalid_utf8",
+        "/api/rewrite-paragraph:broken_json",
+        "/api/rewrite-paragraph:array_json",
+        "/api/rewrite-paragraph:invalid_utf8",
+        "deepseek:/api/compose:full_flow",
+        "deepseek:/api/compose:sse_headers",
+        "deepseek:/api/compose:incremental_stream",
+        "deepseek:/api/compose:stub-truncated",
+        "deepseek:/api/compose:stub-error",
+        "deepseek:/api/wechat/compose:full_flow",
+        "deepseek:/api/wechat/compose:sse_headers",
+        "deepseek:/api/wechat/compose:incremental_stream",
+        "deepseek:/api/wechat/compose:stub-truncated",
+        "deepseek:/api/wechat/compose:stub-error",
+        "deepseek:generate_pause",
+        "deepseek:generate_continue",
+        "deepseek:rewrite",
+        "anthropic:/api/compose:full_flow",
+        "anthropic:/api/compose:sse_headers",
+        "anthropic:/api/compose:incremental_stream",
+        "anthropic:/api/compose:stub-truncated",
+        "anthropic:/api/compose:stub-error",
+        "anthropic:/api/wechat/compose:full_flow",
+        "anthropic:/api/wechat/compose:sse_headers",
+        "anthropic:/api/wechat/compose:incremental_stream",
+        "anthropic:/api/wechat/compose:stub-truncated",
+        "anthropic:/api/wechat/compose:stub-error",
+        "anthropic:generate_pause",
+        "anthropic:generate_continue",
+        "anthropic:rewrite",
+        "openai:/api/compose:full_flow",
+        "openai:/api/compose:sse_headers",
+        "openai:/api/compose:incremental_stream",
+        "openai:/api/compose:stub-truncated",
+        "openai:/api/compose:stub-error",
+        "openai:/api/wechat/compose:full_flow",
+        "openai:/api/wechat/compose:sse_headers",
+        "openai:/api/wechat/compose:incremental_stream",
+        "openai:/api/wechat/compose:stub-truncated",
+        "openai:/api/wechat/compose:stub-error",
+        "openai:generate_pause",
+        "openai:generate_continue",
+        "openai:rewrite",
+        "/api/compose:current_title",
+        "/api/compose:current_body",
+        "/api/compose:current_tags",
+        "/api/wechat/compose:current_title",
+        "/api/wechat/compose:current_digest",
+        "/api/wechat/compose:current_body",
+        "model_allowlist",
+        "long_output_budget"
+      ],
+      "incrementalGapsMs": [
+        {
+          "name": "deepseek:/api/compose:incremental_stream",
+          "gapMs": 150.1
+        },
+        {
+          "name": "deepseek:/api/wechat/compose:incremental_stream",
+          "gapMs": 142.61
+        },
+        {
+          "name": "anthropic:/api/compose:incremental_stream",
+          "gapMs": 147.4
+        },
+        {
+          "name": "anthropic:/api/wechat/compose:incremental_stream",
+          "gapMs": 144.77
+        },
+        {
+          "name": "openai:/api/compose:incremental_stream",
+          "gapMs": 150.02
+        },
+        {
+          "name": "openai:/api/wechat/compose:incremental_stream",
+          "gapMs": 150.2
+        }
+      ]
+    }
+  },
+  "browser": {
+    "postCommit": true,
+    "mock": {
+      "total": 30,
+      "passed": 30,
+      "checks": [
+        "B06-dark-button-contrast",
+        "B01-storage-getter",
+        "B02-paragraph-other-field-stale",
+        "B03-tags-ime",
+        "B04-clipboard-false",
+        "B05-paragraph-checkpoint-failure",
+        "M05-paragraph-accept-discard-stale-composer",
+        "M07-switch-page-aborts-composer",
+        "M13-output-matrix-composer",
+        "M05-paragraph-accept-discard-stale-wechat",
+        "M07-switch-page-aborts-wechat",
+        "M13-output-matrix-wechat",
+        "M05-paragraph-accept-discard-stale-adapter",
+        "M07-switch-page-aborts-adapter",
+        "M13-output-matrix-adapter",
+        "M01-M02-M03-M04-composer",
+        "M05-M06-M07-M08-M09-composer",
+        "M01-M02-M03-M04-wechat",
+        "M05-M06-M07-M08-M09-wechat",
+        "M01-M02-M03-M04-adapter",
+        "M05-M06-M07-M08-M09-adapter",
+        "M10-version-roundtrip",
+        "M11-storage-quota-navigation-backup",
+        "M11-external-modify",
+        "M11-external-delete",
+        "M12-delete-confirm-failure-and-clear",
+        "M13-layout-theme-keyboard-matrix",
+        "M14-copy-json-image-reselection",
+        "M14-card-select-export",
+        "M15-convert-preserves-both-existing-drafts"
+      ]
+    },
+    "contrastRatios": [
+      {
+        "theme": "light",
+        "control": "backup",
+        "ratio": 14.05
+      },
+      {
+        "theme": "dark",
+        "control": "backup",
+        "ratio": 15.18
+      },
+      {
+        "theme": "dark",
+        "control": "apply",
+        "ratio": 7.91
+      },
+      {
+        "theme": "dark",
+        "control": "paragraph",
+        "ratio": 9.49
+      }
+    ],
+    "integration": {
+      "total": 3,
+      "passed": 3,
+      "checks": [
+        "integration-generation-delivery-composer",
+        "integration-generation-delivery-wechat",
+        "integration-generation-delivery-adapter"
+      ]
+    },
+    "engine": "Chromium Headless Shell 153.0.8010.12",
+    "playwright": "1.63.0",
+    "viewports": [
+      390,
+      860,
+      1440,
+      1920
+    ],
+    "themes": [
+      "light",
+      "dark"
+    ],
+    "outputScenarios": 24,
+    "configurationScenarios": 8,
+    "physicalIme": false,
+    "nativeSafari": false,
+    "exportedPng": {
+      "width": 1080,
+      "height": 1440
+    },
+    "runnerFilterGuards": {
+      "zeroMatchesExitCode": 1,
+      "invalidRegexExitCode": 1,
+      "verifiedBeforeCommit": true
+    }
+  },
+  "docker": {
+    "engine": "29.1.3",
+    "compose": "5.5.1",
+    "buildx": "0.37.0",
+    "project": "opera-final-d9q76n",
+    "backendImage": "sha256:1f8b1be9a25bd309aaaccdafa3b96e362498e96c15a527833e18c072e437ed1d",
+    "frontendImage": "sha256:8aefc15a123f0e08c9fa833f368b0967dbb4be2e592ea43fb03bd7cce086aeea",
+    "nginx": "1.30.4",
+    "nginxBase": "nginx:1.30.4-alpine@sha256:dc5069ad14f19660b141b21236140b91656bf89bbc3e2417c70ae650cd66104c",
+    "allServicesHealthy": true,
+    "boundAddress": "127.0.0.1",
+    "ports": [
+      13001,
+      18080,
+      18081
+    ],
+    "nginxConfiguration": "passed",
+    "pipCacheEntries": 0,
+    "backendPid1": "python -m uvicorn",
+    "gracefulShutdown": {
+      "exitCode": 0,
+      "seconds": 0.57
+    }
+  },
+  "realModelCalls": 0,
+  "cleanup": {
+    "completed": true,
+    "temporaryDirectoriesRemoved": [
+      "/tmp/opera-final-main.D9q76n",
+      "/tmp/opera-final-front.Cp7z4s",
+      "/tmp/opera-final-front-cache.Tzo3yE",
+      "/tmp/opera-final-back.IURSDh"
+    ],
+    "approximateTemporarySizeBeforeRemoval": "1.0 GiB",
+    "ownedRepoCachesRemoved": [
+      ".ruff_cache",
+      "tests/acceptance/__pycache__"
+    ],
+    "ownedNpmLogRemoved": "/root/.npm/_logs/2026-09-12T05_29_40_512Z-debug-0.log",
+    "testContainersRemaining": 0,
+    "testImagesRemaining": 0,
+    "testNetworksRemaining": 0,
+    "testVolumesRemaining": 0,
+    "testBuilderRemaining": false,
+    "testProcessesRemaining": 0,
+    "releasedPorts": [13001, 18080, 18081, 18090],
+    "originalContainerPreserved": "b8725b2ee145",
+    "originalFrontendDependenciesPreserved": true,
+    "originalBackendEnvironmentAndCachesPreserved": true,
+    "concurrentUnrelatedProjectResourcesPreserved": true,
+    "globalDockerAndNpmCachesNotPruned": true,
+    "baseImageRemovalSafety": "Initial deletion was deferred by auto-review. Baseline inventory proved the four images were newly pulled by this run; all four then had zero container references and the owned builder had been removed. Exact-ID, non-forced deletion was reapproved and succeeded."
+  }
+}
