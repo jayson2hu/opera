@@ -22,11 +22,23 @@ describe('UI exploration', () => {
     expect(html).toContain('选择 B：Agent Canvas');
   });
 
-  it('can deep-link to the AI-native dashboard prototype', () => {
-    stubWindow('?concept=b&screen=dashboard');
+  it.each([
+    ['a', 'login', 'Continue to your workspace', 'Signal Desk 设计规范'],
+    ['a', 'dashboard', 'Good morning, Yun.', 'Signal Desk 设计规范'],
+    ['a', 'workspace', 'Source &amp; direction', 'Signal Desk 设计规范'],
+    ['a', 'settings', 'Manage how Opera works for you.', 'Signal Desk 设计规范'],
+    ['b', 'login', 'What would you like', 'Agent Canvas 设计规范'],
+    ['b', 'dashboard', 'What will we create today?', 'Agent Canvas 设计规范'],
+    ['b', 'workspace', 'Confirm these ideas', 'Agent Canvas 设计规范'],
+    ['b', 'settings', 'Shape how Opera works with you.', 'Agent Canvas 设计规范'],
+    ['c', 'login', 'Ideas deserve', 'Opera Atelier 设计规范'],
+    ['c', 'dashboard', 'Make something', 'Opera Atelier 设计规范'],
+    ['c', 'workspace', 'THE NEW SCARCITY', 'Opera Atelier 设计规范'],
+    ['c', 'settings', 'Creative defaults', 'Opera Atelier 设计规范'],
+  ])('can deep-link to concept %s %s', (concept, screen, marker, spec) => {
+    stubWindow(`?concept=${concept}&screen=${screen}`);
     const html = renderToStaticMarkup(<UiExploration />);
-    expect(html).toContain('What will we create today?');
-    expect(html).toContain('Start a creation');
-    expect(html).toContain('Agent Canvas 设计规范');
+    expect(html).toContain(marker);
+    expect(html).toContain(spec);
   });
 });
