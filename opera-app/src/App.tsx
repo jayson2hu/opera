@@ -22,6 +22,7 @@ import AdapterPage from './pages/AdapterPage';
 import ComposerPage from './pages/ComposerPage';
 import Home from './pages/Home';
 import WeChatPage from './pages/WeChatPage';
+import UiExploration from './exploration/UiExploration';
 
 const VIEW_STORAGE_KEY = 'opera-view';
 const VALID_VIEWS: AppView[] = ['home', 'wechat', 'adapter', 'composer'];
@@ -44,6 +45,13 @@ function readInitialView(): AppView {
 }
 
 export default function App() {
+  const path = window.location.pathname.replace(/\/+$/, '') || '/';
+  if (path === '/explore') return <UiExploration />;
+
+  return <OperaWorkspace />;
+}
+
+function OperaWorkspace() {
   const [view, setView] = useState<AppView>(() => readInitialView());
   const [selectedProvider, setSelectedProvider] = useState<ProviderId | null>(null);
   const [selectedModel, setSelectedModel] = useState('');
@@ -191,8 +199,10 @@ export default function App() {
           <span className="text-xs text-neutral-300">
             Opera - 内容创作工具
           </span>
-          <span className="text-xs text-neutral-300">
-            无需登录 / 本地草稿
+          <span className="flex items-center gap-3 text-xs text-neutral-300">
+            <a className="transition-colors hover:text-primary-500" href="/explore">UI 设计探索</a>
+            <span aria-hidden="true">·</span>
+            <span>无需登录 / 本地草稿</span>
           </span>
         </div>
       </footer>

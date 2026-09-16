@@ -30,6 +30,13 @@ The canonical project documentation now lives at the repository root and in `doc
 
 3. Open `http://localhost:5173`
 
+### UI exploration prototype
+
+Phase 01 design exploration is available at `http://localhost:5173/explore`. It contains
+three switchable visual directions, four demo pages per direction, a comparison matrix,
+and the current recommendation. The prototype uses static data and does not call or alter
+the production creation flows.
+
 ## Build
 
 ```bash
