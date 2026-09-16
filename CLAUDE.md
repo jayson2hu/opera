@@ -127,20 +127,9 @@ Use the following files as the main project references:
 - `docs/RELEASE-READINESS.md` — current release gates and verification evidence
 - `docs/DEPLOYMENT.md` — supported local/Docker deployment and isolation
 - `docs/features/` — historical feature PRDs
-- `skills/` — Claude Code skill definitions
-- `skills-lock.json` — skill version lock file
 
 The old handoff files are archived under `docs/archive/`. Their earlier scope and
 test counts do not override the current implementation ledger and release gates.
-
-## Skills Context
-
-This repository includes Claude Code skills.
-
-Notable skill:
-- `decision-clarity` — used for product definition, scope reduction, and decision analysis
-
-Use skills to preserve the product boundary and reduce premature complexity. Do not use them to justify scope expansion beyond the validated MVP.
 
 ## Implementation Guidance
 
