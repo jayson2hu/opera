@@ -252,6 +252,10 @@ function ConceptCard({ concept, onOpen }: { concept: ConceptMeta; onOpen: () => 
       <PreviewPoster concept={concept.id} />
       <p>{concept.thesis}</p>
       <div className="concept-reference">Inspired by {concept.reference}</div>
+      <div className="concept-tradeoffs">
+        <div><span>优势</span><p>{concept.strengths.join(' · ')}</p></div>
+        <div><span>风险</span><p>{concept.risks.join(' · ')}</p></div>
+      </div>
       <div className="concept-colors">{concept.colors.map((color) => <i key={color} style={{ background: color }} title={color} />)}</div>
       <div className="concept-card-foot"><span>4 个可交互页面</span><button onClick={onOpen}>查看原型 <Icon name="arrow" size={14} /></button></div>
     </article>

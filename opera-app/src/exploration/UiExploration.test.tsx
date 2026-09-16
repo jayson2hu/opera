@@ -20,6 +20,9 @@ describe('UI exploration', () => {
     expect(html).toContain('Agent Canvas');
     expect(html).toContain('Opera Atelier');
     expect(html).toContain('选择 B：Agent Canvas');
+    expect(html).toContain('学习成本低');
+    expect(html).toContain('需要控制 Agent 自主边界');
+    expect(html).toContain('视觉实现与维护成本高');
   });
 
   it.each([
